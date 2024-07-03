@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { AppHelpers } from 'src/utils/helpers';
+import { AppUtilities } from '../utils/app.utilities';
 
 @Injectable()
 export class ErrorsInterceptor implements NestInterceptor {
@@ -14,7 +14,9 @@ export class ErrorsInterceptor implements NestInterceptor {
     return next
       .handle()
       .pipe(
-        catchError((err) => throwError(() => AppHelpers.handleException(err))),
+        catchError((err) =>
+          throwError(() => AppUtilities.handleException(err)),
+        ),
       );
   }
 }
