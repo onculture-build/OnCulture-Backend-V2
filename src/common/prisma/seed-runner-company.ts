@@ -33,12 +33,12 @@ promises.push(
     const Runner = new (await import(seedFilePath)).default(basePrisma);
 
     const runSeeder = async (
-      storePrisma: CompanyPrismaClient,
+      companyPrisma: CompanyPrismaClient,
       basePrismaClient?: PrismaClient,
       companyId?: string,
     ) => {
       try {
-        const runner = new Runner(storePrisma, basePrismaClient, companyId);
+        const runner = new Runner(companyPrisma, basePrismaClient, companyId);
         if (!(runner instanceof SeedRunner)) {
           throw new Error('--> seed file does not contain any runner.');
         }
@@ -49,7 +49,7 @@ promises.push(
         console.error('---> caught error! ', error);
         throw error;
       } finally {
-        await storePrisma.$disconnect();
+        await companyPrisma.$disconnect();
         console.log('---> done disconnecting client...');
       }
     };
@@ -62,7 +62,7 @@ promises.push(
     try {
       for (const { id } of companies) {
         console.log('---> running seed for company: ', id);
-        const storePrisma = new CompanyPrismaClient({
+        const companyPrisma = new CompanyPrismaClient({
           datasources: {
             db: {
               url: String(process.env.DATABASE_URL).replace(
@@ -73,7 +73,7 @@ promises.push(
           },
         });
 
-        await runSeeder(storePrisma, basePrisma, id);
+        await runSeeder(companyPrisma, basePrisma, id);
       }
       res(true);
     } catch (error) {
