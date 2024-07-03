@@ -7,7 +7,7 @@ import { AuthStrategyType } from '../interfaces';
 @Injectable()
 export class AppGuard extends AuthGuard(['jwt', 'local']) {
   constructor(protected reflector: Reflector) {
-    super(reflector, { accessType: 'offline' });
+    super(reflector);
   }
 
   canActivate(context: ExecutionContext) {
