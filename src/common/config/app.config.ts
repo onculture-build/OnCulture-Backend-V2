@@ -33,6 +33,13 @@ const appConfig = {
       )}`,
     ),
     timezone: env('TZ', 'Africa/Lagos'),
+    version: env('VERSION', '1.0.0'),
+  },
+  aws: {
+    S3Region: env('AWS_S3_REGION'),
+    S3Key: env('AWS_S3_ACCESS_KEY_ID'),
+    S3Secret: env('AWS_S3_ACCESS_KEY_SECRET'),
+    S3Bucket: env('AWS_S3_BUCKET'),
   },
   cloudinary: {
     name: env('CLOUDINARY_NAME'),
@@ -44,12 +51,7 @@ const appConfig = {
     key: env('PASSPHRASE'),
   },
   db: {
-    url:
-      env('NODE_ENV') === 'production'
-        ? env.require('MONGODB_URI_PROD')
-        : env.require('MONGODB_URI_DEV'),
-    name: env.require('DB_NAME'),
-    port: env('DB_PORT'),
+    url: env.require('DATABASE_URL'),
   },
   environment: env.require('NODE_ENV', 'development'),
   google: {
@@ -113,6 +115,23 @@ const appConfig = {
       scope: env('SLACK_USER_SCOPE'),
     },
   },
+  smtp: {
+    transport: {
+      host: env('SMTP_HOST'),
+      port: Number(env('SMTP_PORT', 587)),
+      secure: env('SMTP_SECURE') === 'true',
+      auth: {
+        user: env('SMTP_USER'),
+        pass: env('SMTP_PASSWORD'),
+      },
+    },
+    defaults: {
+      from: {
+        name: env('EMAIL_SENDER_NAME'),
+        address: env('EMAIL_SENDER_ADDRESS'),
+      },
+    },
+  },
   swagger: {
     user: {
       [env('SWAGGER_USER_NAME', 'onculture-admin')]: env(
@@ -122,11 +141,11 @@ const appConfig = {
     },
   },
   zoom: {
-    apiKey: env.require('ZOOM_API_KEY'),
-    apiSecret: env.require('ZOOM_API_SECRET'),
+    apiKey: env('ZOOM_API_KEY'),
+    apiSecret: env('ZOOM_API_SECRET'),
     chatToken: env('ZOOM_IM_CHAT_HISTORY_TOKEN'),
-    hostEmail: env.require('ZOOM_HOST_EMAIL'),
-    url: env.require('ZOOM_BASE_URL'),
+    hostEmail: env('ZOOM_HOST_EMAIL'),
+    url: env('ZOOM_BASE_URL'),
   },
 };
 

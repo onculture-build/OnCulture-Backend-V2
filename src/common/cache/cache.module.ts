@@ -18,6 +18,7 @@ import { CacheService } from './cache.service';
         ttl: configService.get<number>('redis.cacheTtl'),
         no_ready_check: true,
       }),
+      isGlobal: true,
       inject: [ConfigService],
     }),
   ],
