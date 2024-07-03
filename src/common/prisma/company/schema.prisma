@@ -71,6 +71,26 @@ enum MailProvider {
     Smtp
 }
 
+enum AutomationFrequency {
+    Daily
+    Weekly
+    Monthly
+    Yearly
+}
+
+enum Mood {
+    Terrible
+    Bad
+    Okay
+    Good
+    Excellent
+}
+
+enum FeedbackType {
+    Complaint
+    Suggestion
+}
+
 model User {
     id                String         @id @default(cuid())
     firstName         String         @db.VarChar
@@ -229,6 +249,9 @@ model CoreEmployee {
     coreFileId  String?                  @db.Uuid
     files       CoreEmployeeFile[]
     user        User                     @relation(fields: [userId], references: [id])
+    sumups      EmployeeSumUp[]
+    feedbacks   EmployeeFeedback[]
+    shoutouts   EmployeeShoutout[]
 
     @@map("core_employee")
 }
@@ -300,7 +323,7 @@ model CoreEmployeeFile {
 
 model CoreJobRole {
     id          String         @id @default(uuid()) @db.Uuid
-    level       Int            @default(1)
+    levelId     String         @db.Uuid
     title       String         @unique() @db.VarChar(100)
     description String?        @db.VarChar(255)
     status      Boolean        @default(true)
@@ -309,8 +332,24 @@ model CoreJobRole {
     updatedAt   DateTime       @default(now()) @updatedAt() @db.Timestamptz(6)
     updatedBy   String?        @db.Uuid
     employees   CoreEmployee[]
+    evel        CoreJobLevel?  @relation(fields: [levelId], references: [id])
 
     @@map("core_job_role")
+}
+
+model CoreJobLevel {
+    id          String        @id @default(uuid()) @db.Uuid
+    title       String        @unique() @db.VarChar(100)
+    description String?       @db.VarChar(255)
+    rank        Int           @db.Integer
+    status      Boolean       @default(true)
+    createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+    createdBy   String?       @db.Uuid
+    updatedAt   DateTime      @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy   String?       @db.Uuid
+    jobRoles    CoreJobRole[]
+
+    @@map("core_job_level")
 }
 
 model CoreMessage {
@@ -394,4 +433,109 @@ model CoreMessageSetting {
     updatedBy             String?       @db.Uuid
 
     @@map("core_message_setting")
+}
+
+// templates
+model EmployeeShoutout {
+    id            String        @id @default(uuid()) @db.Uuid
+    employeeId    String?       @db.Uuid
+    beneficiaries String[]
+    status        Boolean       @default(true)
+    createdAt     DateTime      @default(now()) @db.Timestamptz(6)
+    createdBy     String?       @db.Uuid
+    updatedAt     DateTime      @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy     String?       @db.Uuid
+    employee      CoreEmployee? @relation(fields: [employeeId], references: [id])
+
+    @@map("employee_shoutout")
+}
+
+model EmployeeSumUp {
+    id         String       @id @default(uuid()) @db.Uuid
+    employeeId String       @db.Uuid
+    mood       Mood
+    plan       String[]     @db.VarChar
+    past       String[]     @db.VarChar
+    blockers   String?      @db.VarChar
+    support    String[]
+    status     Boolean      @default(true)
+    createdAt  DateTime     @default(now()) @db.Timestamptz(6)
+    createdBy  String?      @db.Uuid
+    updatedAt  DateTime     @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy  String?      @db.Uuid
+    employee   CoreEmployee @relation(fields: [employeeId], references: [id])
+
+    @@map("employee_sum_up")
+}
+
+model EmployeeFeedback {
+    id         String        @id @default(uuid()) @db.Uuid
+    employeeId String?       @db.Uuid
+    type       FeedbackType
+    message    String        @db.VarChar
+    isResolved Boolean?
+    status     Boolean       @default(true)
+    createdAt  DateTime      @default(now()) @db.Timestamptz(6)
+    createdBy  String?       @db.Uuid
+    updatedAt  DateTime      @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy  String?       @db.Uuid
+    employee   CoreEmployee? @relation(fields: [employeeId], references: [id])
+
+    @@map("employee_feedback")
+}
+
+model ValueStar {
+    id        String   @id @default(uuid()) @db.Uuid
+    status    Boolean  @default(true)
+    createdAt DateTime @default(now()) @db.Timestamptz(6)
+    createdBy String?  @db.Uuid
+    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?  @db.Uuid
+
+    @@map("value_star")
+}
+
+// template configurations
+model ShoutoutConfig {
+    id        String   @id @default(uuid()) @db.Uuid
+    status    Boolean  @default(true)
+    createdAt DateTime @default(now()) @db.Timestamptz(6)
+    createdBy String?  @db.Uuid
+    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?  @db.Uuid
+
+    @@map("shoutout_config")
+}
+
+model PeerConfig {
+    id        String   @id @default(uuid()) @db.Uuid
+    status    Boolean  @default(true)
+    createdAt DateTime @default(now()) @db.Timestamptz(6)
+    createdBy String?  @db.Uuid
+    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?  @db.Uuid
+
+    @@map("peer_config")
+}
+
+model SparkConfig {
+    id        String   @id @default(uuid()) @db.Uuid
+    status    Boolean  @default(true)
+    createdAt DateTime @default(now()) @db.Timestamptz(6)
+    createdBy String?  @db.Uuid
+    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?  @db.Uuid
+
+    @@map("spark_config")
+}
+
+model TeamSumUpConfig {
+    id        String   @id @default(uuid()) @db.Uuid
+    status    Boolean  @default(true)
+    createdAt DateTime @default(now()) @db.Timestamptz(6)
+    createdBy String?  @db.Uuid
+    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?  @db.Uuid
+
+    @@map("team_sum_up_config")
 }
