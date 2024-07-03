@@ -9,7 +9,7 @@ const defaultSchemaId = '___';
 
 @Injectable()
 export class PrismaClientManager implements OnModuleDestroy {
-  private storePrismaClients: { [key: string]: CompanyPrismaClient } = {};
+  private companyPrismaClients: { [key: string]: CompanyPrismaClient } = {};
 
   private prismaClient: PrismaClient = new PrismaClient({
     datasources: {
@@ -23,11 +23,11 @@ export class PrismaClientManager implements OnModuleDestroy {
     return this.prismaClient;
   }
 
-  getStorePrismaClient(storeId?: string): CompanyPrismaClient {
-    const schema = storeId || defaultSchemaId;
-    let client = this.storePrismaClients[schema];
+  getCompanyPrismaClient(companyId?: string): CompanyPrismaClient {
+    const schema = companyId || defaultSchemaId;
+    let client = this.companyPrismaClients[schema];
     if (!client) {
-      const databaseUrl = process.env.DATABASE_URL.replace('public', storeId);
+      const databaseUrl = process.env.DATABASE_URL.replace('public', companyId);
       client = new CompanyPrismaClient({
         datasources: {
           db: {
@@ -36,7 +36,7 @@ export class PrismaClientManager implements OnModuleDestroy {
         },
       });
 
-      this.storePrismaClients[schema] = client;
+      this.companyPrismaClients[schema] = client;
     }
 
     return client;
@@ -53,22 +53,22 @@ export class PrismaClientManager implements OnModuleDestroy {
     }
   }
 
-  async getStorePrismaClientFromRequest(
+  async getCompanyPrismaClientFromRequest(
     request: RequestWithUser,
   ): Promise<CompanyPrismaClient> {
-    const storeId = await this.getCompanySchemaId(request);
+    const companyId = await this.getCompanySchemaId(request);
 
-    return this.getStorePrismaClient(storeId);
+    return this.getCompanyPrismaClient(companyId);
   }
 
-  async initializeStoreSchema(schemaId: string) {
+  async initializeCompanySchema(schemaId: string) {
     const initDbUrl = process.env.DATABASE_URL;
     process.env.DATABASE_URL = this.switchSchema(
       process.env.DATABASE_URL,
       schemaId,
     );
     try {
-      execSync('npm run db.migration.run:store && npm run db.seed:store');
+      execSync('npm run db.migration.run:company && npm run db.seed:company');
     } finally {
       process.env.DATABASE_URL = initDbUrl;
     }
@@ -81,7 +81,7 @@ export class PrismaClientManager implements OnModuleDestroy {
 
   async onModuleDestroy() {
     await Promise.all(
-      Object.values(this.storePrismaClients).map((client) =>
+      Object.values(this.companyPrismaClients).map((client) =>
         client.$disconnect(),
       ),
     );

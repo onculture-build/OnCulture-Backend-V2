@@ -21,13 +21,13 @@ if (!args['seed-file']) {
 }
 
 const promises = [];
-const prisma = args.store
+const prisma = args.company
   ? new CompanyPrismaClient({
       datasources: {
         db: {
           url: String(process.env.DATABASE_URL).replace(
             'schema=public',
-            `schema=${args.store}`,
+            `schema=${args.company}`,
           ),
         },
       },
