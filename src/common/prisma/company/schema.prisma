@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
     provider = "prisma-client-js"
     output   = "../../../../node_modules/.prisma/company"
@@ -14,12 +8,534 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model User {
-    id        String   @id @default(cuid())
-    email     String   @unique
-    password  String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+enum RoleType {
+    System
+    Custom
+}
 
-    @@map("users")
+enum Gender {
+    Male
+    Female
+    Unknown
+}
+
+enum RelationshipType {
+    Father
+    Mother
+    Husband
+    Wife
+    Son
+    Daughter
+    Brother
+    Sister
+    Nephew
+    Niece
+}
+
+enum AddressType {
+    Physical
+    Postal
+}
+
+enum AddressPurpose {
+    Primary
+    Billing
+    Operational
+    Temporary
+    Old
+}
+
+enum EmployeeStatus {
+    Active
+    Inactive
+    Suspended
+}
+
+enum MessageType {
+    Email
+    Sms
+}
+
+enum MessageStatus {
+    Pending
+    Processed
+    Cancelled
+    Sent
+    Received
+    Failed
+    Deleted
+}
+
+enum MailProvider {
+    SendGrid
+    Smtp
+}
+
+enum AutomationFrequency {
+    Daily
+    Weekly
+    Monthly
+    Yearly
+}
+
+enum Mood {
+    Terrible
+    Bad
+    Okay
+    Good
+    Excellent
+}
+
+enum FeedbackType {
+    Complaint
+    Suggestion
+}
+
+model User {
+    id                String         @id @default(cuid())
+    firstName         String         @db.VarChar
+    middleName        String?        @db.VarChar
+    lastName          String         @db.VarChar
+    maidenName        String?        @db.VarChar
+    formerNames       String?        @db.VarChar
+    dateOfBirth       DateTime?      @db.Date
+    prefix            String?        @db.VarChar
+    suffix            String?        @db.VarChar
+    gender            Gender?
+    photoId           String?        @db.Uuid
+    preferredLanguage String?        @db.VarChar
+    lastLogin         DateTime?
+    lastLoginIp       String?
+    roleId            String?        @db.Uuid
+    employeeId        String         @db.Uuid
+    createdAt         DateTime       @default(now())
+    updatedAt         DateTime       @updatedAt
+    role              CoreRole?      @relation(fields: [roleId], references: [id])
+    messages          CoreMessage[]
+    photo             CoreFile?      @relation(fields: [photoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    employee          CoreEmployee?
+    emails            UserEmail[]
+    phones            UserPhone[]
+    addresses         UserAddress[]
+    nextOfKin         UserNextOfKin?
+    relations         UserRelation[]
+
+    @@map("user")
+}
+
+model UserEmail {
+    id         String   @id @default(uuid()) @db.Uuid
+    userId     String   @db.Uuid
+    email      String   @unique @db.VarChar
+    isPrimary  Boolean  @default(false) @db.Boolean
+    isVerified Boolean  @default(false) @db.Boolean
+    status     Boolean  @default(true) @db.Boolean
+    createdAt  DateTime @default(now()) @db.Timestamptz(6)
+    createdBy  String?  @db.Uuid
+    updatedAt  DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy  String?  @db.Uuid
+    user       User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+    @@map("user_email")
+}
+
+model UserPhone {
+    id        String   @id @default(uuid()) @db.Uuid
+    userId    String   @db.Uuid
+    phone     String   @unique @db.VarChar
+    isPrimary Boolean  @default(false) @db.Boolean
+    // isVerified Boolean  @default(false) @db.Boolean
+    status    Boolean  @default(true) @db.Boolean
+    createdAt DateTime @default(now()) @db.Timestamptz(6)
+    createdBy String?  @db.Uuid
+    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?  @db.Uuid
+    user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+    @@map("user_phone")
+}
+
+model UserAddress {
+    id                String   @id @default(uuid()) @db.Uuid
+    label             String?  @db.VarChar
+    apartmentBuilding String?  @db.VarChar
+    address1          String   @db.VarChar
+    address2          String?  @db.VarChar
+    townCity          String?  @db.VarChar
+    stateId           String   @db.Uuid
+    countryId         String   @db.Uuid
+    purpose           String?  @db.VarChar
+    type              String?  @db.VarChar
+    postCode          String?  @db.VarChar
+    userId            String   @db.Uuid
+    status            Boolean  @default(true)
+    createdAt         DateTime @default(now()) @db.Timestamptz(6)
+    createdBy         String?  @db.Uuid
+    updatedAt         DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy         String?  @db.Uuid
+    user              User     @relation(fields: [userId], references: [id])
+
+    @@map("user_address")
+}
+
+model UserNextOfKin {
+    id           String           @id @default(uuid()) @db.Uuid
+    userId       String           @unique() @db.Uuid
+    firstName    String           @db.VarChar
+    middleName   String?          @db.VarChar
+    lastName     String           @db.VarChar
+    maidenName   String?          @db.VarChar
+    formerNames  String?          @db.VarChar
+    dateOfBirth  DateTime?        @db.Timestamptz(6)
+    relationship RelationshipType
+    user         User?            @relation(fields: [userId], references: [id])
+
+    @@map("user_next_of_kin")
+}
+
+model UserRelation {
+    id           String           @id @default(uuid()) @db.Uuid
+    userId       String           @db.Uuid
+    firstName    String           @db.VarChar
+    middleName   String?          @db.VarChar
+    lastName     String           @db.VarChar
+    maidenName   String?          @db.VarChar
+    formerNames  String?          @db.VarChar
+    dateOfBirth  DateTime?        @db.Timestamptz(6)
+    relationship RelationshipType
+    status       Boolean          @default(true) @db.Boolean
+    createdAt    DateTime         @default(now()) @db.Timestamptz(6)
+    createdBy    String?          @db.Uuid
+    updatedAt    DateTime         @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy    String?          @db.Uuid
+    user         User             @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+    @@map("user_relation")
+}
+
+model CoreRole {
+    id          String   @id @default(uuid()) @db.Uuid
+    name        String   @unique() @db.VarChar(50)
+    description String?  @db.VarChar(500)
+    code        String   @unique() @db.VarChar(20)
+    type        RoleType @default(Custom)
+    defaultPage String?  @db.VarChar(50)
+    status      Boolean  @default(true) @db.Boolean
+    createdAt   DateTime @default(now()) @db.Timestamptz(6)
+    createdBy   String?  @db.Uuid
+    updatedAt   DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy   String?  @db.Uuid
+    users       User[]
+    //   menuPermissions   CoreRoleMenuPermission[]
+    //   schemaPermissions CoreRoleSchemaPermission[]
+
+    @@map("core_role")
+}
+
+model CoreEmployee {
+    id          String                   @id @default(uuid()) @db.Uuid
+    employeeNo  String                   @unique @db.VarChar(20)
+    userId      String                   @unique @db.Uuid
+    contactId   String                   @unique @db.Uuid
+    branchId    String                   @db.Uuid
+    jobRoleId   String?                  @db.Uuid
+    status      EmployeeStatus           @default(Active)
+    createdAt   DateTime                 @default(now()) @db.Timestamptz(6)
+    createdBy   String?                  @db.Uuid
+    updatedAt   DateTime                 @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy   String?                  @db.Uuid
+    jobRole     CoreJobRole?             @relation(fields: [jobRoleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    departments CoreEmployeeDepartment[]
+    coreFileId  String?                  @db.Uuid
+    files       CoreEmployeeFile[]
+    user        User                     @relation(fields: [userId], references: [id])
+    sumups      EmployeeSumUp[]
+    feedbacks   EmployeeFeedback[]
+    shoutouts   EmployeeShoutout[]
+
+    @@map("core_employee")
+}
+
+model CoreEmployeeDepartment {
+    id           String         @id @default(uuid()) @db.Uuid
+    employeeId   String         @db.Uuid
+    departmentId String         @db.Uuid
+    isDefault    Boolean        @default(false) @db.Boolean
+    status       Boolean        @default(true) @db.Boolean
+    createdAt    DateTime       @default(now()) @db.Timestamptz(6)
+    createdBy    String?        @db.Uuid
+    updatedAt    DateTime       @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy    String?        @db.Uuid
+    department   CoreDepartment @relation(fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    employee     CoreEmployee   @relation(fields: [employeeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+    @@index([employeeId, departmentId])
+    @@map("core_employee_department")
+}
+
+model CoreDepartment {
+    id          String                   @id @default(uuid()) @db.Uuid
+    name        String                   @unique @db.VarChar
+    code        String?                  @unique @db.VarChar(50)
+    alias       String?                  @unique @db.VarChar(100)
+    description String?                  @db.VarChar(255)
+    status      Boolean                  @default(true) @db.Boolean
+    createdAt   DateTime                 @default(now()) @db.Timestamptz(6)
+    createdBy   String?                  @db.Uuid
+    updatedAt   DateTime                 @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy   String?                  @db.Uuid
+    employees   CoreEmployeeDepartment[]
+
+    @@map("core_deparment")
+}
+
+model CoreFile {
+    id        String             @id @default(uuid()) @db.Uuid
+    url       String             @db.VarChar
+    key       String             @unique() @db.VarChar
+    eTag      String?            @db.VarChar
+    bucket    String?            @db.VarChar
+    name      String?            @db.VarChar
+    createdAt DateTime           @default(now()) @db.Timestamptz(6)
+    createdBy String?            @db.Uuid
+    updatedAt DateTime           @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?            @db.Uuid
+    employees CoreEmployeeFile[]
+    users     User[]
+
+    @@map("core_file")
+}
+
+model CoreEmployeeFile {
+    id         String       @id @default(uuid()) @db.Uuid
+    employeeId String       @db.Uuid
+    fileId     String       @db.Uuid
+    status     Boolean      @default(true) @db.Boolean
+    createdAt  DateTime     @default(now()) @db.Timestamptz(6)
+    createdBy  String?      @db.Uuid
+    updatedAt  DateTime     @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy  String?      @db.Uuid
+    employee   CoreEmployee @relation(fields: [employeeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    file       CoreFile     @relation(fields: [fileId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+    @@map("core_employee_file")
+}
+
+model CoreJobRole {
+    id          String         @id @default(uuid()) @db.Uuid
+    levelId     String         @db.Uuid
+    title       String         @unique() @db.VarChar(100)
+    description String?        @db.VarChar(255)
+    status      Boolean        @default(true)
+    createdAt   DateTime       @default(now()) @db.Timestamptz(6)
+    createdBy   String?        @db.Uuid
+    updatedAt   DateTime       @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy   String?        @db.Uuid
+    employees   CoreEmployee[]
+    evel        CoreJobLevel?  @relation(fields: [levelId], references: [id])
+
+    @@map("core_job_role")
+}
+
+model CoreJobLevel {
+    id          String        @id @default(uuid()) @db.Uuid
+    title       String        @unique() @db.VarChar(100)
+    description String?       @db.VarChar(255)
+    rank        Int           @db.Integer
+    status      Boolean       @default(true)
+    createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+    createdBy   String?       @db.Uuid
+    updatedAt   DateTime      @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy   String?       @db.Uuid
+    jobRoles    CoreJobRole[]
+
+    @@map("core_job_level")
+}
+
+model CoreMessage {
+    id         String               @id @default(uuid()) @db.Uuid
+    type       MessageType
+    subject    String?              @db.VarChar(100)
+    bindings   Json                 @db.JsonB
+    templateId String?              @db.Uuid
+    direction  Int                  @default(0) @db.Integer
+    isDraft    Boolean              @default(false) @db.Boolean()
+    isArchived Boolean              @default(false) @db.Boolean()
+    status     MessageStatus        @default(Pending)
+    createdAt  DateTime             @default(now()) @db.Timestamptz(6)
+    createdBy  String?              @db.Uuid
+    updatedAt  DateTime             @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy  String?              @db.Uuid
+    template   CoreMessageTemplate? @relation(fields: [templateId], references: [id])
+    files      CoreMessageFile[]
+    sender     User?                @relation(fields: [createdBy], references: [id])
+
+    @@index([id, createdBy])
+    @@map("core_message")
+}
+
+model CoreMessageFile {
+    id           String      @id @default(uuid()) @db.Uuid
+    filePath     String      @unique() @db.VarChar
+    isAttachment Boolean     @default(true) @db.Boolean
+    isPublic     Boolean     @default(false) @db.Boolean
+    status       Boolean     @default(true) @db.Boolean
+    messageId    String      @db.Uuid
+    createdAt    DateTime    @default(now()) @db.Timestamptz(6)
+    createdBy    String?     @db.Uuid
+    updatedAt    DateTime    @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy    String?     @db.Uuid
+    message      CoreMessage @relation(fields: [messageId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+    @@map("core_message_file")
+}
+
+model CoreMessageTemplate {
+    id        String        @id @default(uuid()) @db.Uuid
+    name      String        @db.VarChar(50)
+    code      String?       @unique() @db.VarChar(20)
+    type      MessageType   @default(Email)
+    subject   String?       @db.VarChar
+    isHtml    Boolean       @default(false) @db.Boolean
+    body      String        @db.Text
+    status    Boolean       @default(true) @db.Boolean
+    createdAt DateTime      @default(now()) @db.Timestamptz(6)
+    createdBy String?       @db.Uuid
+    updatedAt DateTime      @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?       @db.Uuid
+    // files     CoreMessageTemplateFile[]
+    messages  CoreMessage[]
+
+    @@unique([name, type])
+    @@map("core_message_template")
+}
+
+model CoreMessageSetting {
+    id                    String        @id @default(uuid()) @db.Uuid
+    smsSenderId           String?       @db.VarChar
+    maxPagePerSMS         Int?
+    emailSenderName       String?       @db.VarChar
+    emailSenderAddress    String?       @db.VarChar
+    accessKey             String?       @db.VarChar
+    emailGateway          Int?
+    smsProviderTenantId   String?
+    preferredMailProvider MailProvider?
+    smtpHost              String?       @db.VarChar
+    smtpPort              Int?
+    smtpSecure            Boolean       @default(true)
+    smtpAuthUser          String?       @db.VarChar
+    smtpAuthPassword      String?       @db.VarChar
+    sendGridApiKey        String?       @db.VarChar
+    status                Boolean       @default(true)
+    createdAt             DateTime      @default(now()) @db.Timestamptz(6)
+    createdBy             String?       @db.Uuid
+    updatedAt             DateTime      @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy             String?       @db.Uuid
+
+    @@map("core_message_setting")
+}
+
+// templates
+model EmployeeShoutout {
+    id            String        @id @default(uuid()) @db.Uuid
+    employeeId    String?       @db.Uuid
+    beneficiaries String[]
+    status        Boolean       @default(true)
+    createdAt     DateTime      @default(now()) @db.Timestamptz(6)
+    createdBy     String?       @db.Uuid
+    updatedAt     DateTime      @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy     String?       @db.Uuid
+    employee      CoreEmployee? @relation(fields: [employeeId], references: [id])
+
+    @@map("employee_shoutout")
+}
+
+model EmployeeSumUp {
+    id         String       @id @default(uuid()) @db.Uuid
+    employeeId String       @db.Uuid
+    mood       Mood
+    plan       String[]     @db.VarChar
+    past       String[]     @db.VarChar
+    blockers   String?      @db.VarChar
+    support    String[]
+    status     Boolean      @default(true)
+    createdAt  DateTime     @default(now()) @db.Timestamptz(6)
+    createdBy  String?      @db.Uuid
+    updatedAt  DateTime     @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy  String?      @db.Uuid
+    employee   CoreEmployee @relation(fields: [employeeId], references: [id])
+
+    @@map("employee_sum_up")
+}
+
+model EmployeeFeedback {
+    id         String        @id @default(uuid()) @db.Uuid
+    employeeId String?       @db.Uuid
+    type       FeedbackType
+    message    String        @db.VarChar
+    isResolved Boolean?
+    status     Boolean       @default(true)
+    createdAt  DateTime      @default(now()) @db.Timestamptz(6)
+    createdBy  String?       @db.Uuid
+    updatedAt  DateTime      @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy  String?       @db.Uuid
+    employee   CoreEmployee? @relation(fields: [employeeId], references: [id])
+
+    @@map("employee_feedback")
+}
+
+model ValueStar {
+    id        String   @id @default(uuid()) @db.Uuid
+    status    Boolean  @default(true)
+    createdAt DateTime @default(now()) @db.Timestamptz(6)
+    createdBy String?  @db.Uuid
+    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?  @db.Uuid
+
+    @@map("value_star")
+}
+
+// template configurations
+model ShoutoutConfig {
+    id        String   @id @default(uuid()) @db.Uuid
+    status    Boolean  @default(true)
+    createdAt DateTime @default(now()) @db.Timestamptz(6)
+    createdBy String?  @db.Uuid
+    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?  @db.Uuid
+
+    @@map("shoutout_config")
+}
+
+model PeerConfig {
+    id        String   @id @default(uuid()) @db.Uuid
+    status    Boolean  @default(true)
+    createdAt DateTime @default(now()) @db.Timestamptz(6)
+    createdBy String?  @db.Uuid
+    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?  @db.Uuid
+
+    @@map("peer_config")
+}
+
+model SparkConfig {
+    id        String   @id @default(uuid()) @db.Uuid
+    status    Boolean  @default(true)
+    createdAt DateTime @default(now()) @db.Timestamptz(6)
+    createdBy String?  @db.Uuid
+    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?  @db.Uuid
+
+    @@map("spark_config")
+}
+
+model TeamSumUpConfig {
+    id        String   @id @default(uuid()) @db.Uuid
+    status    Boolean  @default(true)
+    createdAt DateTime @default(now()) @db.Timestamptz(6)
+    createdBy String?  @db.Uuid
+    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?  @db.Uuid
+
+    @@map("team_sum_up_config")
 }

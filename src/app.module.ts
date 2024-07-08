@@ -1,3 +1,4 @@
+import { APP_GUARD } from '@nestjs/core';
 import { Global, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -9,10 +10,17 @@ import { PassportModule } from '@nestjs/passport';
 import { CacheService } from './common/cache/cache.service';
 import { CacheModule } from './common/cache/cache.module';
 import { DatabaseModule } from './common/database/database.module';
+import { AuthModule } from './auth/auth.module';
+import { BaseModule } from './base/base.module';
+import { CompanyModule } from './company/company.module';
+import { FileModule } from './common/file/file.module';
+import { AppGuard } from './auth/guard/app.guard';
 
 @Global()
 @Module({
   imports: [
+    AuthModule,
+    BaseModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => ({
@@ -22,8 +30,10 @@ import { DatabaseModule } from './common/database/database.module';
       }),
     }),
     CacheModule,
+    CompanyModule,
     ConfigModule.forRoot({ isGlobal: true, load: [appConfig] }),
     DatabaseModule,
+    FileModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -37,7 +47,11 @@ import { DatabaseModule } from './common/database/database.module';
     PassportModule.register({ defaultStrategy: 'jwt' }),
   ],
   controllers: [AppController],
-  providers: [AppService, CacheService],
+  providers: [
+    AppService,
+    CacheService,
+    { provide: APP_GUARD, useClass: AppGuard },
+  ],
   exports: [CacheModule, DatabaseModule],
 })
 export class AppModule {}

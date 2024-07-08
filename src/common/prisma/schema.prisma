@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,21 +8,168 @@ datasource db {
 }
 
 model BaseUser {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String            @id @default(uuid()) @db.Uuid
+  email     String            @unique()
   password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    Boolean           @default(true) @db.Boolean
+  createdAt DateTime          @default(now()) @db.Timestamptz(6)
+  createdBy String?           @db.Uuid
+  updatedAt DateTime          @default(now()) @updatedAt @db.Timestamptz(6)
+  companies BaseUserCompany[]
 
-  @@map("base_users")
+  @@map("base_user")
 }
 
 model BaseCompany {
-  id        String   @id @default(cuid())
-  name      String
-  status    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String             @id @default(uuid())
+  name      String             @unique() @db.VarChar(255)
+  email     String             @unique() @db.VarChar(255)
+  logo      String?            @db.VarChar
+  phone     String             @db.VarChar(50)
+  countryId String             @db.Uuid
+  stateId   String             @db.Uuid
+  address1  String             @db.VarChar(150)
+  address2  String?            @db.VarChar(150)
+  townCity  String?            @db.VarChar(50)
+  mission   String?            @db.VarChar
+  vision    String?            @db.VarChar
+  status    Boolean            @default(true) @db.Boolean
+  createdAt DateTime           @default(now()) @db.Timestamptz(6)
+  createdBy String?            @db.Uuid
+  updatedAt DateTime           @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?            @db.Uuid
+  users     BaseUserCompany[]
+  values    BaseCompanyValue[]
 
-  @@map("base_companies")
+  @@map("base_company")
+}
+
+model BaseCompanyValue {
+  id        String      @id @default(uuid()) @db.Uuid
+  companyId String      @db.Uuid
+  value     String      @db.VarChar(255)
+  status    Boolean     @default(true) @db.Boolean
+  createdAt DateTime    @default(now()) @db.Timestamptz(6)
+  createdBy String?     @db.Uuid
+  updatedAt DateTime    @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?     @db.Uuid
+  company   BaseCompany @relation(fields: [companyId], references: [id])
+
+  @@map("base_company_value")
+}
+
+model BaseUserCompany {
+  id        String      @id @default(uuid()) @db.Uuid
+  userId    String      @db.Uuid
+  companyId String      @db.Uuid
+  status    Boolean     @default(true) @db.Boolean
+  createdAt DateTime    @default(now()) @db.Timestamptz(6)
+  createdBy String?     @db.Uuid
+  updatedAt DateTime    @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?     @db.Uuid
+  user      BaseUser    @relation(fields: [userId], references: [id])
+  company   BaseCompany @relation(fields: [companyId], references: [id])
+
+  @@map("base_user_company")
+}
+
+model BasePackage {
+  id            String                    @id @default(uuid()) @db.Uuid
+  name          String                    @unique() @db.VarChar(255)
+  unitPrice     Float                     @db.DoublePrecision()
+  discount      Float?                    @default(0) @db.DoublePrecision()
+  status        Boolean                   @default(true) @db.Boolean
+  createdAt     DateTime                  @default(now()) @db.Timestamptz(6)
+  createdBy     String?                   @db.Uuid
+  updatedAt     DateTime                  @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy     String?                   @db.Uuid
+  subscriptions BasePackageSubscription[]
+  courses       BasePackageCourse[]
+  templates     BasePackageTemplates[]
+
+  @@map("base_package")
+}
+
+model BaseCourse {
+  id        String              @id @default(uuid()) @db.Uuid
+  name      String              @unique() @db.VarChar(255)
+  url       String?
+  quiz      String? // come back to this
+  lesson    String? // come back to this
+  status    Boolean             @default(true) @db.Boolean
+  createdAt DateTime            @default(now()) @db.Timestamptz(6)
+  createdBy String?             @db.Uuid
+  updatedAt DateTime            @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?             @db.Uuid
+  packages  BasePackageCourse[]
+
+  @@map("base_course")
+}
+
+model BasePackageCourse {
+  id        String      @id @default(uuid()) @db.Uuid
+  packageId String      @db.Uuid
+  courseId  String      @db.Uuid
+  status    Boolean     @default(true) @db.Boolean
+  createdAt DateTime    @default(now()) @db.Timestamptz(6)
+  createdBy String?     @db.Uuid
+  updatedAt DateTime    @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?     @db.Uuid
+  package   BasePackage @relation(fields: [packageId], references: [id])
+  course    BaseCourse  @relation(fields: [courseId], references: [id])
+
+  @@map("base_package_course")
+}
+
+model BaseTemplate {
+  id        String                 @id @default(uuid()) @db.Uuid
+  name      String                 @unique() @db.VarChar(255)
+  status    Boolean                @default(true) @db.Boolean
+  createdAt DateTime               @default(now()) @db.Timestamptz(6)
+  createdBy String?                @db.Uuid
+  updatedAt DateTime               @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?                @db.Uuid
+  templates BasePackageTemplates[]
+
+  @@map("base_template")
+}
+
+model BasePackageTemplates {
+  id         String       @id @default(uuid()) @db.Uuid
+  packageId  String       @db.Uuid
+  templateId String       @db.Uuid
+  status     Boolean      @default(true) @db.Boolean
+  createdAt  DateTime     @default(now()) @db.Timestamptz(6)
+  createdBy  String?      @db.Uuid
+  updatedAt  DateTime     @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy  String?      @db.Uuid
+  package    BasePackage  @relation(fields: [packageId], references: [id])
+  template   BaseTemplate @relation(fields: [templateId], references: [id])
+
+  @@map("base_package_templates")
+}
+
+model BasePackageSubscription {
+  id        String      @id @default(uuid()) @db.Uuid
+  packageId String      @db.Uuid
+  startDate DateTime    @db.Timestamptz(6)
+  endDate   DateTime    @db.Timestamptz(6)
+  status    Boolean     @default(true) @db.Boolean
+  createdAt DateTime    @default(now()) @db.Timestamptz(6)
+  createdBy String?     @db.Uuid
+  updatedAt DateTime    @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?     @db.Uuid
+  package   BasePackage @relation(fields: [packageId], references: [id])
+
+  @@map("base_package_subscription")
+}
+
+model Waitlist {
+  id        String   @id @default(uuid()) @db.Uuid
+  firstName String   @db.VarChar(255)
+  lastName  String   @db.VarChar(255)
+  email     String   @unique()
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("waitlist")
 }
