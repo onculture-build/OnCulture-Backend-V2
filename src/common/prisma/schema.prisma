@@ -20,6 +20,18 @@ model BaseUser {
   @@map("base_user")
 }
 
+model AllowedUser {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique()
+  status    Boolean  @default(true) @db.Boolean
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  createdBy String?  @db.Uuid
+  updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?  @db.Uuid
+
+  @@map("allowed_user")
+}
+
 model BaseCompany {
   id        String             @id @default(uuid())
   name      String             @unique() @db.VarChar(255)
