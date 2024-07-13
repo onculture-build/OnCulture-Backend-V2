@@ -1,5 +1,5 @@
+import { AuthStrategyType } from '@@/auth/interfaces';
 import { SetMetadata } from '@nestjs/common';
-import { AuthStrategyType } from '../interfaces';
 
 export const AUTH_STRATEGY_KEY = '$__authStrategyKey';
 
