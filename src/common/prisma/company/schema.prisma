@@ -108,8 +108,10 @@ model User {
     lastLoginIp       String?
     roleId            String?        @db.Uuid
     employeeId        String         @db.Uuid
-    createdAt         DateTime       @default(now())
-    updatedAt         DateTime       @updatedAt
+    createdAt         DateTime       @default(now()) @db.Timestamptz(6)
+    createdBy         String?        @db.Uuid
+    updatedAt         DateTime       @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy         String?        @db.Uuid
     role              CoreRole?      @relation(fields: [roleId], references: [id])
     messages          CoreMessage[]
     photo             CoreFile?      @relation(fields: [photoId], references: [id], onDelete: NoAction, onUpdate: NoAction)

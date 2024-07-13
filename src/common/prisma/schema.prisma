@@ -7,15 +7,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum MessageType {
+  Email
+  Sms
+}
+
+enum MessageStatus {
+  Pending
+  Cancelled
+  Sent
+  Received
+  Failed
+  Deleted
+}
+
+enum CompanyRequestStatus {
+  Approved
+  Onboarded
+  Pending
+  Rejected
+}
+
 model BaseUser {
-  id        String            @id @default(uuid()) @db.Uuid
-  email     String            @unique()
-  password  String
-  status    Boolean           @default(true) @db.Boolean
-  createdAt DateTime          @default(now()) @db.Timestamptz(6)
-  createdBy String?           @db.Uuid
-  updatedAt DateTime          @default(now()) @updatedAt @db.Timestamptz(6)
-  companies BaseUserCompany[]
+  id         String            @id @default(uuid()) @db.Uuid
+  firstName  String            @db.VarChar
+  middleName String?           @db.VarChar
+  lastName   String            @db.VarChar
+  email      String            @unique()
+  password   String
+  status     Boolean           @default(true) @db.Boolean
+  createdAt  DateTime          @default(now()) @db.Timestamptz(6)
+  createdBy  String?           @db.Uuid
+  updatedAt  DateTime          @default(now()) @updatedAt @db.Timestamptz(6)
+  updatedBy  String?           @db.Uuid
+  companies  BaseUserCompany[]
 
   @@map("base_user")
 }
@@ -36,6 +61,7 @@ model BaseCompany {
   id        String             @id @default(uuid())
   name      String             @unique() @db.VarChar(255)
   email     String             @unique() @db.VarChar(255)
+  code      String             @unique() @db.VarChar(20)
   logo      String?            @db.VarChar
   phone     String             @db.VarChar(50)
   countryId String             @db.Uuid
@@ -43,6 +69,7 @@ model BaseCompany {
   address1  String             @db.VarChar(150)
   address2  String?            @db.VarChar(150)
   townCity  String?            @db.VarChar(50)
+  postCode  String?            @db.VarChar
   mission   String?            @db.VarChar
   vision    String?            @db.VarChar
   status    Boolean            @default(true) @db.Boolean
@@ -52,6 +79,7 @@ model BaseCompany {
   updatedBy String?            @db.Uuid
   users     BaseUserCompany[]
   values    BaseCompanyValue[]
+  messages  BaseMessage[]
 
   @@map("base_company")
 }
@@ -184,4 +212,56 @@ model Waitlist {
   createdAt DateTime @default(now()) @db.Timestamptz(6)
 
   @@map("waitlist")
+}
+
+model BaseMessage {
+  id         String               @id @default(uuid()) @db.Uuid
+  type       MessageType          @default(Email)
+  bindings   Json                 @db.JsonB
+  templateId String?              @db.Uuid
+  companyId  String               @db.Uuid
+  status     MessageStatus        @default(Pending)
+  createdAt  DateTime             @default(now()) @db.Timestamptz(6)
+  createdBy  String?              @db.Uuid
+  updatedAt  DateTime             @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy  String?              @db.Uuid
+  template   BaseMessageTemplate? @relation(fields: [templateId], references: [id])
+  company    BaseCompany          @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("base_message")
+}
+
+model BaseMessageFile {
+  id           String              @id @default(uuid()) @db.Uuid
+  filePath     String              @unique() @db.VarChar(255)
+  isAttachment Boolean             @default(true) @db.Boolean
+  isPublic     Boolean             @default(false) @db.Boolean
+  templateId   String              @db.Uuid
+  status       Boolean             @default(true) @db.Boolean
+  createdAt    DateTime            @default(now()) @db.Timestamptz(6)
+  createdBy    String?             @db.Uuid
+  updatedAt    DateTime            @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy    String?             @db.Uuid
+  template     BaseMessageTemplate @relation(fields: [templateId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("base_message_file")
+}
+
+model BaseMessageTemplate {
+  id        String            @id @default(uuid()) @db.Uuid
+  name      String            @db.VarChar(50)
+  code      String            @unique() @db.VarChar(20)
+  type      MessageType       @default(Email)
+  subject   String?           @db.VarChar(255)
+  isHtml    Boolean           @default(false) @db.Boolean
+  body      String            @db.Text
+  status    Boolean           @default(true) @db.Boolean
+  createdAt DateTime          @default(now()) @db.Timestamptz(6)
+  createdBy String?           @db.Uuid
+  updatedAt DateTime          @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?           @db.Uuid
+  files     BaseMessageFile[]
+  messages  BaseMessage[]
+
+  @@map("base_message_template")
 }
