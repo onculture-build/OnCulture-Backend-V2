@@ -58,7 +58,7 @@ model AllowedUser {
 }
 
 model BaseCompany {
-  id        String             @id @default(uuid())
+  id        String             @id @default(uuid()) @db.Uuid
   name      String             @unique() @db.VarChar(255)
   email     String             @unique() @db.VarChar(255)
   code      String             @unique() @db.VarChar(20)

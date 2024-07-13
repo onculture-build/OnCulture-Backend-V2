@@ -10,6 +10,6 @@ Promise.all(promises)
     process.exit(1);
   })
   .finally(async () => {
-    console.log('Triza DB seeded successfully');
+    console.log('OnCulture DB seeded successfully');
     await prisma.$disconnect();
   });
