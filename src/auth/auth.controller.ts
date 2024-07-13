@@ -31,6 +31,8 @@ export class AuthController {
 
   @ApiResponseMeta({ message: 'Email added to allowed users' })
   @ApiOperation({ summary: 'Add email to list of allowed users' })
+  @ApiBearerAuth()
+  @AuthStrategy(AuthStrategyType.JWT)
   @Post('allowed-users')
   async addAllowedUser(
     @Body() dto: AllowedUserDto,
@@ -40,6 +42,8 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Get all allowed users' })
+  @ApiBearerAuth()
+  @AuthStrategy(AuthStrategyType.JWT)
   @Get('allowed-users')
   async getAllowedUsers() {
     return this.authService.getAllowedUsers();
