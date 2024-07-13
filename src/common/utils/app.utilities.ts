@@ -8,6 +8,9 @@ import {
   RequestTimeoutException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { BrowserEvents, MediaTypes } from '../enums';
+import { GeneratePdfOptions } from '../interfaces';
+import puppeteer from 'puppeteer';
 
 @Injectable()
 export class AppUtilities {
@@ -172,4 +175,74 @@ export class AppUtilities {
 
     return errorData;
   };
+
+  public static async generatePdfFromUrl(
+    url: string,
+    options?: GeneratePdfOptions,
+  ): Promise<Buffer> {
+    // if (Array.isArray(url)) {
+    //   return Promise.all(
+    //     url.map((url) => AppUtilities.generatePdf({ url, options })),
+    //   );
+    // }
+    return this.generatePdf({ url, options });
+  }
+
+  public static async generatePdfFromHtml(
+    html: string,
+    options?: GeneratePdfOptions,
+  ): Promise<Buffer> {
+    // if (Array.isArray(html)) {
+    //   return Promise.all(
+    //     html.map((content) =>
+    //       AppUtilities.generatePdf({ html: content, options }),
+    //     ),
+    //   );
+    // }
+    return this.generatePdf({ html, options });
+  }
+
+  private static async generatePdf({
+    html,
+    url,
+    options,
+  }: {
+    html?: string;
+    url?: string;
+    options?: GeneratePdfOptions;
+  }) {
+    const browser = await puppeteer.launch({
+      headless: true,
+      ignoreHTTPSErrors: true,
+    });
+    const page = await browser.newPage();
+    if (html) {
+      await page.setContent(html, {
+        waitUntil: BrowserEvents.NETWORK_IDLE,
+      });
+    } else if (url) {
+      await page.goto(url, { waitUntil: BrowserEvents.LOADED });
+    }
+
+    await page.emulateMediaType(MediaTypes.SCREEN);
+    const pdf = await page.pdf(options);
+    // close
+    browser.close();
+
+    return pdf;
+  }
+
+  public static encode(
+    data: string,
+    encoding: BufferEncoding = 'base64',
+  ): string {
+    return Buffer.from(data).toString(encoding);
+  }
+
+  public static decode(
+    data: string,
+    encoding: BufferEncoding = 'base64',
+  ): string {
+    return Buffer.from(data, encoding).toString();
+  }
 }

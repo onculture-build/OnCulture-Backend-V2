@@ -1,3 +1,5 @@
+import { PaperFormat, PDFMargin } from 'puppeteer';
+
 export abstract class SeedRunner {
   abstract run(): Promise<any>;
 }
@@ -17,3 +19,9 @@ export enum SortDirection {
   ASC = 'asc',
   DESC = 'desc',
 }
+
+export type GeneratePdfOptions = {
+  margin?: PDFMargin;
+  printBackground?: boolean;
+  format?: PaperFormat;
+};
