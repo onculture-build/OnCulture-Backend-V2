@@ -3,7 +3,7 @@ import { PrismaClient as CompanyPrismaClient } from '.prisma/company';
 import { PrismaClient } from '@prisma/client';
 import { execSync } from 'child_process';
 import { jwtDecode } from 'jwt-decode';
-import { RequestWithUser } from '../interfaces';
+import { RequestWithUser } from '@@/auth/interfaces';
 
 const defaultSchemaId = '___';
 

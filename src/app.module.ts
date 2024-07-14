@@ -15,6 +15,7 @@ import { BaseModule } from './base/base.module';
 import { CompanyModule } from './company/company.module';
 import { FileModule } from './common/file/file.module';
 import { AppGuard } from './auth/guard/app.guard';
+import { MessagingModule } from './common/messaging/messaging.module';
 
 @Global()
 @Module({
@@ -45,6 +46,7 @@ import { AppGuard } from './auth/guard/app.guard';
       }),
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
+    MessagingModule,
   ],
   controllers: [AppController],
   providers: [

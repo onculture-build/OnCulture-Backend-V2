@@ -16,6 +16,14 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@@/*": ["src/*"],
+      "@@auth/*": ["src/auth/*"],
+      "@@base/*": ["src/base/*"],
+      "@@common/*": ["src/common/*"],
+      "@@company/*": ["src/core/*"],
+      "@@prisma/*": ["node_modules/.prisma/*"]
+    }
   }
 }

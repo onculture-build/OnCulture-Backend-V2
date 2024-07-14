@@ -5,7 +5,7 @@ import { REQUEST } from '@nestjs/core';
 import { PrismaClient } from '@prisma/client';
 import { PrismaClientManager } from './prisma-client-manager';
 import { PrismaService } from './prisma/prisma.service';
-import { RequestWithUser } from '../interfaces';
+import { RequestWithUser } from '@@/auth/interfaces';
 
 const companyPrismaClientProvider: FactoryProvider<
   Promise<CompanyPrismaClient>
