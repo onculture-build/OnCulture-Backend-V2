@@ -5,7 +5,7 @@ import { AppService } from './app.service';
 import { BullModule } from '@nestjs/bull';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 import appConfig from './common/config/app.config';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { CacheService } from './common/cache/cache.service';
 import { CacheModule } from './common/cache/cache.module';
@@ -16,6 +16,7 @@ import { CompanyModule } from './company/company.module';
 import { FileModule } from './common/file/file.module';
 import { AppGuard } from './auth/guard/app.guard';
 import { MessagingModule } from './common/messaging/messaging.module';
+import { JwtStrategy } from './auth/strategies/jwt.strategy';
 
 @Global()
 @Module({
@@ -52,6 +53,8 @@ import { MessagingModule } from './common/messaging/messaging.module';
   providers: [
     AppService,
     CacheService,
+    JwtService,
+    JwtStrategy,
     { provide: APP_GUARD, useClass: AppGuard },
   ],
   exports: [CacheModule, DatabaseModule],
