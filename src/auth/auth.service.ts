@@ -26,6 +26,7 @@ import { v4 } from 'uuid';
 import { AllowedUserDto } from './dto/allowed-user.dto';
 import { EmailBuilder } from '@@/common/messaging/builder/email-builder';
 import { MessagingService } from '@@/common/messaging/messaging.service';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -274,6 +275,33 @@ export class AuthService {
       .addRecipients(email);
 
     this.messagingService.sendPasswordRequestEmail(emailBuilder);
+  }
+
+  async resetPassword({ password, token }: ResetPasswordDto) {
+    const storedEmail = await this.cacheService.get(
+      CacheKeysEnums.REQUESTS + token,
+    );
+
+    if (!storedEmail) {
+      throw new NotAcceptableException('Invalid Request!');
+    }
+
+    const modifyingUser = await this.prismaClient.baseUser.findFirst({
+      where: { email: storedEmail },
+    });
+    if (!modifyingUser) {
+      throw new NotAcceptableException('Invalid password reset request!');
+    }
+
+    const hash = await AppUtilities.hashAuthSecret(password);
+
+    await this.prismaClient.baseUser.update({
+      where: { id: modifyingUser.id },
+      data: {
+        password: hash,
+        updatedBy: modifyingUser.id,
+      },
+    });
   }
 
   private setCookies(token: string, response: Response) {

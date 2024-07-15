@@ -77,5 +77,7 @@ export class AuthController {
   @ApiResponseMeta({ message: 'Password reset successfully' })
   @ApiOperation({ summary: 'Reset user password' })
   @Patch('password-reset')
-  async passwordReset(@Body() dto: ResetPasswordDto) {}
+  async passwordReset(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
+  }
 }
