@@ -19,16 +19,6 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @ApiOperation({ summary: 'Authenticate a user' })
-  @Post('login')
-  async signin(
-    @Body() dto: LoginDto,
-    @RealIP() parseIp: string,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    return this.authService.loginUser(dto, parseIp.toString(), response);
-  }
-
   @ApiResponseMeta({ message: 'Email added to allowed users' })
   @ApiOperation({ summary: 'Add email to list of allowed users' })
   @ApiBearerAuth()
@@ -49,10 +39,20 @@ export class AuthController {
     return this.authService.getAllowedUsers();
   }
 
+  @ApiOperation({ summary: 'Authenticate a user' })
+  @Post('login')
+  async signin(
+    @Body() dto: LoginDto,
+    @RealIP() parseIp: string,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.authService.loginUser(dto, parseIp.toString(), response);
+  }
+
   @ApiOperation({ summary: 'Sign up and set up a company profile' })
   @Post('signup')
-  async signup(@Body() dto: SignUpDto) {
-    return {};
+  async signup(@Body() dto: SignUpDto, @RealIP() parseIp: string) {
+    return this.authService.onboardCompany(dto, parseIp.toString());
   }
 
   @ApiResponseMeta({ message: 'Password changed successfully' })
