@@ -26,6 +26,9 @@ import { v4 } from 'uuid';
 import { AllowedUserDto } from './dto/allowed-user.dto';
 import { EmailBuilder } from '@@/common/messaging/builder/email-builder';
 import { MessagingService } from '@@/common/messaging/messaging.service';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { SignUpDto } from './dto/signup.dto';
+import { BaseCompanyRequestService } from '@@/base/base-company/base-company-request/base-company-request.service';
 
 @Injectable()
 export class AuthService {
@@ -33,6 +36,7 @@ export class AuthService {
 
   constructor(
     private configService: ConfigService,
+    private companyRequestService: BaseCompanyRequestService,
     private jwtService: JwtService,
     private cacheService: CacheService,
     private prismaClientManager: PrismaClientManager,
@@ -64,6 +68,37 @@ export class AuthService {
         createdBy: req.user.userId,
       },
     });
+  }
+
+  async onboardCompany(dto: SignUpDto, ipAddress: string) {
+    const allowedCompany = await this.prismaClient.allowedUser.findFirst({
+      where: {
+        email: dto.userInfo.email.toLowerCase(),
+      },
+    });
+
+    const companyRequest =
+      await this.companyRequestService.setupBaseCompanyRequest({
+        ...dto,
+        companyInfo: { ...dto.companyInfo },
+      });
+
+    if (!companyRequest) {
+      throw new ServiceUnavailableException('Unable to setup company');
+    }
+
+    if (!allowedCompany) {
+      this.messagingService
+        .sendCompanyOnboardingRequestEmail({
+          ...dto,
+          ipAddress,
+        })
+        .catch(console.error);
+
+      return companyRequest;
+    }
+
+    // handle case for allowed user
   }
 
   async loginUser(dto: LoginDto, lastLoginIp: string, response: Response) {
@@ -155,7 +190,7 @@ export class AuthService {
       userCompany.companyId,
     );
 
-    const companyUser = await companyClient.user.findFirst({
+    const companyUser = await companyClient.companyUser.findFirst({
       where: { emails: { some: { email, isPrimary: true } } },
       include: {
         role: true,
@@ -189,7 +224,7 @@ export class AuthService {
       this.jwtExpires,
     );
 
-    await companyClient.user.update({
+    await companyClient.companyUser.update({
       where: { id: companyUser.id },
       data: {
         lastLogin: moment().toISOString(),
@@ -274,6 +309,33 @@ export class AuthService {
       .addRecipients(email);
 
     this.messagingService.sendPasswordRequestEmail(emailBuilder);
+  }
+
+  async resetPassword({ password, token }: ResetPasswordDto) {
+    const storedEmail = await this.cacheService.get(
+      CacheKeysEnums.REQUESTS + token,
+    );
+
+    if (!storedEmail) {
+      throw new NotAcceptableException('Invalid Request!');
+    }
+
+    const modifyingUser = await this.prismaClient.baseUser.findFirst({
+      where: { email: storedEmail },
+    });
+    if (!modifyingUser) {
+      throw new NotAcceptableException('Invalid password reset request!');
+    }
+
+    const hash = await AppUtilities.hashAuthSecret(password);
+
+    await this.prismaClient.baseUser.update({
+      where: { id: modifyingUser.id },
+      data: {
+        password: hash,
+        updatedBy: modifyingUser.id,
+      },
+    });
   }
 
   private setCookies(token: string, response: Response) {

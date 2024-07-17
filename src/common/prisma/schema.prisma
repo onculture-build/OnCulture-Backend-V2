@@ -28,6 +28,49 @@ enum CompanyRequestStatus {
   Rejected
 }
 
+model BaseCountry {
+  id            String        @id @default(uuid()) @db.Uuid
+  name          String        @unique() @db.VarChar(50)
+  iso2          String        @unique() @db.Char(2)
+  iso3          String        @unique() @db.Char(3)
+  isoNumeric    String        @db.VarChar(3)
+  phoneCode     String        @db.VarChar(50)
+  continent     String?       @db.VarChar(20)
+  capital       String        @db.VarChar(50)
+  timeZone      String        @db.VarChar(50)
+  currency      String        @db.VarChar(20)
+  symbol        String?       @db.VarChar(5)
+  wholePart     String?       @db.VarChar(20)
+  fractionPart  String?       @db.VarChar(20)
+  languageCodes String?       @db.VarChar(100)
+  perUserPrice  Float         @default(0.00) @db.DoublePrecision()
+  status        Boolean       @default(false) @db.Boolean
+  createdAt     DateTime      @default(now()) @db.Timestamptz(6)
+  createdBy     String?       @db.Uuid
+  updatedAt     DateTime      @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy     String?       @db.Uuid
+  states        BaseState[]
+  companies     BaseCompany[]
+
+  @@map("base_country")
+}
+
+model BaseState {
+  id        String        @id @default(uuid()) @db.Uuid
+  name      String        @unique() @db.VarChar(50)
+  iso2      String        @unique() @db.VarChar(10)
+  countryId String        @db.Uuid
+  status    Boolean       @default(true) @db.Boolean
+  createdAt DateTime      @default(now()) @db.Timestamptz(6)
+  createdBy String?       @db.Uuid
+  updatedAt DateTime      @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?       @db.Uuid
+  companies BaseCompany[]
+  country   BaseCountry   @relation(fields: [countryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("base_state")
+}
+
 model BaseUser {
   id         String            @id @default(uuid()) @db.Uuid
   firstName  String            @db.VarChar
@@ -80,8 +123,34 @@ model BaseCompany {
   users     BaseUserCompany[]
   values    BaseCompanyValue[]
   messages  BaseMessage[]
+  country   BaseCountry?       @relation(fields: [countryId], references: [id])
+  state     BaseState?         @relation(fields: [stateId], references: [id])
 
   @@map("base_company")
+}
+
+model BaseCompanyRequest {
+  id                String               @id @default(uuid()) @db.Uuid
+  name              String               @unique() @db.VarChar(100)
+  email             String               @unique() @db.VarChar(150)
+  contactEmail      String               @unique() @db.VarChar(150)
+  phone             String               @db.VarChar(50)
+  countryId         String               @db.Uuid
+  stateId           String               @db.Uuid
+  apartmentBuilding String?              @db.VarChar(50)
+  address1          String               @db.VarChar(150)
+  address2          String?              @db.VarChar(150)
+  townCity          String?              @db.VarChar(50)
+  code              String?              @unique() @db.VarChar
+  postCode          String?              @db.VarChar(10)
+  contactInfo       Json                 @db.JsonB
+  status            CompanyRequestStatus @default(Pending)
+  createdAt         DateTime             @default(now()) @db.Timestamptz(6)
+  createdBy         String?              @db.Uuid
+  updatedAt         DateTime             @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy         String?              @db.Uuid
+
+  @@map("base_company_request")
 }
 
 model BaseCompanyValue {

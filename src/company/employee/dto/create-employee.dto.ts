@@ -1,3 +1,12 @@
-import { UserInfoDto } from '@@/auth/dto/user-info.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsUUID } from 'class-validator';
 
-export class CreateEmployeeDto extends UserInfoDto {}
+export class CreateEmployeeDto {
+  @IsString()
+  @ApiProperty()
+  employeeNo: string;
+
+  @IsUUID()
+  @ApiProperty()
+  jobRoleId: string;
+}

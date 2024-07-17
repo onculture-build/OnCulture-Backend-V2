@@ -91,8 +91,51 @@ enum FeedbackType {
     Suggestion
 }
 
-model User {
-    id                String         @id @default(cuid())
+model CompanyCountry {
+    id             String         @id @default(uuid()) @db.Uuid
+    name           String         @unique() @db.VarChar(50)
+    iso2           String         @unique() @db.Char(2)
+    iso3           String         @unique() @db.Char(3)
+    isoNumeric     String         @db.VarChar(3)
+    phoneCode      String         @db.VarChar(50)
+    continent      String?        @db.VarChar(20)
+    capital        String         @db.VarChar(50)
+    timeZone       String         @db.VarChar(50)
+    currency       String         @db.VarChar(20)
+    symbol         String?        @db.VarChar(5)
+    wholePart      String?        @db.VarChar(20)
+    fractionPart   String?        @db.VarChar(20)
+    languageCodes  String?        @db.VarChar(100)
+    perUserPrice   Float          @default(0.00) @db.DoublePrecision()
+    status         Boolean        @default(false) @db.Boolean
+    createdAt      DateTime       @default(now()) @db.Timestamptz(6)
+    createdBy      String?        @db.Uuid
+    updatedAt      DateTime       @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy      String?        @db.Uuid
+    states         CompanyState[]
+    usersAddresses UserAddress[]
+
+    @@map("company_country")
+}
+
+model CompanyState {
+    id             String         @id @default(uuid()) @db.Uuid
+    name           String         @unique() @db.VarChar(50)
+    iso2           String         @unique() @db.VarChar(10)
+    countryId      String         @db.Uuid
+    status         Boolean        @default(true) @db.Boolean
+    createdAt      DateTime       @default(now()) @db.Timestamptz(6)
+    createdBy      String?        @db.Uuid
+    updatedAt      DateTime       @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy      String?        @db.Uuid
+    country        CompanyCountry @relation(fields: [countryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    usersAddresses UserAddress[]
+
+    @@map("company_state")
+}
+
+model CompanyUser {
+    id                String         @id @default(uuid()) @db.Uuid
     firstName         String         @db.VarChar
     middleName        String?        @db.VarChar
     lastName          String         @db.VarChar
@@ -107,75 +150,77 @@ model User {
     lastLogin         DateTime?
     lastLoginIp       String?
     roleId            String?        @db.Uuid
-    employeeId        String         @db.Uuid
+    employeeId        String         @unique @db.Uuid
     createdAt         DateTime       @default(now()) @db.Timestamptz(6)
     createdBy         String?        @db.Uuid
     updatedAt         DateTime       @default(now()) @updatedAt() @db.Timestamptz(6)
     updatedBy         String?        @db.Uuid
+    employee          CoreEmployee   @relation(fields: [employeeId], references: [id])
     role              CoreRole?      @relation(fields: [roleId], references: [id])
     messages          CoreMessage[]
     photo             CoreFile?      @relation(fields: [photoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-    employee          CoreEmployee?
     emails            UserEmail[]
     phones            UserPhone[]
     addresses         UserAddress[]
     nextOfKin         UserNextOfKin?
     relations         UserRelation[]
 
-    @@map("user")
+    @@map("company_user")
 }
 
 model UserEmail {
-    id         String   @id @default(uuid()) @db.Uuid
-    userId     String   @db.Uuid
-    email      String   @unique @db.VarChar
-    isPrimary  Boolean  @default(false) @db.Boolean
-    isVerified Boolean  @default(false) @db.Boolean
-    status     Boolean  @default(true) @db.Boolean
-    createdAt  DateTime @default(now()) @db.Timestamptz(6)
-    createdBy  String?  @db.Uuid
-    updatedAt  DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy  String?  @db.Uuid
-    user       User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    id         String      @id @default(uuid()) @db.Uuid
+    userId     String      @db.Uuid
+    email      String      @unique @db.VarChar
+    isPrimary  Boolean     @default(false) @db.Boolean
+    isVerified Boolean     @default(false) @db.Boolean
+    status     Boolean     @default(true) @db.Boolean
+    createdAt  DateTime    @default(now()) @db.Timestamptz(6)
+    createdBy  String?     @db.Uuid
+    updatedAt  DateTime    @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy  String?     @db.Uuid
+    user       CompanyUser @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
     @@map("user_email")
 }
 
 model UserPhone {
-    id        String   @id @default(uuid()) @db.Uuid
-    userId    String   @db.Uuid
-    phone     String   @unique @db.VarChar
-    isPrimary Boolean  @default(false) @db.Boolean
+    id        String      @id @default(uuid()) @db.Uuid
+    userId    String      @db.Uuid
+    phone     String      @unique @db.VarChar
+    isPrimary Boolean     @default(false) @db.Boolean
     // isVerified Boolean  @default(false) @db.Boolean
-    status    Boolean  @default(true) @db.Boolean
-    createdAt DateTime @default(now()) @db.Timestamptz(6)
-    createdBy String?  @db.Uuid
-    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy String?  @db.Uuid
-    user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    status    Boolean     @default(true) @db.Boolean
+    createdAt DateTime    @default(now()) @db.Timestamptz(6)
+    createdBy String?     @db.Uuid
+    updatedAt DateTime    @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?     @db.Uuid
+    user      CompanyUser @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
     @@map("user_phone")
 }
 
 model UserAddress {
-    id                String   @id @default(uuid()) @db.Uuid
-    label             String?  @db.VarChar
-    apartmentBuilding String?  @db.VarChar
-    address1          String   @db.VarChar
-    address2          String?  @db.VarChar
-    townCity          String?  @db.VarChar
-    stateId           String   @db.Uuid
-    countryId         String   @db.Uuid
-    purpose           String?  @db.VarChar
-    type              String?  @db.VarChar
-    postCode          String?  @db.VarChar
-    userId            String   @db.Uuid
-    status            Boolean  @default(true)
-    createdAt         DateTime @default(now()) @db.Timestamptz(6)
-    createdBy         String?  @db.Uuid
-    updatedAt         DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy         String?  @db.Uuid
-    user              User     @relation(fields: [userId], references: [id])
+    id                String         @id @default(uuid()) @db.Uuid
+    label             String?        @db.VarChar
+    apartmentBuilding String?        @db.VarChar
+    address1          String         @db.VarChar
+    address2          String?        @db.VarChar
+    townCity          String?        @db.VarChar
+    stateId           String         @db.Uuid
+    countryId         String         @db.Uuid
+    purpose           String?        @db.VarChar
+    type              String?        @db.VarChar
+    postCode          String?        @db.VarChar
+    userId            String         @db.Uuid
+    status            Boolean        @default(true)
+    createdAt         DateTime       @default(now()) @db.Timestamptz(6)
+    createdBy         String?        @db.Uuid
+    updatedAt         DateTime       @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy         String?        @db.Uuid
+    user              CompanyUser    @relation(fields: [userId], references: [id])
+    country           CompanyCountry @relation(fields: [countryId], references: [id])
+    state             CompanyState   @relation(fields: [stateId], references: [id])
 
     @@map("user_address")
 }
@@ -190,7 +235,7 @@ model UserNextOfKin {
     formerNames  String?          @db.VarChar
     dateOfBirth  DateTime?        @db.Timestamptz(6)
     relationship RelationshipType
-    user         User?            @relation(fields: [userId], references: [id])
+    user         CompanyUser?     @relation(fields: [userId], references: [id])
 
     @@map("user_next_of_kin")
 }
@@ -210,24 +255,24 @@ model UserRelation {
     createdBy    String?          @db.Uuid
     updatedAt    DateTime         @default(now()) @updatedAt() @db.Timestamptz(6)
     updatedBy    String?          @db.Uuid
-    user         User             @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    user         CompanyUser      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
     @@map("user_relation")
 }
 
 model CoreRole {
-    id          String   @id @default(uuid()) @db.Uuid
-    name        String   @unique() @db.VarChar(50)
-    description String?  @db.VarChar(500)
-    code        String   @unique() @db.VarChar(20)
-    type        RoleType @default(Custom)
-    defaultPage String?  @db.VarChar(50)
-    status      Boolean  @default(true) @db.Boolean
-    createdAt   DateTime @default(now()) @db.Timestamptz(6)
-    createdBy   String?  @db.Uuid
-    updatedAt   DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy   String?  @db.Uuid
-    users       User[]
+    id          String        @id @default(uuid()) @db.Uuid
+    name        String        @unique() @db.VarChar(50)
+    description String?       @db.VarChar(500)
+    code        String        @unique() @db.VarChar(20)
+    type        RoleType      @default(Custom)
+    defaultPage String?       @db.VarChar(50)
+    status      Boolean       @default(true) @db.Boolean
+    createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+    createdBy   String?       @db.Uuid
+    updatedAt   DateTime      @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy   String?       @db.Uuid
+    users       CompanyUser[]
     //   menuPermissions   CoreRoleMenuPermission[]
     //   schemaPermissions CoreRoleSchemaPermission[]
 
@@ -237,9 +282,7 @@ model CoreRole {
 model CoreEmployee {
     id          String                   @id @default(uuid()) @db.Uuid
     employeeNo  String                   @unique @db.VarChar(20)
-    userId      String                   @unique @db.Uuid
-    contactId   String                   @unique @db.Uuid
-    branchId    String                   @db.Uuid
+    userId      String?                  @unique @db.Uuid
     jobRoleId   String?                  @db.Uuid
     status      EmployeeStatus           @default(Active)
     createdAt   DateTime                 @default(now()) @db.Timestamptz(6)
@@ -250,7 +293,7 @@ model CoreEmployee {
     departments CoreEmployeeDepartment[]
     coreFileId  String?                  @db.Uuid
     files       CoreEmployeeFile[]
-    user        User                     @relation(fields: [userId], references: [id])
+    user        CompanyUser?
     sumups      EmployeeSumUp[]
     feedbacks   EmployeeFeedback[]
     shoutouts   EmployeeShoutout[]
@@ -303,7 +346,7 @@ model CoreFile {
     updatedAt DateTime           @default(now()) @updatedAt() @db.Timestamptz(6)
     updatedBy String?            @db.Uuid
     employees CoreEmployeeFile[]
-    users     User[]
+    users     CompanyUser[]
 
     @@map("core_file")
 }
@@ -334,7 +377,7 @@ model CoreJobRole {
     updatedAt   DateTime       @default(now()) @updatedAt() @db.Timestamptz(6)
     updatedBy   String?        @db.Uuid
     employees   CoreEmployee[]
-    evel        CoreJobLevel?  @relation(fields: [levelId], references: [id])
+    level       CoreJobLevel?  @relation(fields: [levelId], references: [id])
 
     @@map("core_job_role")
 }
@@ -370,7 +413,7 @@ model CoreMessage {
     updatedBy  String?              @db.Uuid
     template   CoreMessageTemplate? @relation(fields: [templateId], references: [id])
     files      CoreMessageFile[]
-    sender     User?                @relation(fields: [createdBy], references: [id])
+    sender     CompanyUser?         @relation(fields: [createdBy], references: [id])
 
     @@index([id, createdBy])
     @@map("core_message")

@@ -11,9 +11,20 @@ import {
 import { BrowserEvents, MediaTypes } from '../enums';
 import { GeneratePdfOptions } from '../interfaces';
 import puppeteer from 'puppeteer';
+import { customAlphabet } from 'nanoid';
+import _ from 'lodash';
+
+const CUSTOM_CHARS =
+  '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 @Injectable()
 export class AppUtilities {
+  public static generateShortCode(charLen = 6): string {
+    const nanoid = customAlphabet(CUSTOM_CHARS, charLen);
+
+    return nanoid();
+  }
+
   public static generatePassword(passLen = 15): string {
     const specialChars = [
       '!',
@@ -47,6 +58,15 @@ export class AppUtilities {
 
     return password.join('');
   }
+
+  public static unflatten = (flattedObject: any) => {
+    const result = {};
+    _.keys(flattedObject).forEach(function (key) {
+      _.set(result, key, flattedObject[key]);
+    });
+    return result;
+  };
+
   public static handleException(error: any): Error {
     console.error(AppUtilities.requestErrorHandler(error));
 

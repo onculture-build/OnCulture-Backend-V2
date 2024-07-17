@@ -1,6 +1,10 @@
 import { IsBirthDate } from '@@/common/decorators/is-birth-date';
 import { Gender } from '@@/common/interfaces';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiHideProperty,
+  ApiProperty,
+  ApiPropertyOptional,
+} from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
@@ -11,6 +15,7 @@ import {
   IsISO31661Alpha2,
   IsDate,
   IsEnum,
+  IsUUID,
 } from 'class-validator';
 
 export class UserInfoDto {
@@ -79,4 +84,18 @@ export class UserInfoDto {
   @IsString()
   @ApiPropertyOptional()
   preferredLanguage?: string;
+
+  @IsUUID()
+  @IsOptional()
+  @ApiPropertyOptional()
+  countryId?: string;
+
+  @IsUUID()
+  @IsOptional()
+  @ApiPropertyOptional()
+  stateId?: string;
+
+  @IsUUID()
+  @ApiHideProperty()
+  roleId: string;
 }

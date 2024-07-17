@@ -25,6 +25,10 @@ export class CompanyInfoDto {
   @ApiProperty()
   email: string;
 
+  @IsString()
+  @IsNotEmpty()
+  code: string;
+
   @IsPhoneNumber()
   @ApiProperty()
   phone: string;

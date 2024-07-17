@@ -33,9 +33,13 @@ export enum RelationshipType {
   NEICE = 'Niece',
 }
 
-export enum TenantRequestStatus {
+export enum CompanyRequestStatus {
   Approved = 'Approved',
   Onboarded = 'Onboarded',
   Pending = 'Pending',
   Rejected = 'Rejected',
+}
+
+export enum CompanyRequestAction {
+  ResendActivationEmail = 'ResendActivationEmail',
 }

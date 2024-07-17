@@ -7,7 +7,7 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import moment from 'moment';
+import * as moment from 'moment';
 
 @Injectable()
 @ValidatorConstraint({ name: 'IsBirthDate', async: true })
