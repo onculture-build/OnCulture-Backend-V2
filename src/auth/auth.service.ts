@@ -55,7 +55,9 @@ export class AuthService {
     return this.prismaClient.allowedUser.findMany({});
   }
 
-  async addAllowedUser({ email }: AllowedUserDto, req: RequestWithUser) {
+  async addAllowedUser({ email }: AllowedUserDto,
+    req: RequestWithUser
+  ) {
     const isExisting = await this.prismaClient.allowedUser.findFirst({
       where: { email: email.toLowerCase() },
     });

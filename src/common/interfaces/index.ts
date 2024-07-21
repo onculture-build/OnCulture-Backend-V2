@@ -25,3 +25,5 @@ export type GeneratePdfOptions = {
   printBackground?: boolean;
   format?: PaperFormat;
 };
+
+

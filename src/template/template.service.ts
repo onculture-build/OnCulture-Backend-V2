@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateTemplateDto } from './dto/create-template.dto';
 import { UpdateTemplateDto } from './dto/update-template.dto';
+import { RequestWithUser } from '../auth/interfaces';
 
 @Injectable()
 export class TemplateService {
