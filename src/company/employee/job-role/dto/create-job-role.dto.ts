@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateJobRoleDto {
   @IsString()
@@ -10,4 +10,8 @@ export class CreateJobRoleDto {
   @ApiPropertyOptional()
   @IsString()
   description?: string;
+
+  @IsUUID()
+  @ApiProperty()
+  jobLevelId: string;
 }
