@@ -140,6 +140,10 @@ const appConfig = {
       ),
     },
   },
+  transaction_time: {
+    MAX_TIME: env('MAX_WAIT', 60000),
+    TIME_OUT: env('TIME_OUT', 65000),
+  },
   zoom: {
     apiKey: env('ZOOM_API_KEY'),
     apiSecret: env('ZOOM_API_SECRET'),

@@ -58,7 +58,7 @@ export class BaseCompanyRequestService extends CrudService<
     });
   }
 
-  async setupBaseCompanyRequest({ userInfo, companyInfo }: SignUpDto) {
+  async setupCompanyRequest({ userInfo, companyInfo }: SignUpDto) {
     await this.validateCompanyRequestData({
       userInfo,
       companyInfo,
@@ -72,7 +72,7 @@ export class BaseCompanyRequestService extends CrudService<
     });
   }
 
-  async updateBaseCompanyRequest(
+  async updateCompanyRequest(
     id: string,
     updateDto: OnboardCompanyRequestUpdateDto,
     prisma: PrismaClient = this.prismaClient,

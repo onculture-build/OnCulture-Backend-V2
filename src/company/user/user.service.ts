@@ -1,6 +1,7 @@
 import { PrismaClientManager } from '@@/common/database/prisma-client-manager';
 import { Injectable, NotAcceptableException } from '@nestjs/common';
 import {
+  Prisma as CompanyPrisma,
   PrismaClient as CompanyPrismaClient,
   CompanyUser,
 } from '@@prisma/company';
@@ -9,14 +10,23 @@ import { AppUtilities } from '@@/common/utils/app.utilities';
 import { PrismaClient } from '@prisma/client';
 import { SetupUserDto } from './dto/setup-user.dto';
 import { CompanyUserQueueProducer } from '../queue/producer';
+import { CrudService } from '@@/common/database/crud.service';
+import { CompanyUserMapType } from './user.maptype';
+import { EmployeeService } from '../employee/employee.service';
 
 @Injectable()
-export class UserService {
+export class UserService extends CrudService<
+  CompanyPrisma.CompanyUserDelegate,
+  CompanyUserMapType
+> {
   constructor(
     private companyPrismaClient: CompanyPrismaClient,
     private companyQueueProducer: CompanyUserQueueProducer,
+    private employeeService: EmployeeService,
     private prismaClientManager: PrismaClientManager,
-  ) {}
+  ) {
+    super(companyPrismaClient.companyUser);
+  }
 
   async createUser(dto: SetupUserDto, auth: RequestWithUser) {
     const basePrisma = this.prismaClientManager.getPrismaClient();
@@ -70,21 +80,14 @@ export class UserService {
     }
 
     const executeSetupUser = async (prisma: CompanyPrismaClient) => {
+      const employee = await this.employeeService.createEmployee(employeeInfo);
       const user = await prisma.companyUser.create({
         data: {
           ...restUserInfo,
           createdBy: authUser?.userId,
           updatedBy: authUser?.userId,
           emails: { create: { email: userInfo.email.toLowerCase() } },
-          employee: {
-            connectOrCreate: {
-              where: { employeeNo: employeeInfo.employeeNo },
-              create: {
-                employeeNo: employeeInfo.employeeNo,
-                jobRole: { connect: { id: employeeInfo.jobRoleId } },
-              },
-            },
-          },
+          employee: { connect: { id: employee.id } },
           role: { connect: { id: roleId } },
         },
       });

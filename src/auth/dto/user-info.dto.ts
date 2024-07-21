@@ -30,6 +30,7 @@ export class UserInfoDto {
   middleName?: string;
 
   @IsNotEmpty()
+  @ApiProperty()
   @IsString()
   lastName: string;
 
@@ -96,6 +97,7 @@ export class UserInfoDto {
   stateId?: string;
 
   @IsUUID()
+  @IsOptional()
   @ApiHideProperty()
-  roleId: string;
+  roleId?: string;
 }

@@ -9,6 +9,7 @@ import { BullModule } from '@nestjs/bull';
 import { QUEUE } from '../interfaces';
 import { UserService } from '@@/company/user/user.service';
 import { CompanyModule } from '@@/company/company.module';
+import { BaseCompanyController } from './base-company.controller';
 
 @Module({
   imports: [
@@ -29,6 +30,8 @@ import { CompanyModule } from '@@/company/company.module';
     BaseCompanyRequestService,
     BaseCompanyQueueProducer,
     BaseCompanyQueueConsumer,
+    UserService,
   ],
+  controllers: [BaseCompanyController],
 })
 export class BaseCompanyModule {}

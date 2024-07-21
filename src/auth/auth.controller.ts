@@ -31,6 +31,13 @@ export class AuthController {
     return this.authService.addAllowedUser(dto, req);
   }
 
+  @ApiResponseMeta({ message: 'User is allowed' })
+  @ApiOperation({ summary: 'Verify if email is allowed' })
+  @Post('check-allowed-user')
+  async checkAllowedUser(@Body() dto: AllowedUserDto) {
+    return this.authService.checkAllowedUser(dto);
+  }
+
   @ApiOperation({ summary: 'Get all allowed users' })
   @ApiBearerAuth()
   @AuthStrategy(AuthStrategyType.JWT)
