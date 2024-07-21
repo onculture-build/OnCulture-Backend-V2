@@ -14,7 +14,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
 import { BaseUser, BaseUserCompany, PrismaClient } from '@prisma/client';
-import { EmployeeStatus } from '@@/common/enums';
+import { CompanyRequestStatus, EmployeeStatus } from '@@/common/enums';
 import { AppUtilities } from '@@/common/utils/app.utilities';
 import moment from 'moment';
 import { JwtPayload, RequestWithUser } from './interfaces';
@@ -29,6 +29,7 @@ import { MessagingService } from '@@/common/messaging/messaging.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { BaseCompanyRequestService } from '@@/base/base-company/base-company-request/base-company-request.service';
+import { BaseCompanyService } from '@@/base/base-company/base-company.service';
 
 @Injectable()
 export class AuthService {
@@ -36,6 +37,7 @@ export class AuthService {
 
   constructor(
     private configService: ConfigService,
+    private companyService: BaseCompanyService,
     private companyRequestService: BaseCompanyRequestService,
     private jwtService: JwtService,
     private cacheService: CacheService,
@@ -53,6 +55,16 @@ export class AuthService {
 
   async getAllowedUsers() {
     return this.prismaClient.allowedUser.findMany({});
+  }
+
+  async checkAllowedUser({ email }: AllowedUserDto) {
+    const allowedUser = await this.prismaClient.allowedUser.findFirst({
+      where: { email: email.toLowerCase() },
+    });
+
+    if (!allowedUser) throw new UnauthorizedException('User not allowed!');
+
+    return !!allowedUser;
   }
 
   async addAllowedUser({ email }: AllowedUserDto, req: RequestWithUser) {
@@ -77,11 +89,12 @@ export class AuthService {
       },
     });
 
-    const companyRequest =
-      await this.companyRequestService.setupBaseCompanyRequest({
+    const companyRequest = await this.companyRequestService.setupCompanyRequest(
+      {
         ...dto,
         companyInfo: { ...dto.companyInfo },
-      });
+      },
+    );
 
     if (!companyRequest) {
       throw new ServiceUnavailableException('Unable to setup company');
@@ -99,6 +112,9 @@ export class AuthService {
     }
 
     // handle case for allowed user
+    await this.companyService.activateCompany((companyRequest as any).id, {
+      status: CompanyRequestStatus.Approved,
+    });
   }
 
   async loginUser(dto: LoginDto, lastLoginIp: string, response: Response) {
