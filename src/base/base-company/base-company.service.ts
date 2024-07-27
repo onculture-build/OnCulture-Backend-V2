@@ -81,7 +81,10 @@ export class BaseCompanyService extends CrudService<
         this.prismaClientManager.getCompanyPrismaClient(company.id);
 
       await this.companyUserService.setupCompanyUser(
-        { userInfo: { ...dto.userInfo, roleId } },
+        {
+          userInfo: { ...dto.userInfo, roleId },
+          employeeInfo: { employeeNo: '00000' },
+        },
         undefined,
         tenantPrismaClient,
       );
@@ -156,11 +159,12 @@ export class BaseCompanyService extends CrudService<
   ) {
     const companyId = v4();
 
+    // 1. setup company
     const company = await prisma.baseCompany.create({
       data: {
         ...companyInfo,
         id: companyId,
-        ...(values.length && {
+        ...(values && {
           values: {
             createMany: {
               data: values.map((value) => ({ value })),
@@ -212,7 +216,7 @@ export class BaseCompanyService extends CrudService<
     ) {
       return await prismaClient.$transaction(
         async (prisma: PrismaClient) => {
-          await this.companyRequestService.updateBaseCompanyRequest(
+          await this.companyRequestService.updateCompanyRequest(
             id,
             updateDto,
             prisma,
@@ -243,9 +247,6 @@ export class BaseCompanyService extends CrudService<
       );
     }
 
-    return await this.companyRequestService.updateBaseCompanyRequest(
-      id,
-      updateDto,
-    );
+    return await this.companyRequestService.updateCompanyRequest(id, updateDto);
   }
 }

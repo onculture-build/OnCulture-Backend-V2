@@ -16,7 +16,6 @@ export class AppGuard extends AuthGuard(['jwt']) {
         context.getHandler(),
         context.getClass(),
       ]) || [];
-    // const request = context.switchToHttp().getRequest();
     if (!authStrategy) {
       return false;
     }

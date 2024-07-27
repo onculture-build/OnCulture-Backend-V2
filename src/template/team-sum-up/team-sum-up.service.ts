@@ -16,17 +16,22 @@ export class TeamSumUpService {
   ) {
     
   }
-  async create(createTeamSumUpDto: CreateTeamSumUpDto, req: RequestWithUser) {
-    const companyClient = this.prismaClientManager.getCompanyPrismaClient(req.user.companyId)
+  async create(createTeamSumUpDto: CreateTeamSumUpDto, companyId:string) {
+    const companyClient = this.prismaClientManager.getCompanyPrismaClient(companyId)
     return await companyClient.teamSumUpConfig.create({
       data: {
-        
+        ...createTeamSumUpDto
       }
     })
   }
 
-  findAll() {
-    return `This action returns all teamSumUp`;
+  async findAll(companyId: string) {
+    const companyClient = this.prismaClientManager.getCompanyPrismaClient(companyId)
+    return await companyClient.teamSumUpConfig.findFirst({
+      where: {
+        
+      }
+    })
   }
 
   findOne(id: number) {
