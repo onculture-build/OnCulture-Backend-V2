@@ -45,9 +45,9 @@ export class UserInfoDto {
   formerNames?: string;
 
   @IsEmail()
-  @IsOptional()
-  @ApiPropertyOptional()
-  email?: string;
+  @IsNotEmpty()
+  @ApiProperty()
+  email: string;
 
   @IsOptional()
   @IsPhoneNumber()
