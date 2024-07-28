@@ -21,7 +21,7 @@ export class CompanyInfoDto {
   @ApiProperty()
   name: string;
 
-  @IsEmail(undefined, { message: 'Tenant Email is Invalid!' })
+  @IsEmail(undefined, { message: 'Company Email is Invalid!' })
   @ApiProperty()
   email: string;
 

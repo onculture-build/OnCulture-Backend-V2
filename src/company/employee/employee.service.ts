@@ -20,23 +20,25 @@ export class EmployeeService extends CrudService<
     super(prismaClient.coreEmployee);
   }
 
-  async createEmployee({ employeeNo, jobRole }: CreateEmployeeDto) {
-    return this.prismaClient.$transaction(
-      async (prisma: CompanyPrismaClient) => {
-        let employeeJobRole;
-        if (jobRole) {
-          employeeJobRole = await this.jobRoleService.createJobRole(jobRole);
-        }
+  async createEmployee(
+    { employeeNo, jobRole }: CreateEmployeeDto,
+    prisma?: CompanyPrismaClient,
+  ) {
+    const client = prisma || this.prismaClient;
+    return client.$transaction(async (prisma: CompanyPrismaClient) => {
+      let employeeJobRole;
+      if (jobRole) {
+        employeeJobRole = await this.jobRoleService.createJobRole(jobRole);
+      }
 
-        return prisma.coreEmployee.create({
-          data: {
-            employeeNo,
-            ...(jobRole && {
-              jobRole: { connect: { id: (employeeJobRole as any)?.id } },
-            }),
-          },
-        });
-      },
-    );
+      return prisma.coreEmployee.create({
+        data: {
+          employeeNo,
+          ...(jobRole && {
+            jobRole: { connect: { id: (employeeJobRole as any)?.id } },
+          }),
+        },
+      });
+    });
   }
 }
