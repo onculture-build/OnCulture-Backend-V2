@@ -77,7 +77,7 @@ model BaseUser {
   middleName String?           @db.VarChar
   lastName   String            @db.VarChar
   email      String            @unique()
-  password   String
+  password   String?
   status     Boolean           @default(true) @db.Boolean
   createdAt  DateTime          @default(now()) @db.Timestamptz(6)
   createdBy  String?           @db.Uuid
