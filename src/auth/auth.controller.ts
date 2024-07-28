@@ -22,7 +22,7 @@ export class AuthController {
   @ApiResponseMeta({ message: 'Email added to allowed users' })
   @ApiOperation({ summary: 'Add email to list of allowed users' })
   @ApiBearerAuth()
-  @AuthStrategy(AuthStrategyType.JWT)
+  @AuthStrategy(AuthStrategyType.PUBLIC)
   @Post('allowed-users')
   async addAllowedUser(
     @Body() dto: AllowedUserDto,

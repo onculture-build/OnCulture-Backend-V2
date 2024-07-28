@@ -9,3 +9,4 @@ export enum TemplateStatus {
     ACTIVE = "active",
     IN_ACTIVE = "inactive"
 }
+

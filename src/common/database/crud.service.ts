@@ -39,7 +39,7 @@ export interface PaginationType {
 
 @Injectable()
 export abstract class CrudService<D extends Delegate, T extends CrudMapType> {
-  constructor(protected delegate: D) {}
+  constructor(protected delegate: D) { }
 
   public getDelegate(): D {
     return this.delegate;
@@ -359,8 +359,8 @@ export abstract class CrudService<D extends Delegate, T extends CrudMapType> {
             skip: cursorID ? 1 : 0,
             cursor: cursorID
               ? {
-                  [idField]: cursorID,
-                }
+                [idField]: cursorID,
+              }
               : undefined,
           });
 
@@ -385,7 +385,7 @@ export abstract class CrudService<D extends Delegate, T extends CrudMapType> {
             this.push(null);
             return;
           }
-          cursorID = (<any>results[results.length - 1])[idField];
+          cursorID = (<any> results[results.length - 1])[idField];
         } catch (err: any) {
           console.error(err);
           this.destroy(err);

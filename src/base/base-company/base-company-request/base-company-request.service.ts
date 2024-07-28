@@ -59,6 +59,7 @@ export class BaseCompanyRequestService extends CrudService<
   }
 
   async setupCompanyRequest({ userInfo, companyInfo }: SignUpDto) {
+    
     await this.validateCompanyRequestData({
       userInfo,
       companyInfo,
@@ -88,7 +89,7 @@ export class BaseCompanyRequestService extends CrudService<
 
   async validateCompanyRequestData({ userInfo, companyInfo }: SignUpDto) {
     const uniqueCountryIds = [
-      ...new Set([companyInfo.countryId, userInfo.countryId]),
+      companyInfo.countryId,
     ];
     const countries = await this.prismaClient.baseCountry.findMany({
       where: { id: { in: uniqueCountryIds } },
@@ -99,7 +100,7 @@ export class BaseCompanyRequestService extends CrudService<
     }
 
     const uniqueStateIds = [
-      ...new Set([companyInfo.stateId, userInfo.stateId]),
+      companyInfo.stateId
     ];
 
     const states = await this.prismaClient.baseState.findMany({
