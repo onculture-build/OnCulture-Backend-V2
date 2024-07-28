@@ -64,6 +64,7 @@
     "dotenv": "^16.4.5",
     "dotenv-expand": "^11.0.6",
     "express-basic-auth": "^1.2.1",
+    "expresswebcorets": "^2.1.41",
     "google-libphonenumber": "^3.2.35",
     "jwt-decode": "^4.0.0",
     "moment": "^2.30.1",
