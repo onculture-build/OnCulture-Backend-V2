@@ -69,7 +69,8 @@ export class UserService extends CrudService<
   ): Promise<CompanyUser | undefined> {
     const client = prisma || this.companyPrismaClient;
 
-    const { roleId, ...restUserInfo } = userInfo;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { roleId, email, stateId, countryId, ...restUserInfo } = userInfo;
 
     const role = await client.coreRole.findFirst({
       where: { id: roleId },
@@ -80,13 +81,16 @@ export class UserService extends CrudService<
     }
 
     const executeSetupUser = async (prisma: CompanyPrismaClient) => {
-      const employee = await this.employeeService.createEmployee(employeeInfo);
+      const employee = await this.employeeService.createEmployee(
+        employeeInfo,
+        prisma,
+      );
       const user = await prisma.companyUser.create({
         data: {
           ...restUserInfo,
           createdBy: authUser?.userId,
           updatedBy: authUser?.userId,
-          emails: { create: { email: userInfo.email.toLowerCase() } },
+          emails: { create: { email: email.toLowerCase() } },
           employee: { connect: { id: employee.id } },
           role: { connect: { id: roleId } },
         },

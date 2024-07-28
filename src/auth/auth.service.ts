@@ -89,12 +89,8 @@ export class AuthService {
       },
     });
 
-    const companyRequest = await this.companyRequestService.setupCompanyRequest(
-      {
-        ...dto,
-        companyInfo: { ...dto.companyInfo },
-      },
-    );
+    const companyRequest =
+      await this.companyRequestService.setupCompanyRequest(dto);
 
     if (!companyRequest) {
       throw new ServiceUnavailableException('Unable to setup company');
