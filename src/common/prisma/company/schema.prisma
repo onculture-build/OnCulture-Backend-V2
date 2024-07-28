@@ -91,6 +91,18 @@ enum FeedbackType {
     Suggestion
 }
 
+enum TemplateFrequency {
+    Daily
+    Weekly
+    Monthly
+    Yearly
+}
+
+enum TemplateStatus {
+    Active
+    Inactive
+}
+
 model CompanyCountry {
     id             String         @id @default(uuid()) @db.Uuid
     name           String         @unique() @db.VarChar(50)
@@ -529,57 +541,128 @@ model EmployeeFeedback {
 }
 
 model ValueStar {
-    id        String   @id @default(uuid()) @db.Uuid
-    status    Boolean  @default(true)
-    createdAt DateTime @default(now()) @db.Timestamptz(6)
-    createdBy String?  @db.Uuid
-    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy String?  @db.Uuid
+    id               String            @id @default(uuid()) @db.Uuid
+    status           Boolean           @default(true)
+    createdAt        DateTime          @default(now()) @db.Timestamptz(6)
+    createdBy        String?           @db.Uuid
+    updatedAt        DateTime          @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy        String?           @db.Uuid
+    frequency        TemplateFrequency
+    scheduleTime     DateTime
+    nextScheduleAt   DateTime
+    lastScheduleAt   DateTime
+    scheduleDate     DateTime
+    noOfDaysInterval Int
+    scheduleDay      Int[]
+    channelId        String
+    anonymous        Boolean           @default(false)
+    categoryName     String
+    description      String
+    votingDuration   String
 
     @@map("value_star")
 }
 
+model ValueStarCategories {
+    id String @id @default(uuid()) @db.Uuid
+
+    @@map("value_star_categories")
+}
+
 // template configurations
 model ShoutoutConfig {
-    id        String   @id @default(uuid()) @db.Uuid
-    status    Boolean  @default(true)
-    createdAt DateTime @default(now()) @db.Timestamptz(6)
-    createdBy String?  @db.Uuid
-    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy String?  @db.Uuid
+    id               String            @id @default(uuid()) @db.Uuid
+    status           TemplateStatus    @default(Inactive)
+    createdAt        DateTime          @default(now()) @db.Timestamptz(6)
+    createdBy        String?           @db.Uuid
+    updatedAt        DateTime          @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy        String?           @db.Uuid
+    frequency        TemplateFrequency
+    scheduleTime     DateTime
+    nextScheduleAt   DateTime
+    lastScheduleAt   DateTime
+    scheduleDate     DateTime
+    noOfDaysInterval Int
+    scheduleDay      Int[]
+    channelId        String
+    anonymous        Boolean           @default(false)
 
     @@map("shoutout_config")
 }
 
 model PeerConfig {
-    id        String   @id @default(uuid()) @db.Uuid
-    status    Boolean  @default(true)
-    createdAt DateTime @default(now()) @db.Timestamptz(6)
-    createdBy String?  @db.Uuid
-    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy String?  @db.Uuid
+    id               String   @id @default(uuid()) @db.Uuid
+    status           Boolean  @default(true)
+    createdAt        DateTime @default(now()) @db.Timestamptz(6)
+    createdBy        String?  @db.Uuid
+    updatedAt        DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy        String?  @db.Uuid
+    peerCallDuration String
 
     @@map("peer_config")
 }
 
 model SparkConfig {
-    id        String   @id @default(uuid()) @db.Uuid
-    status    Boolean  @default(true)
-    createdAt DateTime @default(now()) @db.Timestamptz(6)
-    createdBy String?  @db.Uuid
-    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy String?  @db.Uuid
+    id               String            @id @default(uuid()) @db.Uuid
+    status           Boolean           @default(true)
+    createdAt        DateTime          @default(now()) @db.Timestamptz(6)
+    createdBy        String?           @db.Uuid
+    updatedAt        DateTime          @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy        String?           @db.Uuid
+    frequency        TemplateFrequency
+    scheduleTime     DateTime
+    nextScheduleAt   DateTime
+    lastScheduleAt   DateTime
+    scheduleDate     DateTime
+    noOfDaysInterval Int
+    scheduleDay      Int[]
+    channelId        String
+    anonymous        Boolean           @default(false)
 
     @@map("spark_config")
 }
 
 model TeamSumUpConfig {
-    id        String   @id @default(uuid()) @db.Uuid
-    status    Boolean  @default(true)
-    createdAt DateTime @default(now()) @db.Timestamptz(6)
-    createdBy String?  @db.Uuid
-    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy String?  @db.Uuid
+    id               String            @id @default(uuid()) @db.Uuid
+    status           Boolean           @default(true)
+    createdAt        DateTime          @default(now()) @db.Timestamptz(6)
+    createdBy        String?           @db.Uuid
+    updatedAt        DateTime          @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy        String?           @db.Uuid
+    frequency        TemplateFrequency
+    scheduleTime     DateTime
+    nextScheduleAt   DateTime
+    lastScheduleAt   DateTime
+    scheduleDate     DateTime
+    noOfDaysInterval Int
+    scheduleDay      Int[]
+    channelId        String
+    anonymous        Boolean           @default(false)
+    mood             Mood
+    plan             String[]          @db.VarChar
+    past             String[]          @db.VarChar
+    blockers         String?           @db.VarChar
+    support          String[]
 
     @@map("team_sum_up_config")
+}
+
+model FeedBackConfig {
+    id               String            @id @default(uuid()) @db.Uuid
+    status           Boolean           @default(true)
+    createdAt        DateTime          @default(now()) @db.Timestamptz(6)
+    createdBy        String?           @db.Uuid
+    updatedAt        DateTime          @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy        String?           @db.Uuid
+    frequency        TemplateFrequency
+    scheduleTime     DateTime
+    nextScheduleAt   DateTime
+    lastScheduleAt   DateTime
+    scheduleDate     DateTime
+    noOfDaysInterval Int
+    scheduleDay      Int[]
+    channelId        String
+    anonymous        Boolean           @default(false)
+
+    @@map("feedback_config")
 }
