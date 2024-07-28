@@ -541,12 +541,12 @@ model EmployeeFeedback {
 }
 
 model ValueStar {
-    id               String            @id @default(uuid()) @db.Uuid
-    status           Boolean           @default(true)
-    createdAt        DateTime          @default(now()) @db.Timestamptz(6)
-    createdBy        String?           @db.Uuid
-    updatedAt        DateTime          @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy        String?           @db.Uuid
+    id               String                @id @default(uuid()) @db.Uuid
+    status           TemplateStatus        @default(Inactive)
+    createdAt        DateTime              @default(now()) @db.Timestamptz(6)
+    createdBy        String?               @db.Uuid
+    updatedAt        DateTime              @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy        String?               @db.Uuid
     frequency        TemplateFrequency
     scheduleTime     DateTime
     nextScheduleAt   DateTime
@@ -555,16 +555,19 @@ model ValueStar {
     noOfDaysInterval Int
     scheduleDay      Int[]
     channelId        String
-    anonymous        Boolean           @default(false)
-    categoryName     String
-    description      String
+    anonymous        Boolean               @default(false)
+    categories       ValueStarCategories[]
     votingDuration   String
 
     @@map("value_star")
 }
 
 model ValueStarCategories {
-    id String @id @default(uuid()) @db.Uuid
+    id           Int        @id @default(autoincrement())
+    categoryName String
+    description  String
+    config       ValueStar? @relation(fields: [configId], references: [id])
+    configId     String?    @db.Uuid
 
     @@map("value_star_categories")
 }
@@ -591,40 +594,51 @@ model ShoutoutConfig {
 }
 
 model PeerConfig {
-    id               String   @id @default(uuid()) @db.Uuid
-    status           Boolean  @default(true)
-    createdAt        DateTime @default(now()) @db.Timestamptz(6)
-    createdBy        String?  @db.Uuid
-    updatedAt        DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy        String?  @db.Uuid
+    id               String         @id @default(uuid()) @db.Uuid
+    status           TemplateStatus @default(Inactive)
+    createdAt        DateTime       @default(now()) @db.Timestamptz(6)
+    createdBy        String?        @db.Uuid
+    updatedAt        DateTime       @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy        String?        @db.Uuid
     peerCallDuration String
 
     @@map("peer_config")
 }
 
 model SparkConfig {
-    id               String            @id @default(uuid()) @db.Uuid
-    status           Boolean           @default(true)
-    createdAt        DateTime          @default(now()) @db.Timestamptz(6)
-    createdBy        String?           @db.Uuid
-    updatedAt        DateTime          @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy        String?           @db.Uuid
-    frequency        TemplateFrequency
-    scheduleTime     DateTime
-    nextScheduleAt   DateTime
-    lastScheduleAt   DateTime
-    scheduleDate     DateTime
-    noOfDaysInterval Int
-    scheduleDay      Int[]
-    channelId        String
-    anonymous        Boolean           @default(false)
+    id                  String               @id @default(uuid()) @db.Uuid
+    status              TemplateStatus       @default(Inactive)
+    createdAt           DateTime             @default(now()) @db.Timestamptz(6)
+    createdBy           String?              @db.Uuid
+    updatedAt           DateTime             @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy           String?              @db.Uuid
+    frequency           TemplateFrequency
+    scheduleTime        DateTime
+    nextScheduleAt      DateTime
+    lastScheduleAt      DateTime
+    scheduleDate        DateTime
+    noOfDaysInterval    Int
+    scheduleDay         Int[]
+    channelId           String
+    anonymous           Boolean              @default(false)
+    firesideChatsTopics FireSideChatsTopic[]
 
     @@map("spark_config")
 }
 
+model FireSideChatsTopic {
+    id          Int          @id @default(autoincrement())
+    topic       String
+    description String?
+    config      SparkConfig? @relation(fields: [configId], references: [id])
+    configId    String?      @db.Uuid
+
+    @@map("fire_side_chats_topic")
+}
+
 model TeamSumUpConfig {
     id               String            @id @default(uuid()) @db.Uuid
-    status           Boolean           @default(true)
+    status           TemplateStatus    @default(Inactive)
     createdAt        DateTime          @default(now()) @db.Timestamptz(6)
     createdBy        String?           @db.Uuid
     updatedAt        DateTime          @default(now()) @updatedAt() @db.Timestamptz(6)
@@ -649,7 +663,7 @@ model TeamSumUpConfig {
 
 model FeedBackConfig {
     id               String            @id @default(uuid()) @db.Uuid
-    status           Boolean           @default(true)
+    status           TemplateStatus    @default(Inactive)
     createdAt        DateTime          @default(now()) @db.Timestamptz(6)
     createdBy        String?           @db.Uuid
     updatedAt        DateTime          @default(now()) @updatedAt() @db.Timestamptz(6)
