@@ -3,12 +3,12 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, ValidateIf } from 'class-validator';
 
 export class OnboardCompanyRequestUpdateDto {
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ enum: CompanyRequestStatus })
   @IsEnum(CompanyRequestStatus)
   @ValidateIf((obj, val) => !!val || !obj.action)
   status?: CompanyRequestStatus;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ enum: CompanyRequestAction })
   @IsEnum(CompanyRequestAction)
   @ValidateIf((obj, val) => !!val || !obj.status)
   action?: CompanyRequestAction;
