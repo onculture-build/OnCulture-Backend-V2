@@ -4,14 +4,22 @@ import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
 import { MessagingService } from '@@/common/messaging/messaging.service';
 import { ConfigService } from '@nestjs/config';
-import { QUEUE, JOBS, ISendOnboardingEmail } from '../interfaces';
+import {
+  QUEUE,
+  JOBS,
+  ISendOnboardingEmail,
+  IProcessOnboardCompany,
+} from '../interfaces';
+import { BaseCompanyService } from '../base-company/base-company.service';
+import { CompanyRequestStatus } from '@@/common/enums';
 
 @Processor(QUEUE)
 export class BaseCompanyQueueConsumer extends BaseQueueProcessor {
   protected logger: Logger;
   constructor(
-    private messagingService: MessagingService,
+    private companyService: BaseCompanyService,
     private config: ConfigService,
+    private messagingService: MessagingService,
   ) {
     super();
     this.logger = new Logger('BaseCompanyQueueConsumer');
@@ -23,5 +31,12 @@ export class BaseCompanyQueueConsumer extends BaseQueueProcessor {
     this.messagingService
       .sendCompanyOnboardingEmail(companyId, dto, password)
       .catch(console.error);
+  }
+
+  @Process({ name: JOBS.PROCESS_ONBOARD_COMPANY })
+  async processOnboardCompany({ data }: Job<IProcessOnboardCompany>) {
+    await this.companyService.activateCompany(data.companyId, {
+      status: CompanyRequestStatus.Approved,
+    });
   }
 }

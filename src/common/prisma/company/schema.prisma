@@ -114,6 +114,7 @@ model CompanyCountry {
     updatedBy      String?        @db.Uuid
     states         CompanyState[]
     usersAddresses UserAddress[]
+    users          CompanyUser[]
 
     @@map("company_country")
 }
@@ -130,40 +131,45 @@ model CompanyState {
     updatedBy      String?        @db.Uuid
     country        CompanyCountry @relation(fields: [countryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     usersAddresses UserAddress[]
+    users          CompanyUser[]
 
     @@map("company_state")
 }
 
 model CompanyUser {
-    id                String         @id @default(uuid()) @db.Uuid
-    firstName         String         @db.VarChar
-    middleName        String?        @db.VarChar
-    lastName          String         @db.VarChar
-    maidenName        String?        @db.VarChar
-    formerNames       String?        @db.VarChar
-    dateOfBirth       DateTime?      @db.Date
-    prefix            String?        @db.VarChar
-    suffix            String?        @db.VarChar
+    id                String          @id @default(uuid()) @db.Uuid
+    firstName         String          @db.VarChar
+    middleName        String?         @db.VarChar
+    lastName          String          @db.VarChar
+    maidenName        String?         @db.VarChar
+    formerNames       String?         @db.VarChar
+    dateOfBirth       DateTime?       @db.Date
+    prefix            String?         @db.VarChar
+    suffix            String?         @db.VarChar
     gender            Gender?
-    photoId           String?        @db.Uuid
-    preferredLanguage String?        @db.VarChar
+    photoId           String?         @db.Uuid
+    preferredLanguage String?         @db.VarChar
     lastLogin         DateTime?
     lastLoginIp       String?
-    roleId            String?        @db.Uuid
-    employeeId        String         @unique @db.Uuid
-    createdAt         DateTime       @default(now()) @db.Timestamptz(6)
-    createdBy         String?        @db.Uuid
-    updatedAt         DateTime       @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy         String?        @db.Uuid
-    employee          CoreEmployee   @relation(fields: [employeeId], references: [id])
-    role              CoreRole?      @relation(fields: [roleId], references: [id])
+    roleId            String?         @db.Uuid
+    employeeId        String          @unique @db.Uuid
+    stateId           String?         @db.Uuid
+    countryId         String?         @db.Uuid
+    createdAt         DateTime        @default(now()) @db.Timestamptz(6)
+    createdBy         String?         @db.Uuid
+    updatedAt         DateTime        @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy         String?         @db.Uuid
+    employee          CoreEmployee    @relation(fields: [employeeId], references: [id])
+    role              CoreRole?       @relation(fields: [roleId], references: [id])
     messages          CoreMessage[]
-    photo             CoreFile?      @relation(fields: [photoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    photo             CoreFile?       @relation(fields: [photoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     emails            UserEmail[]
     phones            UserPhone[]
     addresses         UserAddress[]
     nextOfKin         UserNextOfKin?
     relations         UserRelation[]
+    state             CompanyState?   @relation(fields: [stateId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    country           CompanyCountry? @relation(fields: [countryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
     @@map("company_user")
 }

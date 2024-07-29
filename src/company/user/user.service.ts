@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { PrismaClientManager } from '@@/common/database/prisma-client-manager';
 import { Injectable, NotAcceptableException } from '@nestjs/common';
 import {
@@ -69,8 +70,15 @@ export class UserService extends CrudService<
   ): Promise<CompanyUser | undefined> {
     const client = prisma || this.companyPrismaClient;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { roleId, email, stateId, countryId, ...restUserInfo } = userInfo;
+    const {
+      roleId,
+      email,
+      phone,
+      phoneCountry,
+      stateId,
+      countryId,
+      ...restUserInfo
+    } = userInfo;
 
     const role = await client.coreRole.findFirst({
       where: { id: roleId },
@@ -90,7 +98,12 @@ export class UserService extends CrudService<
           ...restUserInfo,
           createdBy: authUser?.userId,
           updatedBy: authUser?.userId,
-          emails: { create: { email: email.toLowerCase() } },
+          ...(email && {
+            emails: { create: { email: email.toLowerCase(), isPrimary: true } },
+          }),
+          ...(phone && { phones: { create: { phone, isPrimary: true } } }),
+          ...(stateId && { state: { connect: { id: stateId } } }),
+          ...(countryId && { country: { connect: { id: countryId } } }),
           employee: { connect: { id: employee.id } },
           role: { connect: { id: roleId } },
         },
