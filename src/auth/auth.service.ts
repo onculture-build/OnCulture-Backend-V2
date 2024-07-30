@@ -47,7 +47,7 @@ export class AuthService {
     // private readonly fileService: FileService,
   ) {
     this.jwtExpires = this.configService.get<number>(
-      'jwt.signOptions.expiresIn',
+      'jwt.expiry',
     );
   }
 
@@ -132,10 +132,10 @@ export class AuthService {
     }
 
     if (companyCode) {
-      const company = await this.prismaClient.baseUserCompany.findFirst({
+      const company = await this.prismaClient.baseCompany.findFirst({
         where: {
-          company: { code: companyCode, status: true },
-          user: { email, status: true },
+          code: companyCode, status:true
+
         },
       });
 
@@ -154,7 +154,10 @@ export class AuthService {
           company: true,
         },
       });
-
+      console.log({
+        userId: baseUser.id,
+        companyId: company.id,
+      })
       if (!userCompany)
         throw new NotAcceptableException(
           'Cannot login to this company. Check credentials or contact your administrator.',
@@ -182,7 +185,7 @@ export class AuthService {
             },
           },
         });
-
+        
         if (!foundEmployee)
           throw new UnauthorizedException('Invalid credentials');
 
@@ -211,10 +214,10 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(
       {
-        userId: companyUser.id,
+        userId: companyUser?.id,
         tenantId: userCompany.companyId,
         employeeId: foundEmployee?.id,
-        createdAt: moment().format(),
+        createdAt: new Date(),
       },
       {
         secret: this.configService.get('jwt.secret'),
@@ -239,7 +242,7 @@ export class AuthService {
     await companyClient.companyUser.update({
       where: { id: companyUser.id },
       data: {
-        lastLogin: moment().toISOString(),
+        lastLogin: new Date().toISOString(),
         updatedBy: companyUser.id,
         lastLoginIp,
       },

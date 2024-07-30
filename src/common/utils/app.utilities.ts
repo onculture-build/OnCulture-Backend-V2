@@ -138,7 +138,8 @@ export class AppUtilities {
     password: string,
     hashedPassword: string,
   ) {
-    return bcrypt.compare(password, hashedPassword);
+
+    return await bcrypt?.compare(password, hashedPassword);
   }
 
   public static removeExtraSpacesAndLowerCase(item: string) {
