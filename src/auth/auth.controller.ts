@@ -47,6 +47,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Authenticate a user' })
+  @ApiResponseMeta({ message: 'User authenticated successfully' })
   @Post('login')
   async signin(
     @Body() dto: LoginDto,
@@ -57,6 +58,10 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Sign up and set up a company profile' })
+  @ApiResponseMeta({
+    message:
+      'Registration successful. An email would be sent to complete sign up',
+  })
   @Post('signup')
   async signup(@Body() dto: SignUpDto, @RealIP() parseIp: string) {
     return this.authService.onboardCompany(dto, parseIp.toString());

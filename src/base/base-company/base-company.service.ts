@@ -178,15 +178,12 @@ export class BaseCompanyService extends CrudService<
     });
 
     //2. Create Base User
-    const password = AppUtilities.generatePassword(10);
-
     const baseUser = await prisma.baseUser.create({
       data: {
         firstName: userInfo.firstName,
         middleName: userInfo.middleName,
         lastName: userInfo.lastName,
         email: userInfo.email.toLowerCase(),
-        password,
         companies: { create: { companyId: company.id } },
       },
     });
