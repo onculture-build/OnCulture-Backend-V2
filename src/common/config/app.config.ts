@@ -67,7 +67,7 @@ const appConfig = {
   jwt: {
     secret: env.require('JWT_SECRET', 'icannotthinkofasecretreally'),
     expiry: parseInt(env('JWT_EXPIRATION_TIME', 3600)),
-  },
+  }, 
   messaging: {
     mail: {
       host: env('MAILER_HOST'),

@@ -13,6 +13,7 @@ import { GeneratePdfOptions } from '../interfaces';
 import puppeteer from 'puppeteer';
 import { customAlphabet } from 'nanoid';
 import _ from 'lodash';
+import { TemplateFrequency } from '../../template/interfaces';
 
 const CUSTOM_CHARS =
   '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -137,7 +138,8 @@ export class AppUtilities {
     password: string,
     hashedPassword: string,
   ) {
-    return bcrypt.compare(password, hashedPassword);
+
+    return await bcrypt?.compare(password, hashedPassword);
   }
 
   public static removeExtraSpacesAndLowerCase(item: string) {
@@ -265,4 +267,106 @@ export class AppUtilities {
   ): string {
     return Buffer.from(data, encoding).toString();
   }
+
+  public static frequencyDaysConverter(freq: TemplateFrequency) {
+    const select = {
+      [`${TemplateFrequency.DAILY}`]: 1,
+      [`${TemplateFrequency.WEEKLY}`]: 7,
+      [`${TemplateFrequency.MONTHLY}`]: 30,
+      [`${TemplateFrequency.YEARLY}`]: 365
+    }
+
+    return select[freq]
+  }
+
+  public getFirstAutomationDate(targetTimeDate?: any, intervals?: any, frequencyType?: number, dayOfWeek?: any) {
+    try {
+      let passed = false, tomorrowDate
+      const now = new Date();
+      const currentDate = new Date()
+
+      if (frequencyType) {
+        if (frequencyType === 1) {
+          tomorrowDate = new Date(currentDate.setDate(currentDate.getDate() + parseInt(intervals) * frequencyType))
+        } else if (frequencyType === 7) {
+          const daysToAdd = parseInt(intervals) * 7; // convert weeks to days
+          tomorrowDate = new Date(currentDate.setDate(currentDate.getDate() + 1));
+          if (dayOfWeek) {
+            // find the next selected day of the week
+            while (!dayOfWeek.includes(tomorrowDate.getDay())) {
+              tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+            }
+          }
+        }
+      } else {
+        tomorrowDate = new Date(currentDate.setDate(currentDate.getDate() + 1))
+      }
+
+      const hour = Number(targetTimeDate.split(":")[0]);
+      const minute = Number(targetTimeDate.split(":")[1]);
+      const getDate = new Date();
+
+
+
+      getDate.setHours(hour);
+      getDate.setMinutes(minute);
+
+
+
+      const targetDate = new Date(getDate)
+      if (targetDate > now) {
+        //'Automation is possible today'
+        passed = false
+      } else {
+        // Add one day to the target time and check again
+        targetDate.setDate(targetDate.getDate() + 1);
+        if (targetDate > now) {
+          //'Automation is possible until tomorrow');
+          passed = true
+        } else {
+          //'Automation is not possible'
+          passed = true
+        }
+      }
+
+      const [hours, minutes] = targetTimeDate.split(':');
+      if (passed) {
+        tomorrowDate.setHours(Number(hours));
+        tomorrowDate.setMinutes(Number(minutes));
+      } else {
+        now.setHours(Number(hours));
+        now.setMinutes(Number(minutes));
+        if (frequencyType === 7) {
+          while (!dayOfWeek.includes(now.getDay())) {
+            now.setDate(now.getDate() + 1);
+          }
+        }
+      }
+
+      if (frequencyType === 1) {
+        return passed ? tomorrowDate : now;
+      } else if (frequencyType === 7) {
+        return dayOfWeek.map((desiredDay: any) => {
+          const currentDay = passed ? tomorrowDate.getDay() : now.getDay()
+          if (desiredDay === currentDay) {
+            return passed ? tomorrowDate : now;
+          } else {
+            let daysToAdd = desiredDay - currentDay;
+            if (daysToAdd < 0) {
+              daysToAdd += 7;
+            }
+
+            return passed ? new Date(tomorrowDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000) : new Date(now.getTime() + daysToAdd * 24 * 60 * 60 * 1000)
+          }
+
+
+        })
+      } else {
+        return passed ? tomorrowDate : now;
+      }
+
+    } catch (error) {
+
+    }
+  };
 }

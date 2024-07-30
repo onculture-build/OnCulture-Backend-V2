@@ -17,6 +17,7 @@ import { FileModule } from './common/file/file.module';
 import { AppGuard } from './auth/guard/app.guard';
 import { MessagingModule } from './common/messaging/messaging.module';
 import { JwtStrategy } from './auth/strategies/jwt.strategy';
+import { TemplateModule } from './template/template.module';
 
 @Global()
 @Module({
@@ -48,6 +49,7 @@ import { JwtStrategy } from './auth/strategies/jwt.strategy';
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     MessagingModule,
+    TemplateModule,
   ],
   controllers: [AppController],
   providers: [
