@@ -144,6 +144,7 @@ model CompanyUser {
     maidenName        String?         @db.VarChar
     formerNames       String?         @db.VarChar
     dateOfBirth       DateTime?       @db.Date
+    password          String?
     prefix            String?         @db.VarChar
     suffix            String?         @db.VarChar
     gender            Gender?
