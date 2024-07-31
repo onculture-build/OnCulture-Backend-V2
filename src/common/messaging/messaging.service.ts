@@ -7,13 +7,13 @@ import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 import { MessageStatus, MessageType } from '@prisma/client';
 import moment from 'moment';
-import { PaperFormat } from 'puppeteer';
+// import { PaperFormat } from 'puppeteer';
 import { PrismaClientManager } from '../database/prisma-client-manager';
 import { EVENTS } from '../events';
 import { EmailBuilder } from './builder/email-builder';
 import { MailProviders } from './interfaces';
 import { MailService } from './messaging-mail.service';
-import { AppUtilities } from '../utils/app.utilities';
+// import { AppUtilities } from '../utils/app.utilities';
 import { SignUpDto } from '@@/auth/dto/signup.dto';
 import { UserInfoDto } from '@@/auth/dto/user-info.dto';
 
@@ -61,7 +61,6 @@ export class MessagingService {
   public async sendCompanyOnboardingEmail(
     companyId: string,
     { userInfo, companyInfo }: SignUpDto,
-    password: string,
   ) {
     // get message template from db
     const prismaClient = this.prismaClientManager.getPrismaClient();
@@ -73,7 +72,6 @@ export class MessagingService {
 
     const emailBuilder = new EmailBuilder()
       .useTemplate(emailTemplate, {
-        user: { password },
         ...userInfo,
         ...companyInfo,
         login: { url: loginUrl },
@@ -193,8 +191,8 @@ export class MessagingService {
   public async sendCompanyOnboardingRequestEmail({
     userInfo,
     companyInfo,
-    ipAddress,
-    ...rest
+    // ipAddress,
+    // ...rest
   }: SignUpDto & { ipAddress: string }) {
     // get message template from db
     const prismaClient = this.prismaClientManager.getPrismaClient();
