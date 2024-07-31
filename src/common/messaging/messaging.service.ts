@@ -203,20 +203,17 @@ export class MessagingService {
     });
 
     const config = await this.getAppEmailConfig();
-    const legalFileAttachments = await this.createLegalFiles({
-      userInfo,
-      companyInfo,
-      ipAddress,
-      ...rest,
-    });
+    // const legalFileAttachments = await this.createLegalFiles({
+    //   userInfo,
+    //   companyInfo,
+    //   ipAddress,
+    //   ...rest,
+    // });
 
     const emailBuilder = new EmailBuilder()
       .useTemplate(emailTemplate, { ...userInfo, ...companyInfo })
-      .addFiles(legalFileAttachments)
-      .addRecipients([
-        userInfo.email,
-        this.configService.get('legal.issuerEmail'),
-      ]);
+      // .addFiles(legalFileAttachments)
+      .addRecipients([userInfo.email]);
 
     // add sender details from config settings
     emailBuilder.addFrom(config.senderAddress, config.senderName);
@@ -227,60 +224,60 @@ export class MessagingService {
       .sendEmail(emailBuilder);
   }
 
-  private async createLegalFiles(data: SignUpDto & { ipAddress: string }) {
-    const legalDocuments: [] = this.configService.get('app.legalDocs');
-    const clientUrl = this.configService.get('app.clientUrl');
-    const pdfOptions = {
-      margin: { top: '50px', right: '75px', bottom: '40px', left: '75px' },
-      printBackground: true,
-      format: 'A4' as PaperFormat,
-      displayHeaderFooter: true,
-      headerTemplate: '<div/>',
-      footerTemplate: `
-        <div style="width: 100%; font-size: 9px; color: #bbb; display: flex; align-items: center; justify-content: center">
-            <div><span class="pageNumber"></span>/<span class="totalPages"></span></div>
-        </div>
-      `,
-    };
+  // private async createLegalFiles(data: SignUpDto & { ipAddress: string }) {
+  //   const legalDocuments: [] = this.configService.get('app.legalDocs');
+  //   const clientUrl = this.configService.get('app.clientUrl');
+  //   const pdfOptions = {
+  //     margin: { top: '50px', right: '75px', bottom: '40px', left: '75px' },
+  //     printBackground: true,
+  //     format: 'A4' as PaperFormat,
+  //     displayHeaderFooter: true,
+  //     headerTemplate: '<div/>',
+  //     footerTemplate: `
+  //       <div style="width: 100%; font-size: 9px; color: #bbb; display: flex; align-items: center; justify-content: center">
+  //           <div><span class="pageNumber"></span>/<span class="totalPages"></span></div>
+  //       </div>
+  //     `,
+  //   };
 
-    const templateData = {
-      companyName: data.companyInfo.name,
-      providerContactPerson: `${data.userInfo.firstName} ${data.userInfo.lastName}`,
-      companyEmail: data.companyInfo.email,
-      date: moment().format('DD/MM/YYYY'),
-      ipAddress: data.ipAddress,
-      issuerName: this.configService.get('legal.issuerName'),
-      issuerContactPerson: this.configService.get('legal.issuerContactPerson'),
-      issuerEmail: this.configService.get('legal.issuerEmail'),
-      issuerContactPersonTitle: this.configService.get(
-        'legal.issuerContactPersonTitle',
-      ),
-    };
+  //   const templateData = {
+  //     companyName: data.companyInfo.name,
+  //     providerContactPerson: `${data.userInfo.firstName} ${data.userInfo.lastName}`,
+  //     companyEmail: data.companyInfo.email,
+  //     date: moment().format('DD/MM/YYYY'),
+  //     ipAddress: data.ipAddress,
+  //     issuerName: this.configService.get('legal.issuerName'),
+  //     issuerContactPerson: this.configService.get('legal.issuerContactPerson'),
+  //     issuerEmail: this.configService.get('legal.issuerEmail'),
+  //     issuerContactPersonTitle: this.configService.get(
+  //       'legal.issuerContactPersonTitle',
+  //     ),
+  //   };
 
-    const pdfs = await Promise.all(
-      legalDocuments.map(async ({ filename, uri }) => {
-        const url = new URL(`${clientUrl}/${uri}`);
-        Object.entries(templateData).reduce((acc, [key, val]) => {
-          acc.append(key, val);
-          return acc;
-        }, url.searchParams);
+  //   const pdfs = await Promise.all(
+  //     legalDocuments.map(async ({ filename, uri }) => {
+  //       const url = new URL(`${clientUrl}/${uri}`);
+  //       Object.entries(templateData).reduce((acc, [key, val]) => {
+  //         acc.append(key, val);
+  //         return acc;
+  //       }, url.searchParams);
 
-        const content = (await AppUtilities.generatePdfFromUrl(
-          url.toString(),
-          pdfOptions,
-        )) as Buffer;
+  //       const content = (await AppUtilities.generatePdfFromUrl(
+  //         url.toString(),
+  //         pdfOptions,
+  //       )) as Buffer;
 
-        return {
-          filename,
-          content,
-          type: 'application/pdf',
-          disposition: 'attachment',
-        };
-      }),
-    );
+  //       return {
+  //         filename,
+  //         content,
+  //         type: 'application/pdf',
+  //         disposition: 'attachment',
+  //       };
+  //     }),
+  //   );
 
-    return pdfs;
-  }
+  //   return pdfs;
+  // }
 
   //   private paginateGatewayQueryResponse(data: any) {
   //     let results = [],

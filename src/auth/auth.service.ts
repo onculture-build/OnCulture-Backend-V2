@@ -2,7 +2,6 @@ import { CacheService } from '@@/common/cache/cache.service';
 import { PrismaClientManager } from '@@/common/database/prisma-client-manager';
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   Logger,
   NotAcceptableException,
@@ -13,13 +12,13 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
-import { BaseUser, BaseUserCompany, PrismaClient } from '@prisma/client';
+import { BaseUser, PrismaClient } from '@prisma/client';
 import { EmployeeStatus } from '@@/common/enums';
 import { AppUtilities } from '@@/common/utils/app.utilities';
 import moment from 'moment';
 import { JwtPayload, RequestWithUser } from './interfaces';
 import { CacheKeysEnums } from '@@/common/cache/cache.enum';
-import { CookieOptions, Response } from 'express';
+import { CookieOptions, Request, Response } from 'express';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { v4 } from 'uuid';
@@ -112,106 +111,88 @@ export class AuthService {
     return companyRequest;
   }
 
-  async loginUser(dto: LoginDto, lastLoginIp: string, response: Response) {
-    const { email, employeeNo, password, companyCode } = dto;
+  async loginUser(
+    dto: LoginDto,
+    lastLoginIp: string,
+    req: Request,
+    response: Response,
+  ) {
+    const { email, employeeNo, password } = dto;
 
     let baseUser: BaseUser;
-    let userCompany: BaseUserCompany;
     let foundEmployee;
 
     if (email) {
       baseUser = await this.prismaClient.baseUser.findFirst({
-        where: { email },
-        include: {
-          companies: true,
-        },
+        where: { email, status: true },
       });
 
-      if (!baseUser) throw new UnauthorizedException('Invalid credentials');
+      if (!baseUser)
+        throw new UnauthorizedException(
+          'Cannot login. Check credentials or contact your administrator.',
+        );
     }
 
-    if (companyCode) {
-      const company = await this.prismaClient.baseUserCompany.findFirst({
-        where: {
-          company: { code: companyCode, status: true },
-          user: { email, status: true },
-        },
-      });
+    const companyPrisma =
+      await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
 
-      if (!company)
-        throw new ForbiddenException(
-          'Account is deactivated or invalid. Contact support',
-        );
-
-      userCompany = await this.prismaClient.baseUserCompany.findFirst({
+    if (employeeNo) {
+      foundEmployee = await companyPrisma.coreEmployee.findFirst({
         where: {
-          userId: baseUser.id,
-          companyId: company.id,
-          status: true,
+          employeeNo: { equals: employeeNo, mode: 'insensitive' },
+          status: EmployeeStatus.ACTIVE,
         },
         include: {
-          company: true,
-        },
-      });
-
-      if (!userCompany)
-        throw new NotAcceptableException(
-          'Cannot login to this company. Check credentials or contact your administrator.',
-        );
-
-      if (employeeNo) {
-        const companyClient = this.prismaClientManager.getCompanyPrismaClient(
-          userCompany.companyId,
-        );
-
-        foundEmployee = await companyClient.coreEmployee.findFirst({
-          where: {
-            employeeNo,
-            status: EmployeeStatus.ACTIVE,
-          },
-          include: {
-            user: {
-              include: {
-                emails: {
-                  where: {
-                    isPrimary: true,
-                  },
+          user: {
+            include: {
+              emails: {
+                where: {
+                  isPrimary: true,
                 },
               },
             },
           },
-        });
+        },
+      });
 
-        if (!foundEmployee)
-          throw new UnauthorizedException('Invalid credentials');
+      if (!foundEmployee)
+        throw new UnauthorizedException(
+          'Cannot login. Check credentials or contact your administrator.',
+        );
 
-        baseUser = await this.prismaClient.baseUser.findFirst({
-          where: {
-            email: foundEmployee.user.emails[0].email,
-          },
-        });
-      }
+      baseUser = await this.prismaClient.baseUser.findFirst({
+        where: {
+          email: foundEmployee.user.emails[0].email,
+        },
+      });
     }
-    // validate password
-    const isMatch = AppUtilities.validatePassword(password, baseUser.password);
 
-    if (!isMatch) throw new UnauthorizedException('Invalid credentials');
-
-    const companyClient = this.prismaClientManager.getCompanyPrismaClient(
-      userCompany.companyId,
-    );
-
-    const companyUser = await companyClient.companyUser.findFirst({
-      where: { emails: { some: { email, isPrimary: true } } },
+    const companyUser = await companyPrisma.companyUser.findFirst({
+      where: {
+        emails: {
+          some: {
+            email: email || foundEmployee.user.emails[0].email,
+            isPrimary: true,
+          },
+        },
+      },
       include: {
+        employee: true,
         role: true,
       },
     });
 
+    // validate password
+    const isMatch = AppUtilities.validatePassword(
+      password,
+      companyUser.password,
+    );
+
+    if (!isMatch) throw new UnauthorizedException('Invalid credentials');
+
     const accessToken = this.jwtService.sign(
       {
         userId: companyUser.id,
-        tenantId: userCompany.companyId,
         employeeId: foundEmployee?.id,
         createdAt: moment().format(),
       },
@@ -225,7 +206,6 @@ export class AuthService {
     const payload: JwtPayload = {
       userId: baseUser.id.toString(),
       email: email.toLowerCase(),
-      companyId: userCompany.companyId,
       sessionId,
     };
     //save user jwt token in redis
@@ -235,7 +215,7 @@ export class AuthService {
       this.jwtExpires,
     );
 
-    await companyClient.companyUser.update({
+    await companyPrisma.companyUser.update({
       where: { id: companyUser.id },
       data: {
         lastLogin: moment().toISOString(),
@@ -250,21 +230,32 @@ export class AuthService {
     return {
       accessToken,
       user: companyUser,
-      company: userCompany,
       role: { ...companyUser.role, menus: [] },
     };
   }
 
+  // async setPassword(dto: SetPasswordDto) {}
+
   async changePassword(dto: ChangePasswordDto, req: RequestWithUser) {
-    const user = await this.prismaClient.baseUser.findFirst({
-      where: { email: req.user.email },
+    const cPrisma =
+      await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
+
+    const companyUser = await cPrisma.companyUser.findFirst({
+      where: {
+        emails: {
+          some: {
+            email: req.user.email,
+            isPrimary: true,
+          },
+        },
+      },
     });
 
-    if (!user) throw new NotFoundException('User not found');
+    if (!companyUser) throw new NotFoundException('User not found');
 
     const isMatch = AppUtilities.validatePassword(
       dto.currentPassword,
-      user.password,
+      companyUser.password,
     );
 
     if (!isMatch)
@@ -272,11 +263,11 @@ export class AuthService {
 
     const hash = await AppUtilities.hashAuthSecret(dto.newPassword);
 
-    await this.prismaClient.baseUser.update({
-      where: { id: user.id },
+    await cPrisma.companyUser.update({
+      where: { id: companyUser.id },
       data: {
         password: hash,
-        updatedBy: user.id,
+        updatedBy: companyUser.id,
       },
     });
   }
@@ -322,7 +313,7 @@ export class AuthService {
     this.messagingService.sendPasswordRequestEmail(emailBuilder);
   }
 
-  async resetPassword({ password, token }: ResetPasswordDto) {
+  async resetPassword({ password, token }: ResetPasswordDto, req: Request) {
     const storedEmail = await this.cacheService.get(
       CacheKeysEnums.REQUESTS + token,
     );
@@ -334,17 +325,32 @@ export class AuthService {
     const modifyingUser = await this.prismaClient.baseUser.findFirst({
       where: { email: storedEmail },
     });
+
     if (!modifyingUser) {
       throw new NotAcceptableException('Invalid password reset request!');
     }
 
     const hash = await AppUtilities.hashAuthSecret(password);
 
-    await this.prismaClient.baseUser.update({
-      where: { id: modifyingUser.id },
+    const cPrisma =
+      await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
+
+    const companyUser = await cPrisma.companyUser.findFirst({
+      where: {
+        emails: {
+          some: {
+            email: storedEmail,
+            isPrimary: true,
+          },
+        },
+      },
+    });
+
+    await cPrisma.companyUser.update({
+      where: { id: companyUser.id },
       data: {
         password: hash,
-        updatedBy: modifyingUser.id,
+        updatedBy: companyUser.id,
       },
     });
   }

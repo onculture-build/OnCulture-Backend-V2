@@ -9,10 +9,10 @@ export interface JwtPayload {
   userId: string;
   sessionId: string;
   email: string;
-  companyId?: string;
 }
 
 export interface RequestWithUser extends Request {
+  [x: string]: any;
   user: JwtPayload;
   permittedFields?: any;
   selectFields?: any;
