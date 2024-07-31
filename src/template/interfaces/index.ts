@@ -10,3 +10,11 @@ export enum TemplateStatus {
     IN_ACTIVE = "inactive"
 }
 
+
+export enum TemplateMood {
+    TERRIBLE = "Terrible",
+    BAD = "Bad",
+   OKAY =  "Okay",
+    GOOD = "Good",
+    EXCELLENT = "Excellent"
+}
