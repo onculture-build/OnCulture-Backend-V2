@@ -73,7 +73,7 @@ export class PrismaClientManager implements OnModuleDestroy {
       where: { code: companyCode },
     });
 
-    return company.id;
+    return company?.id;
   }
 
   async onModuleDestroy() {

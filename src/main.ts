@@ -15,6 +15,7 @@ import { ErrorsInterceptor } from './common/interceptors/error.interceptor';
 import { RequestInterceptor } from './common/interceptors/request.interceptor';
 import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 const logger: Logger = new Logger('Main');
 
@@ -79,7 +80,11 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
 
-  app.useGlobalInterceptors(new RequestInterceptor(), new ErrorsInterceptor());
+  app.useGlobalInterceptors(
+    new RequestInterceptor(),
+    new ResponseInterceptor(),
+    new ErrorsInterceptor(),
+  );
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

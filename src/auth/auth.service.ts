@@ -92,21 +92,22 @@ export class AuthService {
       await this.companyRequestService.setupCompanyRequest(dto);
 
     if (!companyRequest) {
-      throw new ServiceUnavailableException('Unable to setup company');
+      throw new ServiceUnavailableException('Unable to onboard company');
     }
 
-    if (!allowedCompany) {
-      this.messagingService
-        .sendCompanyOnboardingRequestEmail({
-          ...dto,
-          ipAddress,
-        })
-        .catch(console.error);
-    }
+    this.messagingService
+      .sendCompanyOnboardingRequestEmail({
+        ...dto,
+        ipAddress,
+      })
+      .catch(console.error);
+
     // handle case for allowed user
-    this.companyQueueProducer.processOnboardCompany({
-      companyId: companyRequest.id,
-    });
+    if (allowedCompany) {
+      this.companyQueueProducer.processOnboardCompany({
+        companyId: companyRequest.id,
+      });
+    }
 
     return companyRequest;
   }

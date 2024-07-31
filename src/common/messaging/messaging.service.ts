@@ -68,7 +68,14 @@ export class MessagingService {
       where: { code: 'welcome' },
     });
     const config = await this.getAppEmailConfig();
-    const loginUrl = new URL(`${process.env.APP_CLIENT_URL}/login`);
+
+    const company = await prismaClient.baseCompany.findFirst({
+      where: { id: companyId },
+    });
+
+    const loginUrl = new URL(
+      `https://${company.code}.${process.env.APP_CLIENT_URL}/login`,
+    );
 
     const emailBuilder = new EmailBuilder()
       .useTemplate(emailTemplate, {
