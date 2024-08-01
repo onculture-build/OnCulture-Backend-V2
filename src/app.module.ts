@@ -1,5 +1,5 @@
 import { APP_GUARD } from '@nestjs/core';
-import { Global, Module } from '@nestjs/common';
+import { Global, MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { BullModule } from '@nestjs/bull';
@@ -17,6 +17,7 @@ import { FileModule } from './common/file/file.module';
 import { AppGuard } from './auth/guard/app.guard';
 import { MessagingModule } from './common/messaging/messaging.module';
 import { JwtStrategy } from './auth/strategies/jwt.strategy';
+import { TenantMiddleware } from './common/middleware/tenant.middleware';
 
 @Global()
 @Module({
@@ -59,4 +60,8 @@ import { JwtStrategy } from './auth/strategies/jwt.strategy';
   ],
   exports: [CacheModule, DatabaseModule],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(TenantMiddleware).forRoutes('*');
+  }
+}

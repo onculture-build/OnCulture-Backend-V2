@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { CrudService } from '@@/common/database/crud.service';
 import {
   Injectable,
@@ -92,7 +93,6 @@ export class BaseCompanyService extends CrudService<
       this.baseCompanyQueue.sendOnboardingEmail({
         companyId: company.id,
         dto,
-        password: baseUser.password,
       });
 
       return company;
@@ -132,20 +132,8 @@ export class BaseCompanyService extends CrudService<
       where: { email: companyInfo.email.toLowerCase() },
     });
 
-    const password = AppUtilities.generateShortCode(10);
-    const hashedPassword = await AppUtilities.hashAuthSecret(password);
-
-    await basePrisma.baseUser.update({
-      where: { email: userInfo.email },
-      data: { password: hashedPassword },
-    });
-
     await this.messagingService
-      .sendCompanyOnboardingEmail(
-        company.id,
-        { userInfo, companyInfo },
-        password,
-      )
+      .sendCompanyOnboardingEmail(company.id, { userInfo, companyInfo })
       .catch(console.error);
   }
 

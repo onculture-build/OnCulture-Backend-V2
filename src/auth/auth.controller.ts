@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Patch, Post, Req, Res } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthStrategy } from '@@/common/decorators/strategy.decorator';
@@ -52,9 +52,10 @@ export class AuthController {
   async signin(
     @Body() dto: LoginDto,
     @RealIP() parseIp: string,
+    @Req() req: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
-    return this.authService.loginUser(dto, parseIp.toString(), response);
+    return this.authService.loginUser(dto, parseIp.toString(), req, response);
   }
 
   @ApiOperation({ summary: 'Sign up and set up a company profile' })
@@ -89,7 +90,7 @@ export class AuthController {
   @ApiResponseMeta({ message: 'Password reset successfully' })
   @ApiOperation({ summary: 'Reset user password' })
   @Patch('password-reset')
-  async passwordReset(@Body() dto: ResetPasswordDto) {
-    return this.authService.resetPassword(dto);
+  async passwordReset(@Body() dto: ResetPasswordDto, @Req() req: Request) {
+    return this.authService.resetPassword(dto, req);
   }
 }

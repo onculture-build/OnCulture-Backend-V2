@@ -23,7 +23,7 @@ const appConfig = {
   app: {
     name: 'onculture',
     baseUrl: env('BASE_URL'),
-    clientUrl: env('CLIENT_URL'),
+    clientUrl: env('APP_CLIENT_URL'),
     port: parseInt(env('PORT', '4000')),
     hostname: env('HOST_NAME', 'localhost'),
     host: env(

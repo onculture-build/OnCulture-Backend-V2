@@ -29,16 +29,13 @@ export class UserService extends CrudService<
     super(companyPrismaClient.companyUser);
   }
 
-  async createUser(dto: SetupUserDto, auth: RequestWithUser) {
+  async createUser(dto: SetupUserDto, req: RequestWithUser) {
     const basePrisma = this.prismaClientManager.getPrismaClient();
-    const companyPrisma = this.prismaClientManager.getCompanyPrismaClient(
-      auth.user.companyId,
-    );
+    const companyPrisma =
+      await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
 
     return basePrisma.$transaction(async (prisma: PrismaClient) => {
       const { userInfo } = dto;
-
-      const password = AppUtilities.generatePassword(10);
 
       await prisma.baseUser.create({
         data: {
@@ -46,18 +43,17 @@ export class UserService extends CrudService<
           middleName: userInfo.middleName,
           lastName: userInfo.lastName,
           email: userInfo.email.toLowerCase(),
-          password,
-          companies: { connect: { id: auth.user.companyId } },
+          // companies: { connect: { company: { code: req['company'] } } },
         },
       });
 
       return companyPrisma.$transaction(async (prisma: CompanyPrismaClient) => {
-        await this.setupCompanyUser(dto, auth.user, prisma);
+        await this.setupCompanyUser(dto, req.user, prisma);
 
         await this.companyQueueProducer.sendUserSetupEmail({
-          companyId: auth.user.companyId,
+          // companyId: req.user.,
+          companyId: '',
           dto: { email: userInfo.email, ...userInfo },
-          password,
         });
       });
     });
@@ -114,8 +110,8 @@ export class UserService extends CrudService<
     return prisma
       ? await executeSetupUser(prisma)
       : await client.$transaction(
-          async (tPrisma: CompanyPrismaClient) =>
-            await executeSetupUser(tPrisma),
+          async (cPrisma: CompanyPrismaClient) =>
+            await executeSetupUser(cPrisma),
         );
   }
 }

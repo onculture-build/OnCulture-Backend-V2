@@ -1,11 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  ValidateIf,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, ValidateIf } from 'class-validator';
 
 export class LoginDto {
   @IsEmail()
@@ -17,11 +11,6 @@ export class LoginDto {
   @IsNotEmpty()
   @ApiProperty()
   password: string;
-
-  @IsString()
-  @IsOptional()
-  @ApiPropertyOptional()
-  companyCode?: string;
 
   @IsString()
   @ValidateIf((obj, val) => !!val || !obj.companyCode)

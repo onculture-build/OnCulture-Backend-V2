@@ -10,7 +10,6 @@ export enum JOBS {
 export interface ISendOnboardingEmail {
   companyId: string;
   dto: SignUpDto;
-  password: string;
 }
 
 export interface IProcessOnboardCompany {
