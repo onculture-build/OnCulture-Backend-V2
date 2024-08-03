@@ -90,9 +90,14 @@ export class BaseCompanyService extends CrudService<
         tenantPrismaClient,
       );
 
+      const token = AppUtilities.encode(
+        JSON.stringify({ email: baseUser.email }),
+      );
+
       this.baseCompanyQueue.sendOnboardingEmail({
         companyId: company.id,
         dto,
+        token,
       });
 
       return company;
@@ -132,8 +137,12 @@ export class BaseCompanyService extends CrudService<
       where: { email: companyInfo.email.toLowerCase() },
     });
 
+    const token = AppUtilities.encode(
+      JSON.stringify({ email: userInfo.email }),
+    );
+
     await this.messagingService
-      .sendCompanyOnboardingEmail(company.id, { userInfo, companyInfo })
+      .sendCompanyOnboardingEmail(company.id, { userInfo, companyInfo }, token)
       .catch(console.error);
   }
 

@@ -29,6 +29,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { BaseCompanyRequestService } from '@@/base/base-company/base-company-request/base-company-request.service';
 import { BaseCompanyQueueProducer } from '@@/base/queue/producer';
+import { SetPasswordDto } from './dto/set-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -82,7 +83,7 @@ export class AuthService {
   }
 
   async onboardCompany(dto: SignUpDto, ipAddress: string) {
-    const allowedCompany = await this.prismaClient.allowedUser.findFirst({
+    const allowedUser = await this.prismaClient.allowedUser.findFirst({
       where: {
         email: dto.userInfo.email.toLowerCase(),
       },
@@ -103,7 +104,7 @@ export class AuthService {
       .catch(console.error);
 
     // handle case for allowed user
-    if (allowedCompany) {
+    if (allowedUser) {
       this.companyQueueProducer.processOnboardCompany({
         companyId: companyRequest.id,
       });
@@ -235,7 +236,36 @@ export class AuthService {
     };
   }
 
-  // async setPassword(dto: SetPasswordDto) {}
+  // fix this implementation
+  async setPassword(dto: SetPasswordDto, token: string, req: Request) {
+    const cPrisma =
+      await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
+
+    const { email } = JSON.parse(AppUtilities.decode(token));
+
+    const companyUser = await cPrisma.companyUser.findFirst({
+      where: {
+        emails: {
+          some: {
+            email,
+            isPrimary: true,
+          },
+        },
+      },
+    });
+
+    if (!companyUser) throw new NotFoundException('User not found');
+
+    const hash = await AppUtilities.hashAuthSecret(dto.password);
+
+    await cPrisma.companyUser.update({
+      where: { id: companyUser.id },
+      data: {
+        password: hash,
+        updatedBy: companyUser.id,
+      },
+    });
+  }
 
   async changePassword(dto: ChangePasswordDto, req: RequestWithUser) {
     const cPrisma =
