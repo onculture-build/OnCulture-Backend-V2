@@ -27,9 +27,9 @@ export class BaseCompanyQueueConsumer extends BaseQueueProcessor {
 
   @Process({ name: JOBS.SEND_ONBOARDING_EMAIL })
   async processSendOnboardingEmail({ data }: Job<ISendOnboardingEmail>) {
-    const { companyId, dto } = data;
+    const { companyId, dto, token } = data;
     this.messagingService
-      .sendCompanyOnboardingEmail(companyId, dto)
+      .sendCompanyOnboardingEmail(companyId, dto, token)
       .catch(console.error);
   }
 

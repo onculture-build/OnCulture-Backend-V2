@@ -61,6 +61,7 @@ export class MessagingService {
   public async sendCompanyOnboardingEmail(
     companyId: string,
     { userInfo, companyInfo }: SignUpDto,
+    token: string,
   ) {
     // get message template from db
     const prismaClient = this.prismaClientManager.getPrismaClient();
@@ -69,12 +70,8 @@ export class MessagingService {
     });
     const config = await this.getAppEmailConfig();
 
-    const company = await prismaClient.baseCompany.findFirst({
-      where: { id: companyId },
-    });
-
     const loginUrl = new URL(
-      `https://${company.code}.${process.env.APP_CLIENT_URL}/login`,
+      `https://${companyInfo.code}.${process.env.APP_CLIENT_URL}/set-password?token=${token}`,
     );
 
     const emailBuilder = new EmailBuilder()
