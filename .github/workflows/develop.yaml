@@ -1,0 +1,65 @@
+name: Development Deployment CI
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  github-build:
+    name: Github Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+      - name: Decrypt files for ${{ github.ref }}
+        run: |
+          gpg --quiet --batch --yes --decrypt --passphrase="$PASSPHRASE" --output .env .secrets-dev.gpg
+        env:
+          PASSPHRASE: ${{ secrets.PASSPHRASE }}
+      - name: Install dependencies
+        run: yarn install
+      - name: Generate Schematics
+        run: yarn schema.generate:all
+      - name: Build App
+        run: yarn build
+      - name: Create deployment tar file
+        run: touch deployment-artifacts1.tar.gz
+      - name: Bundle deployment file
+        run: |
+          tar --exclude=deployment-artifacts1.tar.gz -czf deployment-artifacts1.tar.gz .
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-artifacts
+          path: deployment-artifacts1.tar.gz
+  build:
+    name: Build
+    runs-on: [onculture-v2-dev-be]
+    needs: github-build
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: deployment-artifacts
+      - name: Delete dist folder
+        run: rm -rf dist
+      - name: Delete src
+        run: rm -rf src
+      - name: Remove node-modules dir
+        run: rm -rf node_modules
+      - name: Remove Environment Variable
+        run: rm -f .env
+      - name: Extract artifact extra comment
+        run: |
+          tar -xvf deployment-artifacts1.tar.gz
+      - name: Apply base schema DB Migration
+        run: yarn db.migration.run:base
+      - name: Generate prisma clients
+        run: |
+          yarn schema.generate:base
+          yarn schema.generate:company
+          yarn db.migration.apply:companies
+      - name: Restart Application
+        run: pm2 restart 0
