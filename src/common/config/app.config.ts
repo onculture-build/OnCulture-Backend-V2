@@ -22,12 +22,10 @@ const appConfig = {
   },
   app: {
     name: 'onculture',
-    baseUrl: env('BASE_URL'),
     clientUrl: env('APP_CLIENT_URL'),
     port: parseInt(env('PORT', '4000')),
-    hostname: env('HOST_NAME', 'localhost'),
     host: env(
-      'HOST',
+      'HOST_NAME',
       `http://${env('HOST_NAME', 'localhost')}:${parseInt(
         env('PORT', '4000'),
       )}`,
