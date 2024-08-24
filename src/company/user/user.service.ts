@@ -4,21 +4,20 @@ import { Injectable, NotAcceptableException } from '@nestjs/common';
 import {
   Prisma as CompanyPrisma,
   PrismaClient as CompanyPrismaClient,
-  CompanyUser,
+  User,
 } from '@@prisma/company';
 import { JwtPayload, RequestWithUser } from '@@/auth/interfaces';
-import { AppUtilities } from '@@/common/utils/app.utilities';
 import { PrismaClient } from '@prisma/client';
 import { SetupUserDto } from './dto/setup-user.dto';
 import { CompanyUserQueueProducer } from '../queue/producer';
 import { CrudService } from '@@/common/database/crud.service';
-import { CompanyUserMapType } from './user.maptype';
+import { UserMapType } from './user.maptype';
 import { EmployeeService } from '../employee/employee.service';
 
 @Injectable()
 export class UserService extends CrudService<
-  CompanyPrisma.CompanyUserDelegate,
-  CompanyUserMapType
+  CompanyPrisma.UserDelegate,
+  UserMapType
 > {
   constructor(
     private companyPrismaClient: CompanyPrismaClient,
@@ -26,7 +25,7 @@ export class UserService extends CrudService<
     private employeeService: EmployeeService,
     private prismaClientManager: PrismaClientManager,
   ) {
-    super(companyPrismaClient.companyUser);
+    super(companyPrismaClient.user);
   }
 
   async createUser(dto: SetupUserDto, req: RequestWithUser) {
@@ -63,7 +62,7 @@ export class UserService extends CrudService<
     { userInfo, employeeInfo }: SetupUserDto,
     authUser?: JwtPayload,
     prisma?: CompanyPrismaClient,
-  ): Promise<CompanyUser | undefined> {
+  ): Promise<User | undefined> {
     const client = prisma || this.companyPrismaClient;
 
     const {
@@ -76,7 +75,7 @@ export class UserService extends CrudService<
       ...restUserInfo
     } = userInfo;
 
-    const role = await client.coreRole.findFirst({
+    const role = await client.role.findFirst({
       where: { id: roleId },
     });
 
@@ -89,7 +88,8 @@ export class UserService extends CrudService<
         employeeInfo,
         prisma,
       );
-      const user = await prisma.companyUser.create({
+
+      const user = await prisma.user.create({
         data: {
           ...restUserInfo,
           createdBy: authUser?.userId,
@@ -104,6 +104,7 @@ export class UserService extends CrudService<
           role: { connect: { id: roleId } },
         },
       });
+
       return user;
     };
 

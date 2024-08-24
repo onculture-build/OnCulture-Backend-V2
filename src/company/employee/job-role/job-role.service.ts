@@ -4,20 +4,20 @@ import {
   PrismaClient as CompanyPrismaClient,
 } from '@@prisma/company';
 import { CrudService } from '@@/common/database/crud.service';
-import { CoreJobRoleMapType } from './job-role.maptype';
+import { JobRoleMapType } from './job-role.maptype';
 import { CreateJobRoleDto } from './dto/create-job-role.dto';
 
 @Injectable()
 export class JobRoleService extends CrudService<
-  CompanyPrisma.CoreJobRoleDelegate,
-  CoreJobRoleMapType
+  CompanyPrisma.JobRoleDelegate,
+  JobRoleMapType
 > {
   constructor(private prismaClient: CompanyPrismaClient) {
-    super(prismaClient.coreJobRole);
+    super(prismaClient.jobRole);
   }
 
   async createJobRole({ jobLevelId, ...dto }: CreateJobRoleDto) {
-    const args: CompanyPrisma.CoreJobRoleCreateArgs = {
+    const args: CompanyPrisma.JobRoleCreateArgs = {
       data: { ...dto, level: { connect: { id: jobLevelId } } },
     };
     return this.create(args);
