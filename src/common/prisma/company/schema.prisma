@@ -516,7 +516,7 @@ model MessageFile {
 model MessageTemplate {
     id        String      @id @default(uuid()) @db.Uuid
     name      String      @db.VarChar(50)
-    code      String?     @unique() @db.VarChar(20)
+    code      String?     @unique() @db.VarChar(50)
     type      MessageType @default(Email)
     subject   String?     @db.VarChar
     isHtml    Boolean     @default(false) @db.Boolean
