@@ -17,4 +17,12 @@ export const baseMessageTemplateSeed = [
     isHtml: true,
     body: '',
   },
+  {
+    name: 'Password Reset Request',
+    code: 'resetPassword',
+    subject: 'Password Reset Request',
+    type: MessageType.Email,
+    isHtml: true,
+    body: '',
+  },
 ];

@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import {
   BadRequestException,
   ConflictException,
@@ -145,6 +145,25 @@ export class AppUtilities {
       .replace(/^\s+|\s+$/g, '')
       .replace(/\s+/g, ' ')
       .toLowerCase();
+  }
+
+  public static removeSensitiveData(
+    data: any,
+    deleteKeys: any,
+    remove?: boolean,
+  ) {
+    if (typeof data != 'object') return;
+    if (!data) return;
+
+    for (const key in data) {
+      if (deleteKeys.includes(key)) {
+        remove ? delete data[key] : (data[key] = '*************');
+      } else {
+        this.removeSensitiveData(data[key], deleteKeys, remove);
+      }
+    }
+
+    return data;
   }
 
   public static requestErrorHandler = (response: any = {}) => {

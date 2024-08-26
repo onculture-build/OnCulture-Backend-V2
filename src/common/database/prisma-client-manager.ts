@@ -1,4 +1,8 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { PrismaClient as CompanyPrismaClient } from '.prisma/company';
 import { PrismaClient } from '@prisma/client';
 import { execSync } from 'child_process';
@@ -69,11 +73,16 @@ export class PrismaClientManager implements OnModuleDestroy {
 
   private async getCompanyIdFromSubdomain(req: Request): Promise<string> {
     const companyCode = req['company'] as string;
+
     const company = await this.prismaClient.baseCompany.findFirst({
       where: { code: companyCode },
     });
 
-    return company?.id;
+    if (!company) {
+      throw new BadRequestException('Invalid Subdomain.');
+    }
+
+    return company.id;
   }
 
   async onModuleDestroy() {

@@ -1,4 +1,4 @@
-import { AuthStrategyType, JwtPayload } from '@@/auth/interfaces';
+import { AuthStrategyType, RequestWithUser } from '@@/auth/interfaces';
 import { AuthStrategy } from '@@/common/decorators/strategy.decorator';
 import {
   Body,
@@ -31,23 +31,26 @@ export class BranchController {
   }
 
   @ApiOperation({ summary: 'Get a specific branch' })
-  @Get('id')
+  @Get(':id')
   async getBranch(@Param('id', ParseUUIDPipe) id: string) {
     return id;
   }
 
   @ApiOperation({ summary: 'Create a branch' })
   @Post()
-  async createBranch(@Body() dto: CreateBranchDto, @Req() req: JwtPayload) {
+  async createBranch(
+    @Body() dto: CreateBranchDto,
+    @Req() req: RequestWithUser,
+  ) {
     return this.branchService.setupBranch(dto, req);
   }
 
   @ApiOperation({ summary: 'Update a branch' })
-  @Patch('id')
+  @Patch(':id')
   async updateBranch(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateBranchDto,
-    @Req() req: JwtPayload,
+    @Req() req: RequestWithUser,
   ) {
     return this.branchService.updateBranch(id, dto, req);
   }

@@ -6,7 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 import { MessageStatus, MessageType } from '@prisma/client';
-import moment from 'moment';
+import * as moment from 'moment';
 // import { PaperFormat } from 'puppeteer';
 import { PrismaClientManager } from '../database/prisma-client-manager';
 import { EVENTS } from '../events';

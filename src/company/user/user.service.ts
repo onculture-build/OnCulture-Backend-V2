@@ -6,13 +6,12 @@ import {
   PrismaClient as CompanyPrismaClient,
   User,
 } from '@@prisma/company';
-import { JwtPayload, RequestWithUser } from '@@/auth/interfaces';
+import { RequestWithUser } from '@@/auth/interfaces';
 import { PrismaClient } from '@prisma/client';
 import { SetupUserDto } from './dto/setup-user.dto';
 import { CompanyUserQueueProducer } from '../queue/producer';
 import { CrudService } from '@@/common/database/crud.service';
 import { UserMapType } from './user.maptype';
-import { EmployeeService } from '../employee/employee.service';
 
 @Injectable()
 export class UserService extends CrudService<
@@ -28,6 +27,7 @@ export class UserService extends CrudService<
   }
 
   async createUser(dto: SetupUserDto, req: RequestWithUser) {
+    console.log('🚀 ~ createUser ~ req:', req);
     const basePrisma = this.prismaClientManager.getPrismaClient();
     const companyPrisma =
       await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
@@ -41,16 +41,15 @@ export class UserService extends CrudService<
           middleName: userInfo.middleName,
           lastName: userInfo.lastName,
           email: userInfo.email.toLowerCase(),
-          // companies: { connect: { company: { code: req['company'] } } },
         },
       });
 
       return companyPrisma.$transaction(async (prisma: CompanyPrismaClient) => {
-        await this.setupCompanyUser(dto, req.user, prisma);
+        await this.setupCompanyUser(dto, req, prisma);
 
         await this.companyQueueProducer.sendUserSetupEmail({
           // companyId: req.user.,
-          companyId: '',
+          companyId: req.user.branchId, // change this to company id
           dto: { email: userInfo.email, ...userInfo },
         });
       });
@@ -59,7 +58,7 @@ export class UserService extends CrudService<
 
   async setupCompanyUser(
     { userInfo }: SetupUserDto,
-    authUser?: JwtPayload,
+    authUser?: RequestWithUser,
     prisma?: CompanyPrismaClient,
   ): Promise<User | undefined> {
     const client = prisma || this.companyPrismaClient;

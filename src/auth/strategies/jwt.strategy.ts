@@ -43,7 +43,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
           return payload;
         },
-        { ttl: this.configService.get('jwt.signOptions.expiresIn') },
+        { ttl: this.configService.get('jwt.expiry') },
       );
     }
   }
