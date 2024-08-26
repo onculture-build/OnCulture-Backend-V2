@@ -307,7 +307,6 @@ model Employee {
     updatedBy          String?              @db.Uuid
     jobRole            JobRole?             @relation(fields: [jobRoleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     departments        EmployeeDepartment[]
-    coreFileId         String?              @db.Uuid
     files              EmployeeFile[]
     user               User                 @relation(fields: [userId], references: [id])
     sumups             EmployeeSumUp[]
