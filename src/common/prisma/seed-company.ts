@@ -2,6 +2,8 @@ import { PrismaClient } from '.prisma/company';
 import { countrySeed } from '../database/seed-data/base/country.seed';
 import { stateSeed } from '../database/seed-data/base/state.seed';
 import { roleSeed } from '../database/seed-data/company/company-role.seed';
+import { employeeSettingSeed } from '../database/seed-data/company/employee-setting.seed';
+import { messageTemplateSeed } from '../database/seed-data/company/message-template.seed';
 
 const companyPrisma = new PrismaClient();
 
@@ -10,14 +12,14 @@ const promises = [];
 promises.push(
   new Promise(async (res, rej) => {
     try {
-      await companyPrisma.companyCountry.createMany({
+      await companyPrisma.country.createMany({
         data: countrySeed,
         skipDuplicates: true,
       });
       const nga = countrySeed.find((country) => country.iso2 === 'NG');
 
       // 2. Seed State Template
-      await companyPrisma.companyState.createMany({
+      await companyPrisma.state.createMany({
         data: stateSeed.map((state) => ({
           ...state,
           countryId: nga.id,
@@ -32,8 +34,21 @@ promises.push(
 );
 
 promises.push(
-  companyPrisma.coreRole.createMany({
+  companyPrisma.role.createMany({
     data: roleSeed,
+    skipDuplicates: true,
+  }),
+);
+
+promises.push(
+  companyPrisma.employeeSetting.create({
+    data: employeeSettingSeed,
+  }),
+);
+
+promises.push(
+  companyPrisma.messageTemplate.createMany({
+    data: messageTemplateSeed,
     skipDuplicates: true,
   }),
 );

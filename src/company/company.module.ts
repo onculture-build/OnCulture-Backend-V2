@@ -6,10 +6,11 @@ import { UserModule } from './user/user.module';
 import { EmployeeService } from './employee/employee.service';
 import { JobRoleService } from './employee/job-role/job-role.service';
 import { BranchModule } from './branch/branch.module';
+import { BranchService } from './branch/branch.service';
 
 @Module({
   imports: [PasswordPolicyModule, EmployeeModule, UserModule, BranchModule],
-  providers: [CompanyService, EmployeeService, JobRoleService],
-  exports: [EmployeeModule, UserModule],
+  providers: [BranchService, CompanyService, EmployeeService, JobRoleService],
+  exports: [BranchModule, CompanyService, EmployeeModule, UserModule],
 })
 export class CompanyModule {}

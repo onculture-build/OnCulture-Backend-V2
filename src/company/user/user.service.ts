@@ -22,7 +22,6 @@ export class UserService extends CrudService<
   constructor(
     private companyPrismaClient: CompanyPrismaClient,
     private companyQueueProducer: CompanyUserQueueProducer,
-    private employeeService: EmployeeService,
     private prismaClientManager: PrismaClientManager,
   ) {
     super(companyPrismaClient.user);

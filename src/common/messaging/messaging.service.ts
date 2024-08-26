@@ -126,8 +126,8 @@ export class MessagingService {
     // get message template from tenant db
     const prismaClient =
       this.prismaClientManager.getCompanyPrismaClient(companyId);
-    const emailTemplate = await prismaClient.coreMessageTemplate.findFirst({
-      where: { code: 'user-setup' },
+    const emailTemplate = await prismaClient.messageTemplate.findFirst({
+      where: { code: 'employee-setup' },
     });
     if (!emailTemplate) {
       throw new NotFoundException('The template does not exist');
@@ -150,7 +150,7 @@ export class MessagingService {
     emailBuilder.addFrom(config.senderAddress, config.senderName);
 
     // create message in core message table
-    const message = await prismaClient.coreMessage.create({
+    const message = await prismaClient.message.create({
       data: {
         bindings: {
           sender: this.senderEmail,
@@ -166,7 +166,7 @@ export class MessagingService {
       .setMailProviderOptions(config.provider, config)
       .sendEmail(emailBuilder);
     if (ok) {
-      await prismaClient.coreMessage.update({
+      await prismaClient.message.update({
         where: { id: message.id },
         data: {
           status: MessageStatus.Sent,
@@ -323,7 +323,7 @@ export class MessagingService {
     }
     const prisma = this.prismaClientManager.getCompanyPrismaClient(companyId);
 
-    const setting = await prisma.coreMessageSetting.findFirst();
+    const setting = await prisma.messageSetting.findFirst();
     if (!setting.preferredMailProvider) {
       return undefined;
     }

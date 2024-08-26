@@ -5,9 +5,10 @@ import { JwtService } from '@nestjs/jwt';
 import { BaseCompanyRequestService } from '@@/base/base-company/base-company-request/base-company-request.service';
 import { BaseCompanyService } from '@@/base/base-company/base-company.service';
 import { BaseCompanyModule } from '@@/base/base-company/base-company.module';
+import { CompanyModule } from '@@/company/company.module';
 
 @Module({
-  imports: [BaseCompanyModule],
+  imports: [BaseCompanyModule, CompanyModule],
   controllers: [AuthController],
   providers: [
     AuthService,
