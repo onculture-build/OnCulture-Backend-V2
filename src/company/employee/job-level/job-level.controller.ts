@@ -29,7 +29,7 @@ export class JobLevelController {
   }
 
   @ApiOperation({ summary: 'Get a job level' })
-  @Get('id')
+  @Get(':id')
   async getAJobLevel(@Param('id', ParseUUIDPipe) id: string) {
     return id;
   }

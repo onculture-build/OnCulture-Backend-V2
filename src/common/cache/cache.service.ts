@@ -13,7 +13,7 @@ export class CacheService {
   async set(key: string, item: any, ttl?: number): Promise<any> {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    return this.cache.set(key, item, { ttl });
+    return this.cache.set(key, item, ttl);
   }
 
   async remove(key: string): Promise<any | any[]> {
@@ -26,19 +26,14 @@ export class CacheService {
 
   async wrap(
     key: string,
-    cb: (...args: any[]) => any,
+    cb: () => Promise<any>,
     config?: CachingConfig<any>,
   ): Promise<any> {
     const data = await this.cache.wrap(key, cb, config);
-
     if (!!data && config?.ttl && typeof config.ttl === 'number') {
       this.set(key, data, config.ttl);
     }
 
     return data;
-  }
-
-  async wrap2(key: string, cb: () => Promise<any>): Promise<any> {
-    return this.cache.wrap(key, cb);
   }
 }

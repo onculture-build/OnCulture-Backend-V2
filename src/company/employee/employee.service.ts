@@ -10,7 +10,7 @@ import { JobRoleService } from './job-role/job-role.service';
 import { GetEmployeesDto } from './dto/get-employees.dto';
 import { AppUtilities } from '@@/common/utils/app.utilities';
 import { UserService } from '../user/user.service';
-import { JwtPayload } from '@@/auth/interfaces';
+import { RequestWithUser } from '@@/auth/interfaces';
 
 @Injectable()
 export class EmployeeService extends CrudService<
@@ -77,19 +77,19 @@ export class EmployeeService extends CrudService<
           jobRole: { id },
         }),
       },
-      // {
-      //   key: 'branchId',
-      //   where: (id) => ({
-      //     branch: { id },
-      //   }),
-      // },
+      {
+        key: 'branchId',
+        where: (id) => ({
+          branch: { id },
+        }),
+      },
     ]);
 
     const args: CompanyPrisma.EmployeeFindManyArgs = {
-      where: { ...parsedQueryFilters, status: true },
+      where: { ...parsedQueryFilters },
       include: {
-        // branch: true,
         user: { include: { emails: true, phones: true } },
+        branch: true,
         departments: {
           include: { department: true },
           ...(filters.departmentId && {
@@ -103,14 +103,23 @@ export class EmployeeService extends CrudService<
       },
     };
 
-    return this.findManyPaginate(args, {
-      cursor,
-      size,
-      direction,
-      orderBy: orderBy && AppUtilities.unflatten({ [orderBy]: direction }),
-      paginationType,
-      page,
-    });
+    const dataMapper = (data) => {
+      AppUtilities.removeSensitiveData(data.user, 'password', true);
+      return data;
+    };
+
+    return this.findManyPaginate(
+      args,
+      {
+        cursor,
+        size,
+        direction,
+        orderBy: orderBy && AppUtilities.unflatten({ [orderBy]: direction }),
+        paginationType,
+        page,
+      },
+      dataMapper,
+    );
   }
 
   async getEmployee(id: string) {
@@ -131,13 +140,19 @@ export class EmployeeService extends CrudService<
         jobRole: true,
       },
     };
-    return this.findFirstOrThrow(dto);
+    const employee = await this.findFirst(dto);
+
+    if (!employee) throw new NotFoundException('Employee not found');
+
+    AppUtilities.removeSensitiveData(employee.user, 'password', true);
+
+    return employee;
   }
 
   async createEmployee(
     { userInfo, ...dto }: CreateEmployeeDto,
     prisma?: CompanyPrismaClient,
-    req?: JwtPayload,
+    req?: RequestWithUser,
   ) {
     const client = prisma || this.prismaClient;
     return client.$transaction(async (prisma: CompanyPrismaClient) => {
@@ -156,7 +171,7 @@ export class EmployeeService extends CrudService<
         client,
       );
 
-      return prisma.employee.create({
+      return client.employee.create({
         data: {
           employeeNo,
           employmentType: dto.employmentType,

@@ -10,6 +10,8 @@ export interface JwtPayload {
   branchId: string;
   sessionId: string;
   email: string;
+  iat?: number;
+  exp?: number;
 }
 
 export interface RequestWithUser extends Request {

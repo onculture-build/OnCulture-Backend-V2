@@ -6,7 +6,7 @@ import { SignUpDto } from '@@/auth/dto/signup.dto';
 import { BranchService } from './branch/branch.service';
 import { EmployeeService } from './employee/employee.service';
 import { EmploymentType } from './interfaces';
-import { JwtPayload } from '@@/auth/interfaces';
+import { RequestWithUser } from '@@/auth/interfaces';
 
 @Injectable()
 export class CompanyService {
@@ -19,7 +19,7 @@ export class CompanyService {
   async setupCompany(
     { userInfo, companyInfo }: SignUpDto,
     prisma: CompanyPrismaClient,
-    req?: JwtPayload,
+    req?: RequestWithUser,
   ) {
     const client = prisma ?? this.prismaClient;
 

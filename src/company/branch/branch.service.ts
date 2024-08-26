@@ -4,7 +4,7 @@ import {
   PrismaClient as CompanyPrismaClient,
   Prisma as CompanyPrisma,
 } from '.prisma/company';
-import { JwtPayload } from '@@/auth/interfaces';
+import { RequestWithUser } from '@@/auth/interfaces';
 import { CreateBranchDto } from './dto/create-branch.dto';
 import { CrudService } from '@@/common/database/crud.service';
 import { BranchMapType } from './branch.maptype';
@@ -33,7 +33,7 @@ export class BranchService extends CrudService<
       contactId,
       ...item
     }: CreateBranchDto,
-    authUser?: JwtPayload,
+    authUser?: RequestWithUser,
     prisma?: CompanyPrismaClient,
   ) {
     const client = prisma || this.companyPrismaClient;
@@ -58,7 +58,11 @@ export class BranchService extends CrudService<
     });
   }
 
-  async updateBranch(id: string, dto: UpdateBranchDto, authUser: JwtPayload) {
+  async updateBranch(
+    id: string,
+    dto: UpdateBranchDto,
+    authUser: RequestWithUser,
+  ) {
     if (dto.isDefault === true) {
       await this.updateMany({
         where: { isDefault: true },

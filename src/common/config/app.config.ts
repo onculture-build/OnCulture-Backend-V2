@@ -64,7 +64,7 @@ const appConfig = {
   },
   jwt: {
     secret: env.require('JWT_SECRET', 'icannotthinkofasecretreally'),
-    expiry: parseInt(env('JWT_EXPIRATION_TIME', 3600)),
+    expiry: parseInt(env('JWT_EXPIRATION_TIME', 30 * 60)),
   },
   messaging: {
     mail: {
@@ -83,10 +83,11 @@ const appConfig = {
     token: env('MIX_PANEL_TOKEN'),
   },
   redis: {
-    host: env.require('REDIS_CONTAINER_NAME'),
+    host: env.require('REDIS_HOST', 'localhost'),
     port: parseInt(env('REDIS_PORT', '6379')),
     password: env('REDIS_PASSWORD'),
-    ttl: env('REDIS_TTL'),
+    ttl: parseInt(env('REDIS_TTL', 3600)),
+    url: env('REDIS_URL'),
   },
   sanity: {
     apiVersion: env('SANITY_API_VERSION', '2021-03-25'),

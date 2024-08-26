@@ -15,7 +15,7 @@ import { LoginDto } from './dto/login.dto';
 import { BaseUser, PrismaClient } from '@prisma/client';
 import { EmployeeStatus } from '@@/common/enums';
 import { AppUtilities } from '@@/common/utils/app.utilities';
-import moment from 'moment';
+import * as moment from 'moment';
 import { JwtPayload, RequestWithUser } from './interfaces';
 import { CacheKeysEnums } from '@@/common/cache/cache.enum';
 import { CookieOptions, Request, Response } from 'express';
@@ -46,9 +46,7 @@ export class AuthService {
     private companyQueueProducer: BaseCompanyQueueProducer,
     // private readonly fileService: FileService,
   ) {
-    this.jwtExpires = this.configService.get<number>(
-      'jwt.signOptions.expiresIn',
-    );
+    this.jwtExpires = this.configService.get<number>('jwt.expiry');
   }
 
   private readonly logger = new Logger(AuthService.name);
@@ -184,6 +182,8 @@ export class AuthService {
       },
     });
 
+    const { employee, role, ...user } = companyUser;
+
     // validate password
     const isMatch = AppUtilities.validatePassword(
       password,
@@ -194,9 +194,9 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(
       {
-        userId: companyUser.id,
-        branchId: companyUser?.employee.branchId,
-        employeeId: companyUser?.employeeId,
+        userId: user.id,
+        branchId: employee.branchId,
+        employeeId: user?.employeeId,
         createdAt: moment().format(),
       },
       {
@@ -209,7 +209,7 @@ export class AuthService {
     const payload: JwtPayload = {
       userId: baseUser.id.toString(),
       branchId: foundEmployee?.branchId,
-      email: email.toLowerCase(),
+      email: email?.toLowerCase() || foundEmployee.user.emails[0].email,
       sessionId,
     };
     //save user jwt token in redis
@@ -231,10 +231,13 @@ export class AuthService {
     // set response cookie
     this.setCookies(accessToken, response);
 
+    const usr = AppUtilities.removeSensitiveData(user, 'password', true);
+
     return {
       accessToken,
-      user: companyUser,
-      role: { ...companyUser.role, menus: [] },
+      user: usr,
+      employee,
+      role: { ...role, menus: [] },
     };
   }
 
@@ -322,7 +325,7 @@ export class AuthService {
     // Get template
     const messageTemplate =
       await this.prismaClient.baseMessageTemplate.findFirst({
-        where: { name: 'resetPassword' },
+        where: { code: 'resetPassword' },
       });
 
     if (!messageTemplate) {
@@ -332,7 +335,7 @@ export class AuthService {
     }
 
     const resetUrl = new URL(
-      `${process.env.APP_CLIENT_FORGOT_PASSWORD_URL}/${requestId}`,
+      `${process.env.APP_CLIENT_FORGOT_PASSWORD_URL}?token=${requestId}`,
     );
 
     const emailBuilder = new EmailBuilder()
@@ -356,7 +359,7 @@ export class AuthService {
     }
 
     const modifyingUser = await this.prismaClient.baseUser.findFirst({
-      where: { email: storedEmail },
+      where: { email: storedEmail.email },
     });
 
     if (!modifyingUser) {
@@ -372,7 +375,7 @@ export class AuthService {
       where: {
         emails: {
           some: {
-            email: storedEmail,
+            email: storedEmail.email,
             isPrimary: true,
           },
         },
@@ -389,7 +392,7 @@ export class AuthService {
   }
 
   private setCookies(token: string, response: Response) {
-    const maxAge = parseInt(process.env.JWT_EXPIRES);
+    const maxAge = parseInt(this.configService.get('jwt.expiry'));
     const expires = new Date(new Date().getTime() + maxAge);
     const cookieOptions: CookieOptions = { maxAge, expires, httpOnly: true };
     if (['remote', 'prod'].includes(this.configService.get('app.stage'))) {

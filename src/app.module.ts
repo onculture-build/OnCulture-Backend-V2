@@ -17,7 +17,7 @@ import { FileModule } from './common/file/file.module';
 import { AppGuard } from './auth/guard/app.guard';
 import { MessagingModule } from './common/messaging/messaging.module';
 import { JwtStrategy } from './auth/strategies/jwt.strategy';
-import { TenantMiddleware } from './common/middleware/tenant.middleware';
+import { CompanyMiddleware } from './common/middleware/tenant.middleware';
 
 @Global()
 @Module({
@@ -43,7 +43,7 @@ import { TenantMiddleware } from './common/middleware/tenant.middleware';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get('jwt.secret'),
         signOptions: {
-          expiresIn: configService.get('jwt.secret'),
+          expiresIn: configService.get('jwt.expiry'),
         },
       }),
     }),
@@ -62,6 +62,6 @@ import { TenantMiddleware } from './common/middleware/tenant.middleware';
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(TenantMiddleware).forRoutes('*');
+    consumer.apply(CompanyMiddleware).forRoutes('*');
   }
 }
