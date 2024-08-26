@@ -24,8 +24,7 @@ import { CompanyRequestAction } from '@@/common/enums';
 import { BaseCompanyRequestService } from './base-company-request/base-company-request.service';
 import { ConfigService } from '@nestjs/config';
 import { BaseCompanyQueueProducer } from '../queue/producer';
-import { UserService } from '@@/company/user/user.service';
-import { roleSeed } from '@@/common/database/seed-data/company/company-role.seed';
+import { CompanyService } from '@@/company/company.service';
 
 @Injectable()
 export class BaseCompanyService extends CrudService<
@@ -42,7 +41,7 @@ export class BaseCompanyService extends CrudService<
     private companyRequestService: BaseCompanyRequestService,
     private messagingService: MessagingService,
     private baseCompanyQueue: BaseCompanyQueueProducer,
-    private companyUserService: UserService,
+    private companyService: CompanyService,
   ) {
     super(prismaClient.baseCompany);
     this.MAX_TIME = Number(configService.get('transaction_time.MAX_TIME'));
@@ -76,19 +75,10 @@ export class BaseCompanyService extends CrudService<
         throw new ServiceUnavailableException('Unable to setup tenant!');
       }
 
-      const roleId = roleSeed[0].id;
-
       const tenantPrismaClient =
         this.prismaClientManager.getCompanyPrismaClient(company.id);
 
-      await this.companyUserService.setupCompanyUser(
-        {
-          userInfo: { ...dto.userInfo, roleId },
-          employeeInfo: { employeeNo: '00000' },
-        },
-        undefined,
-        tenantPrismaClient,
-      );
+      await this.companyService.setupCompany(dto, tenantPrismaClient);
 
       const token = AppUtilities.encode(
         JSON.stringify({ email: baseUser.email }),

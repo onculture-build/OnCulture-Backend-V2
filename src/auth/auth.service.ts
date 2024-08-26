@@ -139,7 +139,7 @@ export class AuthService {
       await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
 
     if (employeeNo) {
-      foundEmployee = await companyPrisma.coreEmployee.findFirst({
+      foundEmployee = await companyPrisma.employee.findFirst({
         where: {
           employeeNo: { equals: employeeNo, mode: 'insensitive' },
           status: EmployeeStatus.ACTIVE,
@@ -169,7 +169,7 @@ export class AuthService {
       });
     }
 
-    const companyUser = await companyPrisma.companyUser.findFirst({
+    const companyUser = await companyPrisma.user.findFirst({
       where: {
         emails: {
           some: {
@@ -217,7 +217,7 @@ export class AuthService {
       this.jwtExpires,
     );
 
-    await companyPrisma.companyUser.update({
+    await companyPrisma.user.update({
       where: { id: companyUser.id },
       data: {
         lastLogin: moment().toISOString(),
@@ -243,7 +243,7 @@ export class AuthService {
 
     const { email } = JSON.parse(AppUtilities.decode(token));
 
-    const companyUser = await cPrisma.companyUser.findFirst({
+    const companyUser = await cPrisma.user.findFirst({
       where: {
         emails: {
           some: {
@@ -258,7 +258,7 @@ export class AuthService {
 
     const hash = await AppUtilities.hashAuthSecret(dto.password);
 
-    await cPrisma.companyUser.update({
+    await cPrisma.user.update({
       where: { id: companyUser.id },
       data: {
         password: hash,
@@ -271,7 +271,7 @@ export class AuthService {
     const cPrisma =
       await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
 
-    const companyUser = await cPrisma.companyUser.findFirst({
+    const companyUser = await cPrisma.user.findFirst({
       where: {
         emails: {
           some: {
@@ -294,7 +294,7 @@ export class AuthService {
 
     const hash = await AppUtilities.hashAuthSecret(dto.newPassword);
 
-    await cPrisma.companyUser.update({
+    await cPrisma.user.update({
       where: { id: companyUser.id },
       data: {
         password: hash,
@@ -366,7 +366,7 @@ export class AuthService {
     const cPrisma =
       await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
 
-    const companyUser = await cPrisma.companyUser.findFirst({
+    const companyUser = await cPrisma.user.findFirst({
       where: {
         emails: {
           some: {
@@ -377,7 +377,7 @@ export class AuthService {
       },
     });
 
-    await cPrisma.companyUser.update({
+    await cPrisma.user.update({
       where: { id: companyUser.id },
       data: {
         password: hash,
