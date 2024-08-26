@@ -141,6 +141,9 @@ model BaseCompanyRequest {
   townCity     String?              @db.VarChar(50)
   code         String?              @unique() @db.VarChar
   postCode     String?              @db.VarChar(10)
+  mission      String?              @db.VarChar
+  vision       String?              @db.VarChar
+  values       String[]
   contactInfo  Json                 @db.JsonB
   status       CompanyRequestStatus @default(Pending)
   createdAt    DateTime             @default(now()) @db.Timestamptz(6)

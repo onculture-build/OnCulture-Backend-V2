@@ -1,16 +1,16 @@
 import { CrudMapType } from '@@/common/interfaces/crud-maptype.interface';
 import { Prisma } from '@@prisma/company';
 
-export class CompanyUserMapType implements CrudMapType {
-  aggregate: Prisma.CompanyUserAggregateArgs;
-  count: Prisma.CompanyUserCountArgs;
-  create: Prisma.CompanyUserCreateArgs;
-  delete: Prisma.CompanyUserDeleteArgs;
-  deleteMany: Prisma.CompanyUserDeleteManyArgs;
-  findFirst: Prisma.CompanyUserFindFirstArgs;
-  findMany: Prisma.CompanyUserFindManyArgs;
-  findUnique: Prisma.CompanyUserFindUniqueArgs;
-  update: Prisma.CompanyUserUpdateArgs;
-  updateMany: Prisma.CompanyUserUpdateManyArgs;
-  upsert: Prisma.CompanyUserUpsertArgs;
+export class UserMapType implements CrudMapType {
+  aggregate: Prisma.UserAggregateArgs;
+  count: Prisma.UserCountArgs;
+  create: Prisma.UserCreateArgs;
+  delete: Prisma.UserDeleteArgs;
+  deleteMany: Prisma.UserDeleteManyArgs;
+  findFirst: Prisma.UserFindFirstArgs;
+  findMany: Prisma.UserFindManyArgs;
+  findUnique: Prisma.UserFindUniqueArgs;
+  update: Prisma.UserUpdateArgs;
+  updateMany: Prisma.UserUpdateManyArgs;
+  upsert: Prisma.UserUpsertArgs;
 }

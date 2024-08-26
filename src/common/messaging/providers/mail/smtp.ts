@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import nodemailer, { SentMessageInfo, Transporter } from 'nodemailer';
+import * as nodemailer from 'nodemailer';
 import SMTPConnection from 'nodemailer/lib/smtp-connection';
 import { MailProvider, SendMailOptions, MailProviders } from '../../interfaces';
 
 @Injectable()
 export class SmtpMailProvider implements MailProvider {
-  private transporter: Transporter;
+  private transporter: nodemailer.Transporter;
 
   constructor(config: SMTPConnection.Options) {
     this.transporter = nodemailer.createTransport(config);
   }
 
-  async sendMail(data: SendMailOptions): Promise<SentMessageInfo> {
+  async sendMail(data: SendMailOptions): Promise<nodemailer.SentMessageInfo> {
     if (!this.transporter) {
       throw new Error('Method not implemented.');
     }

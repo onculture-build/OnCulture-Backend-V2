@@ -126,8 +126,8 @@ export class MessagingService {
     // get message template from tenant db
     const prismaClient =
       this.prismaClientManager.getCompanyPrismaClient(companyId);
-    const emailTemplate = await prismaClient.coreMessageTemplate.findFirst({
-      where: { code: 'user-setup' },
+    const emailTemplate = await prismaClient.messageTemplate.findFirst({
+      where: { code: 'employee-setup' },
     });
     if (!emailTemplate) {
       throw new NotFoundException('The template does not exist');
@@ -150,7 +150,7 @@ export class MessagingService {
     emailBuilder.addFrom(config.senderAddress, config.senderName);
 
     // create message in core message table
-    const message = await prismaClient.coreMessage.create({
+    const message = await prismaClient.message.create({
       data: {
         bindings: {
           sender: this.senderEmail,
@@ -166,7 +166,7 @@ export class MessagingService {
       .setMailProviderOptions(config.provider, config)
       .sendEmail(emailBuilder);
     if (ok) {
-      await prismaClient.coreMessage.update({
+      await prismaClient.message.update({
         where: { id: message.id },
         data: {
           status: MessageStatus.Sent,
@@ -205,16 +205,9 @@ export class MessagingService {
     });
 
     const config = await this.getAppEmailConfig();
-    // const legalFileAttachments = await this.createLegalFiles({
-    //   userInfo,
-    //   companyInfo,
-    //   ipAddress,
-    //   ...rest,
-    // });
 
     const emailBuilder = new EmailBuilder()
       .useTemplate(emailTemplate, { ...userInfo, ...companyInfo })
-      // .addFiles(legalFileAttachments)
       .addRecipients([userInfo.email]);
 
     // add sender details from config settings
@@ -226,104 +219,13 @@ export class MessagingService {
       .sendEmail(emailBuilder);
   }
 
-  // private async createLegalFiles(data: SignUpDto & { ipAddress: string }) {
-  //   const legalDocuments: [] = this.configService.get('app.legalDocs');
-  //   const clientUrl = this.configService.get('app.clientUrl');
-  //   const pdfOptions = {
-  //     margin: { top: '50px', right: '75px', bottom: '40px', left: '75px' },
-  //     printBackground: true,
-  //     format: 'A4' as PaperFormat,
-  //     displayHeaderFooter: true,
-  //     headerTemplate: '<div/>',
-  //     footerTemplate: `
-  //       <div style="width: 100%; font-size: 9px; color: #bbb; display: flex; align-items: center; justify-content: center">
-  //           <div><span class="pageNumber"></span>/<span class="totalPages"></span></div>
-  //       </div>
-  //     `,
-  //   };
-
-  //   const templateData = {
-  //     companyName: data.companyInfo.name,
-  //     providerContactPerson: `${data.userInfo.firstName} ${data.userInfo.lastName}`,
-  //     companyEmail: data.companyInfo.email,
-  //     date: moment().format('DD/MM/YYYY'),
-  //     ipAddress: data.ipAddress,
-  //     issuerName: this.configService.get('legal.issuerName'),
-  //     issuerContactPerson: this.configService.get('legal.issuerContactPerson'),
-  //     issuerEmail: this.configService.get('legal.issuerEmail'),
-  //     issuerContactPersonTitle: this.configService.get(
-  //       'legal.issuerContactPersonTitle',
-  //     ),
-  //   };
-
-  //   const pdfs = await Promise.all(
-  //     legalDocuments.map(async ({ filename, uri }) => {
-  //       const url = new URL(`${clientUrl}/${uri}`);
-  //       Object.entries(templateData).reduce((acc, [key, val]) => {
-  //         acc.append(key, val);
-  //         return acc;
-  //       }, url.searchParams);
-
-  //       const content = (await AppUtilities.generatePdfFromUrl(
-  //         url.toString(),
-  //         pdfOptions,
-  //       )) as Buffer;
-
-  //       return {
-  //         filename,
-  //         content,
-  //         type: 'application/pdf',
-  //         disposition: 'attachment',
-  //       };
-  //     }),
-  //   );
-
-  //   return pdfs;
-  // }
-
-  //   private paginateGatewayQueryResponse(data: any) {
-  //     let results = [],
-  //       pageCursors = { previous: null, next: null };
-  //     // transform results
-  //     if (Array.isArray(data?.items)) {
-  //       const hasPrevious = data.meta?.currentPage - 1 >= 1;
-  //       const hasNext = data.meta?.currentPage < data.meta?.totalPages;
-  //       pageCursors = {
-  //         previous:
-  //           (hasPrevious && {
-  //             cursor: AppUtilities.encode(String(data.meta?.currentPage - 1)),
-  //             page: null,
-  //             isCurrent: false,
-  //           }) ||
-  //           null,
-  //         next:
-  //           (hasNext && {
-  //             cursor: AppUtilities.encode(String(data.meta?.currentPage + 1)),
-  //             page: null,
-  //             isCurrent: false,
-  //           }) ||
-  //           null,
-  //       };
-  //       results = data.items.map((data: any) => ({
-  //         cursor: null,
-  //         node: data,
-  //       }));
-  //     }
-
-  //     return {
-  //       pageEdges: results,
-  //       pageCursors,
-  //       totalCount: data?.meta?.totalItems || 0,
-  //     };
-  //   }
-
   private async getCompanyMailConfig(companyId: string) {
     if (this.companyEmailConfigMemCache.has(companyId)) {
       return this.companyEmailConfigMemCache.get(companyId);
     }
     const prisma = this.prismaClientManager.getCompanyPrismaClient(companyId);
 
-    const setting = await prisma.coreMessageSetting.findFirst();
+    const setting = await prisma.messageSetting.findFirst();
     if (!setting.preferredMailProvider) {
       return undefined;
     }

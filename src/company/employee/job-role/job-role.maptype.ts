@@ -1,16 +1,16 @@
 import { CrudMapType } from '@@/common/interfaces/crud-maptype.interface';
 import { Prisma } from '@@prisma/company';
 
-export class CoreJobRoleMapType implements CrudMapType {
-  aggregate: Prisma.CoreJobRoleAggregateArgs;
-  count: Prisma.CoreJobRoleCountArgs;
-  create: Prisma.CoreJobRoleCreateArgs;
-  delete: Prisma.CoreJobRoleDeleteArgs;
-  deleteMany: Prisma.CoreJobRoleDeleteManyArgs;
-  findFirst: Prisma.CoreJobRoleFindFirstArgs;
-  findMany: Prisma.CoreJobRoleFindManyArgs;
-  findUnique: Prisma.CoreJobRoleFindUniqueArgs;
-  update: Prisma.CoreJobRoleUpdateArgs;
-  updateMany: Prisma.CoreJobRoleUpdateManyArgs;
-  upsert: Prisma.CoreJobRoleUpsertArgs;
+export class JobRoleMapType implements CrudMapType {
+  aggregate: Prisma.JobRoleAggregateArgs;
+  count: Prisma.JobRoleCountArgs;
+  create: Prisma.JobRoleCreateArgs;
+  delete: Prisma.JobRoleDeleteArgs;
+  deleteMany: Prisma.JobRoleDeleteManyArgs;
+  findFirst: Prisma.JobRoleFindFirstArgs;
+  findMany: Prisma.JobRoleFindManyArgs;
+  findUnique: Prisma.JobRoleFindUniqueArgs;
+  update: Prisma.JobRoleUpdateArgs;
+  updateMany: Prisma.JobRoleUpdateManyArgs;
+  upsert: Prisma.JobRoleUpsertArgs;
 }

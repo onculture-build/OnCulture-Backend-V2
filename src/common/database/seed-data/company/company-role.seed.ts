@@ -5,7 +5,7 @@ const roles = [
   {
     name: 'Account Owner',
     description:
-      'This role owns the subscription account. It is the default role assigned to the email account used to sign up to OctoCare. \n\nAccount Owner has full access to the application by default.',
+      'This role owns the subscription account. It is the default role assigned to the email account used to sign up to Onculture. \n\nAccount Owner has full access to the application by default.',
     code: 'owner',
     type: RoleType.System,
     // menuPermissions: [],

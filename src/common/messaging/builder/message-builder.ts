@@ -1,4 +1,4 @@
-import { CoreMessageTemplate } from '@@prisma/company';
+import { MessageTemplate } from '@@prisma/company';
 import { BaseMessageTemplate } from '@prisma/client';
 import { SendMailOptions } from '../interfaces';
 import Handlebars from 'handlebars';
@@ -7,7 +7,7 @@ export abstract class MessageBuilder {
   protected recipients: string[];
   protected body: string;
   protected bindings: Record<string, any>;
-  protected template: BaseMessageTemplate | CoreMessageTemplate;
+  protected template: BaseMessageTemplate | MessageTemplate;
 
   protected abstract build(): SendMailOptions;
 
@@ -41,7 +41,7 @@ export abstract class MessageBuilder {
   }
 
   useTemplate(
-    template: BaseMessageTemplate | CoreMessageTemplate,
+    template: BaseMessageTemplate | MessageTemplate,
     bindings: Record<string, any> = {},
   ) {
     this.template = template;

@@ -7,6 +7,7 @@ export enum AuthStrategyType {
 
 export interface JwtPayload {
   userId: string;
+  branchId: string;
   sessionId: string;
   email: string;
 }

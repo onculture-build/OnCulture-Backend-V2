@@ -17,7 +17,7 @@ import { BaseCompanyService } from './base-company.service';
 import { OnboardCompanyRequestUpdateDto } from './base-company-request/dto/onboard-company-request-update.dto';
 
 @ApiTags('Base Company')
-// @ApiBearerAuth()
+@ApiBearerAuth()
 @AuthStrategy(AuthStrategyType.PUBLIC)
 @Controller('company')
 export class BaseCompanyController {
