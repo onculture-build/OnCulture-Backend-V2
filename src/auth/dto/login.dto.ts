@@ -3,7 +3,7 @@ import { IsEmail, IsNotEmpty, IsString, ValidateIf } from 'class-validator';
 
 export class LoginDto {
   @IsEmail()
-  @ValidateIf((obj, val) => !!val || (!obj.companyCode && !obj.employeeNo))
+  @ValidateIf((obj, val) => !!val || !obj.employeeNo)
   @ApiProperty()
   email?: string;
 
@@ -13,7 +13,7 @@ export class LoginDto {
   password: string;
 
   @IsString()
-  @ValidateIf((obj, val) => !!val || !obj.companyCode)
+  @ValidateIf((obj, val) => !!val || !obj.email)
   @ApiPropertyOptional()
   employeeNo?: string;
 }

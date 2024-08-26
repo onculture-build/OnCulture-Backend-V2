@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
@@ -6,12 +6,14 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { CacheKeysEnums } from 'src/common/cache/cache.enum';
 import { CacheService } from 'src/common/cache/cache.service';
 import { JwtPayload } from '../interfaces';
+import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private configService: ConfigService,
     private coreCacheService: CacheService,
+    private prisma: PrismaClient,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -20,12 +22,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         ExtractJwt.fromUrlQueryParameter('token'),
       ]),
       passReqToCallback: true,
-      ignoreExpiration: false,
+      ignoreExpiration: true,
       secretOrKey: configService.get('jwt.secret'),
     });
   }
 
   async validate(request: Request, jwt: JwtPayload): Promise<JwtPayload> {
+    const TOKEN_IS_EXPIRED = jwt.exp && Date.now() >= jwt.exp * 1000;
+    if (TOKEN_IS_EXPIRED) {
+      throw new UnauthorizedException('Login session has expired!');
+    }
+
     let [, token] = String(request.headers['authorization']).split(/\s+/);
     if (!token) {
       token = String(request['query']?.token);
@@ -33,18 +40,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const [, , sessionKey] = String(token).split('.');
     if (!sessionKey) {
       return undefined;
-    } else {
-      return await this.coreCacheService.wrap(
-        `${CacheKeysEnums.TOKENS}:${jwt.userId}:${sessionKey}`,
-        (payload, error) => {
-          if (error) {
-            console.error(error);
-          }
-
-          return payload;
-        },
-        { ttl: this.configService.get('jwt.expiry') },
-      );
     }
+    const sessionPayload = await this.coreCacheService.wrap(
+      `${CacheKeysEnums.TOKENS}:${jwt.userId}:${sessionKey}`,
+      () => this.prisma.baseUser.findFirst({ where: { email: jwt.email } }),
+      { ttl: this.configService.get('jwt.expiry') },
+    );
+
+    return sessionPayload;
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { AUTH_STRATEGY_KEY } from 'src/common/decorators/strategy.decorator';
+import { AUTH_STRATEGY_KEY } from '../../common/decorators/strategy.decorator';
 import { AuthStrategyType } from '../interfaces';
 
 @Injectable()
@@ -16,6 +16,7 @@ export class AppGuard extends AuthGuard(['jwt']) {
         context.getHandler(),
         context.getClass(),
       ]) || [];
+
     if (!authStrategy) {
       return false;
     }
@@ -26,15 +27,5 @@ export class AppGuard extends AuthGuard(['jwt']) {
       default:
         return super.canActivate(context);
     }
-  }
-
-  extractJwtFromRequest(request: any): string | null {
-    const authHeader = request.headers.authorization;
-
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      return authHeader.slice(7);
-    }
-
-    return null;
   }
 }
