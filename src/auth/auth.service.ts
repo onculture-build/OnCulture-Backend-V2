@@ -195,7 +195,8 @@ export class AuthService {
     const accessToken = this.jwtService.sign(
       {
         userId: companyUser.id,
-        employeeId: foundEmployee?.id,
+        branchId: companyUser?.employee.branchId,
+        employeeId: companyUser?.employeeId,
         createdAt: moment().format(),
       },
       {
@@ -207,6 +208,7 @@ export class AuthService {
 
     const payload: JwtPayload = {
       userId: baseUser.id.toString(),
+      branchId: foundEmployee?.branchId,
       email: email.toLowerCase(),
       sessionId,
     };

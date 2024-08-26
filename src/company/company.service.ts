@@ -19,11 +19,6 @@ export class CompanyService {
 
     const roleId = roleSeed[0].id;
 
-    const employee = await this.employeeService.createEmployee({
-      userInfo: { ...dto.userInfo, roleId },
-      employmentType: EmploymentType.Fulltime,
-    });
-
     const branch = await this.branchService.setupBranch(
       {
         ...dto.companyInfo,
@@ -32,6 +27,12 @@ export class CompanyService {
       undefined,
       client,
     );
+
+    const employee = await this.employeeService.createEmployee({
+      userInfo: { ...dto.userInfo, roleId },
+      employmentType: EmploymentType.Fulltime,
+      branchId: branch.id,
+    });
 
     await client.companyUserBranch.create({
       data: {

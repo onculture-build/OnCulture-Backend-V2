@@ -10,15 +10,20 @@ import {
 import { CreateJobRoleDto } from '../job-role/dto/create-job-role.dto';
 import { Type } from 'class-transformer';
 import { EmploymentType } from '@@/company/interfaces';
+import { SetupUserDto } from '@@/company/user/dto/setup-user.dto';
 
-export class CreateEmployeeDto {
+export class CreateEmployeeDto extends SetupUserDto {
   @IsString()
-  @ApiProperty()
-  employeeNo: string;
+  @ApiPropertyOptional()
+  employeeNo?: string;
 
   @IsUUID()
   @ApiPropertyOptional()
   departmentId?: string;
+
+  @IsUUID()
+  @ApiPropertyOptional()
+  branchId?: string;
 
   @IsEnum(EmploymentType)
   @ApiProperty()

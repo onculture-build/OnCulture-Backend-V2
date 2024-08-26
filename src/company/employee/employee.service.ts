@@ -9,6 +9,8 @@ import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { JobRoleService } from './job-role/job-role.service';
 import { GetEmployeesDto } from './dto/get-employees.dto';
 import { AppUtilities } from '@@/common/utils/app.utilities';
+import { UserService } from '../user/user.service';
+import { JwtPayload } from '@@/auth/interfaces';
 
 @Injectable()
 export class EmployeeService extends CrudService<
@@ -18,6 +20,7 @@ export class EmployeeService extends CrudService<
   constructor(
     private prismaClient: CompanyPrismaClient,
     private jobRoleService: JobRoleService,
+    private userService: UserService,
   ) {
     super(prismaClient.employee);
   }
@@ -131,7 +134,11 @@ export class EmployeeService extends CrudService<
     return this.findFirstOrThrow(dto);
   }
 
-  async createEmployee(dto: CreateEmployeeDto, prisma?: CompanyPrismaClient) {
+  async createEmployee(
+    { userInfo, ...dto }: CreateEmployeeDto,
+    prisma?: CompanyPrismaClient,
+    req?: JwtPayload,
+  ) {
     const client = prisma || this.prismaClient;
     return client.$transaction(async (prisma: CompanyPrismaClient) => {
       let employeeJobRole;
@@ -143,6 +150,12 @@ export class EmployeeService extends CrudService<
         ? dto.employeeNo
         : await this.generateEmployeeNo(prisma);
 
+      const user = await this.userService.setupCompanyUser(
+        { userInfo },
+        undefined,
+        client,
+      );
+
       return prisma.employee.create({
         data: {
           employeeNo,
@@ -153,6 +166,8 @@ export class EmployeeService extends CrudService<
           ...(dto.departmentId && {
             departments: { connect: { id: dto.departmentId, isDefault: true } },
           }),
+          user: { connect: { id: user.id } },
+          branch: { connect: { id: dto.branchId || req.branchId } },
         },
       });
     });

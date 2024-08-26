@@ -59,7 +59,7 @@ export class UserService extends CrudService<
   }
 
   async setupCompanyUser(
-    { userInfo, employeeInfo }: SetupUserDto,
+    { userInfo }: SetupUserDto,
     authUser?: JwtPayload,
     prisma?: CompanyPrismaClient,
   ): Promise<User | undefined> {
@@ -84,11 +84,6 @@ export class UserService extends CrudService<
     }
 
     const executeSetupUser = async (prisma: CompanyPrismaClient) => {
-      const employee = await this.employeeService.createEmployee(
-        employeeInfo,
-        prisma,
-      );
-
       const user = await prisma.user.create({
         data: {
           ...restUserInfo,
@@ -100,7 +95,6 @@ export class UserService extends CrudService<
           ...(phone && { phones: { create: { phone, isPrimary: true } } }),
           ...(stateId && { state: { connect: { id: stateId } } }),
           ...(countryId && { country: { connect: { id: countryId } } }),
-          employee: { connect: { id: employee.id } },
           role: { connect: { id: roleId } },
         },
       });
