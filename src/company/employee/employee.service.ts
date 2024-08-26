@@ -86,10 +86,10 @@ export class EmployeeService extends CrudService<
     ]);
 
     const args: CompanyPrisma.EmployeeFindManyArgs = {
-      where: { ...parsedQueryFilters, status: true },
+      where: { ...parsedQueryFilters },
       include: {
-        // branch: true,
         user: { include: { emails: true, phones: true } },
+        branch: true,
         departments: {
           include: { department: true },
           ...(filters.departmentId && {
@@ -103,14 +103,23 @@ export class EmployeeService extends CrudService<
       },
     };
 
-    return this.findManyPaginate(args, {
-      cursor,
-      size,
-      direction,
-      orderBy: orderBy && AppUtilities.unflatten({ [orderBy]: direction }),
-      paginationType,
-      page,
-    });
+    const dataMapper = (data) => {
+      AppUtilities.removeSensitiveData(data.user, 'password', true);
+      return data;
+    };
+
+    return this.findManyPaginate(
+      args,
+      {
+        cursor,
+        size,
+        direction,
+        orderBy: orderBy && AppUtilities.unflatten({ [orderBy]: direction }),
+        paginationType,
+        page,
+      },
+      dataMapper,
+    );
   }
 
   async getEmployee(id: string) {
@@ -131,7 +140,13 @@ export class EmployeeService extends CrudService<
         jobRole: true,
       },
     };
-    return this.findFirstOrThrow(dto);
+    const employee = await this.findFirst(dto);
+
+    if (!employee) throw new NotFoundException('Employee not found');
+
+    AppUtilities.removeSensitiveData(employee.user, 'password', true);
+
+    return employee;
   }
 
   async createEmployee(
