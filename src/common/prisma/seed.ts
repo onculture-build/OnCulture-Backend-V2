@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { countrySeed } from '../database/seed-data/base/country.seed';
 import { stateSeed } from '../database/seed-data/base/state.seed';
+import { baseMessageTemplateSeed } from '../database/seed-data/base/message-template.seed';
 
 const prisma = new PrismaClient();
 const promises = [];
@@ -27,6 +28,13 @@ promises.push(
     } catch (e) {
       rej(e);
     }
+  }),
+);
+
+promises.push(
+  prisma.baseMessageTemplate.createMany({
+    data: baseMessageTemplateSeed,
+    skipDuplicates: true,
   }),
 );
 
