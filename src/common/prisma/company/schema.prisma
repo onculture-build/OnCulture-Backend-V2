@@ -294,26 +294,27 @@ model Role {
 }
 
 model Employee {
-    id             String               @id @default(uuid()) @db.Uuid
-    employeeNo     String               @unique @db.VarChar(20)
-    userId         String               @unique @db.Uuid
-    branchId       String?              @db.Uuid
-    jobRoleId      String?              @db.Uuid
-    employmentType EmploymentType
-    status         EmployeeStatus       @default(Active)
-    createdAt      DateTime             @default(now()) @db.Timestamptz(6)
-    createdBy      String?              @db.Uuid
-    updatedAt      DateTime             @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy      String?              @db.Uuid
-    jobRole        JobRole?             @relation(fields: [jobRoleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-    departments    EmployeeDepartment[]
-    coreFileId     String?              @db.Uuid
-    files          EmployeeFile[]
-    user           User                 @relation(fields: [userId], references: [id])
-    sumups         EmployeeSumUp[]
-    feedbacks      EmployeeFeedback[]
-    shoutouts      EmployeeShoutout[]
-    branch         CompanyBranch?       @relation(fields: [branchId], references: [id])
+    id                 String               @id @default(uuid()) @db.Uuid
+    employeeNo         String               @unique @db.VarChar(20)
+    userId             String               @unique @db.Uuid
+    branchId           String?              @db.Uuid
+    jobRoleId          String?              @db.Uuid
+    employmentType     EmploymentType
+    status             EmployeeStatus       @default(Active)
+    createdAt          DateTime             @default(now()) @db.Timestamptz(6)
+    createdBy          String?              @db.Uuid
+    updatedAt          DateTime             @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy          String?              @db.Uuid
+    jobRole            JobRole?             @relation(fields: [jobRoleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    departments        EmployeeDepartment[]
+    coreFileId         String?              @db.Uuid
+    files              EmployeeFile[]
+    user               User                 @relation(fields: [userId], references: [id])
+    sumups             EmployeeSumUp[]
+    feedbacks          EmployeeFeedback[]
+    shoutouts          EmployeeShoutout[]
+    branch             CompanyBranch?       @relation(fields: [branchId], references: [id])
+    managedDepartments DepartmentManager[]
 
     @@map("employee")
 }
@@ -402,14 +403,31 @@ model Department {
     code        String?              @unique @db.VarChar(50)
     alias       String?              @unique @db.VarChar(100)
     description String?              @db.VarChar(255)
+    managerId   String?              @db.Uuid
     status      Boolean              @default(true) @db.Boolean
     createdAt   DateTime             @default(now()) @db.Timestamptz(6)
     createdBy   String?              @db.Uuid
     updatedAt   DateTime             @default(now()) @updatedAt() @db.Timestamptz(6)
     updatedBy   String?              @db.Uuid
     employees   EmployeeDepartment[]
+    manager     DepartmentManager?   @relation(fields: [managerId], references: [id])
 
     @@map("deparment")
+}
+
+model DepartmentManager {
+    id           String       @id @default(uuid()) @db.Uuid
+    departmentId String       @db.Uuid
+    employeeId   String       @db.Uuid
+    status       Boolean      @default(true) @db.Boolean
+    createdAt    DateTime     @default(now()) @db.Timestamptz(6)
+    createdBy    String?      @db.Uuid
+    updatedAt    DateTime     @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy    String?      @db.Uuid
+    department   Department[]
+    manager      Employee     @relation(fields: [employeeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+    @@map("department_manager")
 }
 
 model File {
