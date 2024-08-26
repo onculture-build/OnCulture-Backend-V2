@@ -1,4 +1,4 @@
-import { ApiHideProperty } from '@nestjs/swagger';
+import { ApiHideProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsBase64,
@@ -13,10 +13,12 @@ import {
 import { SortDirection } from '../interfaces';
 
 export class PaginationOptionsDto {
+  @ApiPropertyOptional()
   @IsBase64()
   @IsOptional()
   cursor?: string;
 
+  @ApiPropertyOptional()
   @IsInt()
   @IsOptional()
   @Max(100)
@@ -30,6 +32,7 @@ export class PaginationOptionsDto {
 
   @IsEnum(SortDirection)
   @IsOptional()
+  @ApiPropertyOptional()
   direction?: SortDirection = SortDirection.DESC;
 
   @ApiHideProperty()
