@@ -1,4 +1,3 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEnum,
   IsObject,
@@ -14,24 +13,19 @@ import { SetupUserDto } from '@@/company/user/dto/setup-user.dto';
 
 export class CreateEmployeeDto extends SetupUserDto {
   @IsString()
-  @ApiPropertyOptional()
   employeeNo?: string;
 
   @IsUUID()
-  @ApiPropertyOptional()
   departmentId?: string;
 
   @IsUUID()
-  @ApiPropertyOptional()
   branchId?: string;
 
   @IsEnum(EmploymentType)
-  @ApiProperty()
   employmentType: EmploymentType;
 
   @IsObject()
   @IsOptional()
-  @ApiPropertyOptional()
   @ValidateNested()
   @Type(() => CreateJobRoleDto)
   jobRole?: CreateJobRoleDto;
