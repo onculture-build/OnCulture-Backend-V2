@@ -18,6 +18,9 @@ import { AppGuard } from './auth/guard/app.guard';
 import { MessagingModule } from './common/messaging/messaging.module';
 import { JwtStrategy } from './auth/strategies/jwt.strategy';
 import { CompanyMiddleware } from './common/middleware/tenant.middleware';
+import { PermissionsGuard } from './auth/guard/permission.guard';
+import { CaslAbilityFactory } from './auth/casl/casl-ability.factory/casl-ability.factory';
+import { PermissionModule } from './company/permission/permission.module';
 
 @Global()
 @Module({
@@ -48,15 +51,18 @@ import { CompanyMiddleware } from './common/middleware/tenant.middleware';
       }),
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
+    PermissionModule,
     MessagingModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     CacheService,
+    CaslAbilityFactory,
     JwtService,
     JwtStrategy,
     { provide: APP_GUARD, useClass: AppGuard },
+    PermissionsGuard,
   ],
   exports: [CacheModule, DatabaseModule],
 })

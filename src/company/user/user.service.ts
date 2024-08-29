@@ -27,7 +27,6 @@ export class UserService extends CrudService<
   }
 
   async createUser(dto: SetupUserDto, req: RequestWithUser) {
-    console.log('🚀 ~ createUser ~ req:', req);
     const basePrisma = this.prismaClientManager.getPrismaClient();
     const companyPrisma =
       await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
