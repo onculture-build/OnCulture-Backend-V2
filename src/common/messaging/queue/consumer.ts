@@ -17,7 +17,7 @@ export class MessagingQueueConsumer extends BaseQueueProcessor {
 
   @Process({ name: JOBS.QUEUE_EMAIL })
   async queueEmail({ data }: Job<QueueMailJobAttribs>) {
-    console.log('Sending email...');
+    console.log('Sending email...', data);
 
     // return this.messageService.sendEmail(data);
   }

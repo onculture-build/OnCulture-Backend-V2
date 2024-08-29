@@ -20,3 +20,13 @@ export interface RequestWithUser extends Request {
   permittedFields?: any;
   selectFields?: any;
 }
+
+export enum PermissionAction {
+  MANAGE = 'manage',
+  CREATE = 'create',
+  READ = 'read',
+  UPDATE = 'update',
+  DELETE = 'delete',
+}
+
+export enum PermissionFields {}

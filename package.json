@@ -38,6 +38,7 @@
     "migration:reset": "prisma migrate reset"
   },
   "dependencies": {
+    "@casl/ability": "^6.7.1",
     "@faker-js/faker": "^8.4.1",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/bull": "^10.1.1",

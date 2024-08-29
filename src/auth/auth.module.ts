@@ -6,9 +6,10 @@ import { BaseCompanyRequestService } from '@@/base/base-company/base-company-req
 import { BaseCompanyService } from '@@/base/base-company/base-company.service';
 import { BaseCompanyModule } from '@@/base/base-company/base-company.module';
 import { CompanyModule } from '@@/company/company.module';
+import { CaslModule } from './casl/casl.module';
 
 @Module({
-  imports: [BaseCompanyModule, CompanyModule],
+  imports: [BaseCompanyModule, CompanyModule, CaslModule],
   controllers: [AuthController],
   providers: [
     AuthService,

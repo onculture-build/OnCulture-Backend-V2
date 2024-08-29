@@ -275,22 +275,110 @@ model UserRelation {
 }
 
 model Role {
-    id          String   @id @default(uuid()) @db.Uuid
-    name        String   @unique() @db.VarChar(50)
-    description String?  @db.VarChar(500)
-    code        String   @unique() @db.VarChar(20)
-    type        RoleType @default(Custom)
-    defaultPage String?  @db.VarChar(50)
-    status      Boolean  @default(true) @db.Boolean
-    createdAt   DateTime @default(now()) @db.Timestamptz(6)
-    createdBy   String?  @db.Uuid
-    updatedAt   DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy   String?  @db.Uuid
-    users       User[]
-    //   menuPermissions   CoreRoleMenuPermission[]
-    //   schemaPermissions CoreRoleSchemaPermission[]
+    id              String               @id @default(uuid()) @db.Uuid
+    name            String               @unique() @db.VarChar(50)
+    description     String?              @db.VarChar(500)
+    code            String               @unique() @db.VarChar(20)
+    type            RoleType             @default(Custom)
+    defaultPage     String?              @db.VarChar(50)
+    status          Boolean              @default(true) @db.Boolean
+    createdAt       DateTime             @default(now()) @db.Timestamptz(6)
+    createdBy       String?              @db.Uuid
+    updatedAt       DateTime             @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy       String?              @db.Uuid
+    users           User[]
+    permissions     RolePermission[]
+    menuPermissions RoleMenuPermission[]
 
     @@map("role")
+}
+
+model Permission {
+    id        String           @id @default(uuid()) @db.Uuid
+    action    String           @db.VarChar(20)
+    subject   String           @db.VarChar(50)
+    status    Boolean          @default(true) @db.Boolean
+    createdAt DateTime         @default(now()) @db.Timestamptz(6)
+    createdBy String?          @db.Uuid
+    updatedAt DateTime         @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?          @db.Uuid
+    roles     RolePermission[]
+
+    @@index([action, subject])
+    @@map("permission")
+}
+
+model RolePermission {
+    id           String     @id @default(uuid()) @db.Uuid
+    roleId       String     @db.Uuid
+    permissionId String     @db.Uuid
+    status       Boolean    @default(true) @db.Boolean
+    createdAt    DateTime   @default(now()) @db.Timestamptz(6)
+    createdBy    String?    @db.Uuid
+    updatedAt    DateTime   @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy    String?    @db.Uuid
+    role         Role       @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    permission   Permission @relation(fields: [permissionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+    @@unique([roleId, permissionId])
+    @@map("role_permission")
+}
+
+model Module {
+    id               String       @id @default(uuid()) @db.Uuid
+    name             String       @unique() @db.VarChar(50)
+    code             String       @unique() @db.VarChar(20)
+    path             String?      @unique() @db.VarChar(50)
+    icon             String?      @db.VarChar(20)
+    shortDescription String       @db.VarChar(255)
+    sequence         Int          @db.SmallInt
+    status           Boolean      @default(false) @db.Boolean
+    createdAt        DateTime     @default(now()) @db.Timestamptz(6)
+    createdBy        String?      @db.Uuid
+    updatedAt        DateTime     @default(now()) @updatedAt @db.Timestamptz(6)
+    updatedBy        String?      @db.Uuid
+    menus            ModuleMenu[]
+
+    @@map("module")
+}
+
+model ModuleMenu {
+    id              String               @id @default(uuid()) @db.Uuid
+    label           String               @db.VarChar(50)
+    code            String               @unique() @db.VarChar(50)
+    path            String               @db.VarChar(100)
+    icon            String?              @db.VarChar(20)
+    sequence        Int                  @db.SmallInt
+    parentId        String?              @db.Uuid
+    moduleId        String               @db.Uuid
+    status          Boolean              @default(true) @db.Boolean
+    createdAt       DateTime             @default(now()) @db.Timestamptz(6)
+    createdBy       String?              @db.Uuid
+    updatedAt       DateTime             @default(now()) @updatedAt @db.Timestamptz(6)
+    updatedBy       String?              @db.Uuid
+    module          Module               @relation(fields: [moduleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    parent          ModuleMenu?          @relation("MenuSubs", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    children        ModuleMenu[]         @relation("MenuSubs")
+    rolePermissions RoleMenuPermission[]
+
+    @@map("module_menu")
+}
+
+model RoleMenuPermission {
+    id           String     @id @default(uuid()) @db.Uuid
+    roleId       String     @db.Uuid
+    moduleMenuId String     @db.Uuid
+    permission   Boolean    @default(false) @db.Boolean
+    status       Boolean    @default(true) @db.Boolean
+    createdAt    DateTime   @default(now()) @db.Timestamptz(6)
+    createdBy    String?    @db.Uuid
+    updatedAt    DateTime   @default(now()) @updatedAt @db.Timestamptz(6)
+    updatedBy    String?    @db.Uuid
+    role         Role       @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    moduleMenu   ModuleMenu @relation(fields: [moduleMenuId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+    @@unique([roleId, moduleMenuId])
+    @@map("role_menu_permission")
 }
 
 model Employee {
