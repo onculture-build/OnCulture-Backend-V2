@@ -1,7 +1,8 @@
-import { IsString, IsOptional, IsNumber } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsNotEmpty } from 'class-validator';
 
 export class CreateJobLevelDto {
   @IsString()
+  @IsNotEmpty()
   title: string;
 
   @IsOptional()
@@ -9,5 +10,6 @@ export class CreateJobLevelDto {
   description?: string;
 
   @IsNumber()
+  @IsNotEmpty()
   rank: number;
 }
