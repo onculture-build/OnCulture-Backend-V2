@@ -11,6 +11,7 @@ import { GetEmployeesDto } from './dto/get-employees.dto';
 import { AppUtilities } from '@@/common/utils/app.utilities';
 import { UserService } from '../user/user.service';
 import { RequestWithUser } from '@@/auth/interfaces';
+import { UpdateEmployeeDto } from './dto/update-employee.dto';
 
 @Injectable()
 export class EmployeeService extends CrudService<
@@ -54,6 +55,7 @@ export class EmployeeService extends CrudService<
       'user.firstName',
       'user.lastName',
       'employeeNo',
+      'jobRole.name|equals',
       {
         key: 'term',
         where: parseSplittedTermsQuery,
@@ -78,10 +80,8 @@ export class EmployeeService extends CrudService<
         }),
       },
       {
-        key: 'branchId',
-        where: (id) => ({
-          branch: { id },
-        }),
+        key: 'employmentType',
+        where: (employmentType) => ({ employmentType }),
       },
     ]);
 
@@ -185,6 +185,44 @@ export class EmployeeService extends CrudService<
           branch: { connect: { id: dto.branchId || req.branchId } },
         },
       });
+    });
+  }
+
+  async updateEmployee(
+    id: string,
+    {
+      branchId,
+      departmentId,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      employeeNo,
+      employmentType,
+      jobRole,
+      jobRoleId,
+    }: UpdateEmployeeDto,
+    req: RequestWithUser,
+  ) {
+    let employeeJobRole;
+    if (jobRole) {
+      employeeJobRole = await this.jobRoleService.createJobRole(jobRole);
+    }
+
+    return this.update({
+      where: { id },
+      data: {
+        employmentType,
+        ...(jobRole && {
+          jobRole: { connect: { id: (employeeJobRole as any)?.id } },
+        }),
+        ...(jobRoleId && {
+          jobRole: { connect: { id: jobRoleId } },
+        }),
+        ...(departmentId && {
+          departments: { connect: { id: departmentId, isDefault: true } },
+        }),
+        ...(branchId && {
+          branch: { connect: { id: branchId || req.branchId } },
+        }),
+      },
     });
   }
 

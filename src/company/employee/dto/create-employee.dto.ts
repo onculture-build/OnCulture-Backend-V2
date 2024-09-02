@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { CreateJobRoleDto } from '../job-role/dto/create-job-role.dto';
@@ -23,6 +24,11 @@ export class CreateEmployeeDto extends SetupUserDto {
 
   @IsEnum(EmploymentType)
   employmentType: EmploymentType;
+
+  @IsUUID()
+  @IsOptional()
+  @ValidateIf((obj) => !obj.jobRole)
+  jobRoleId?: string;
 
   @IsObject()
   @IsOptional()
