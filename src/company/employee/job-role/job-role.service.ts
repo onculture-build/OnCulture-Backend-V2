@@ -6,6 +6,7 @@ import {
 import { CrudService } from '@@/common/database/crud.service';
 import { JobRoleMapType } from './job-role.maptype';
 import { CreateJobRoleDto } from './dto/create-job-role.dto';
+import { RequestWithUser } from '@@/auth/interfaces';
 
 @Injectable()
 export class JobRoleService extends CrudService<
@@ -16,9 +17,16 @@ export class JobRoleService extends CrudService<
     super(prismaClient.jobRole);
   }
 
-  async createJobRole({ jobLevelId, ...dto }: CreateJobRoleDto) {
+  async createJobRole(
+    { jobLevelId, ...dto }: CreateJobRoleDto,
+    req?: RequestWithUser,
+  ) {
     const args: CompanyPrisma.JobRoleCreateArgs = {
-      data: { ...dto, level: { connect: { id: jobLevelId } } },
+      data: {
+        ...dto,
+        level: { connect: { id: jobLevelId } },
+        createdBy: req.user.userId,
+      },
     };
     return this.create(args);
   }

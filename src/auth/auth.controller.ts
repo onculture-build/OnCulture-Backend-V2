@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Patch, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -7,11 +16,13 @@ import { AuthStrategyType, RequestWithUser } from './interfaces';
 import { SignUpDto } from './dto/signup.dto';
 import { RealIP } from 'nestjs-real-ip';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { AllowedUserDto } from './dto/allowed-user.dto';
+import { CreateAllowedUserDto } from './dto/create-allowed-users.dto';
 import { LoginDto } from './dto/login.dto';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { ApiResponseMeta } from '@@/common/decorators/response.decorator';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { FindAllowedUserDto } from './dto/find-allowed-user.dto';
+import { SetPasswordDto } from './dto/set-password.dto';
 
 @ApiTags('Authentication')
 @AuthStrategy(AuthStrategyType.PUBLIC)
@@ -19,22 +30,22 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @ApiResponseMeta({ message: 'Email added to allowed users' })
-  @ApiOperation({ summary: 'Add email to list of allowed users' })
+  @ApiResponseMeta({ message: 'Email(s) added to allowed users' })
+  @ApiOperation({ summary: 'Add emails to list of allowed users' })
   @ApiBearerAuth()
   @AuthStrategy(AuthStrategyType.JWT)
   @Post('allowed-users')
   async addAllowedUser(
-    @Body() dto: AllowedUserDto,
+    @Body() dto: CreateAllowedUserDto,
     @Req() req: RequestWithUser,
   ) {
-    return this.authService.addAllowedUser(dto, req);
+    return this.authService.addAllowedUsers(dto, req);
   }
 
   @ApiResponseMeta({ message: 'User is allowed' })
   @ApiOperation({ summary: 'Verify if email is allowed' })
   @Post('check-allowed-user')
-  async checkAllowedUser(@Body() dto: AllowedUserDto) {
+  async checkAllowedUser(@Body() dto: FindAllowedUserDto) {
     return this.authService.checkAllowedUser(dto);
   }
 
@@ -92,5 +103,16 @@ export class AuthController {
   @Patch('password-reset')
   async passwordReset(@Body() dto: ResetPasswordDto, @Req() req: Request) {
     return this.authService.resetPassword(dto, req);
+  }
+
+  @ApiResponseMeta({ message: 'Password set successfully' })
+  @ApiOperation({ summary: 'Set a user password after signing up' })
+  @Patch('set-password/:token')
+  async setPassword(
+    @Param('token') token: string,
+    @Body() dto: SetPasswordDto,
+    @Req() req: Request,
+  ) {
+    return this.authService.setPassword(token, dto, req);
   }
 }

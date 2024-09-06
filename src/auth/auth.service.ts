@@ -1,7 +1,6 @@
 import { CacheService } from '@@/common/cache/cache.service';
 import { PrismaClientManager } from '@@/common/database/prisma-client-manager';
 import {
-  ConflictException,
   Injectable,
   Logger,
   NotAcceptableException,
@@ -22,7 +21,7 @@ import { CookieOptions, Request, Response } from 'express';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { v4 } from 'uuid';
-import { AllowedUserDto } from './dto/allowed-user.dto';
+import { CreateAllowedUserDto } from './dto/create-allowed-users.dto';
 import { EmailBuilder } from '@@/common/messaging/builder/email-builder';
 import { MessagingService } from '@@/common/messaging/messaging.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
@@ -30,6 +29,7 @@ import { SignUpDto } from './dto/signup.dto';
 import { BaseCompanyRequestService } from '@@/base/base-company/base-company-request/base-company-request.service';
 import { BaseCompanyQueueProducer } from '@@/base/queue/producer';
 import { SetPasswordDto } from './dto/set-password.dto';
+import { FindAllowedUserDto } from './dto/find-allowed-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -55,7 +55,7 @@ export class AuthService {
     return this.prismaClient.allowedUser.findMany({});
   }
 
-  async checkAllowedUser({ email }: AllowedUserDto) {
+  async checkAllowedUser({ email }: FindAllowedUserDto) {
     const allowedUser = await this.prismaClient.allowedUser.findFirst({
       where: { email: email.toLowerCase() },
     });
@@ -65,18 +65,16 @@ export class AuthService {
     return !!allowedUser;
   }
 
-  async addAllowedUser({ email }: AllowedUserDto, req: RequestWithUser) {
-    const isExisting = await this.prismaClient.allowedUser.findFirst({
-      where: { email: email.toLowerCase() },
-    });
-
-    if (isExisting) throw new ConflictException('User already allowed');
-
-    return this.prismaClient.allowedUser.create({
-      data: {
+  async addAllowedUsers(
+    { emails }: CreateAllowedUserDto,
+    req: RequestWithUser,
+  ) {
+    return this.prismaClient.allowedUser.createMany({
+      data: emails.map((email) => ({
         email: email.toLowerCase(),
         createdBy: req.user.userId,
-      },
+      })),
+      skipDuplicates: true,
     });
   }
 
@@ -241,8 +239,7 @@ export class AuthService {
     };
   }
 
-  // fix this implementation
-  async setPassword(dto: SetPasswordDto, token: string, req: Request) {
+  async setPassword(token: string, dto: SetPasswordDto, req: Request) {
     const cPrisma =
       await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
 
@@ -268,6 +265,21 @@ export class AuthService {
       data: {
         password: hash,
         updatedBy: companyUser.id,
+        emails: {
+          update: {
+            where: {
+              email,
+            },
+            data: {
+              isVerified: true,
+            },
+          },
+        },
+        employee: {
+          update: {
+            status: EmployeeStatus.ACTIVE,
+          },
+        },
       },
     });
   }

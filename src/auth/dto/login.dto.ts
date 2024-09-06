@@ -6,10 +6,10 @@ export class LoginDto {
   email?: string;
 
   @IsString()
-  @IsNotEmpty()
-  password: string;
-
-  @IsString()
   @ValidateIf((obj, val) => !!val || !obj.email)
   employeeNo?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  password: string;
 }
