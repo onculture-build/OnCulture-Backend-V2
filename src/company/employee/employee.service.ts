@@ -12,6 +12,7 @@ import { AppUtilities } from '@@/common/utils/app.utilities';
 import { UserService } from '../user/user.service';
 import { RequestWithUser } from '@@/auth/interfaces';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { EmployeeStatus } from '@@/common/enums';
 
 @Injectable()
 export class EmployeeService extends CrudService<
@@ -181,6 +182,7 @@ export class EmployeeService extends CrudService<
           ...(dto.departmentId && {
             departments: { connect: { id: dto.departmentId, isDefault: true } },
           }),
+          status: EmployeeStatus.INACTIVE,
           user: { connect: { id: user.id } },
           branch: { connect: { id: dto.branchId || req.branchId } },
         },
@@ -193,8 +195,7 @@ export class EmployeeService extends CrudService<
     {
       branchId,
       departmentId,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      employeeNo,
+      employeeNo: _,
       employmentType,
       jobRole,
       jobRoleId,
@@ -222,6 +223,16 @@ export class EmployeeService extends CrudService<
         ...(branchId && {
           branch: { connect: { id: branchId || req.branchId } },
         }),
+      },
+    });
+  }
+
+  async suspendEmployee(id: string, req: RequestWithUser) {
+    return this.update({
+      where: { id },
+      data: {
+        status: EmployeeStatus.SUSPENDED,
+        updatedBy: req.user.userId,
       },
     });
   }

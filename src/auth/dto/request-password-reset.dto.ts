@@ -1,3 +1,3 @@
-import { AllowedUserDto } from './allowed-user.dto';
+import { FindAllowedUserDto } from './find-allowed-user.dto';
 
-export class RequestPasswordResetDto extends AllowedUserDto {}
+export class RequestPasswordResetDto extends FindAllowedUserDto {}

@@ -1,4 +1,4 @@
-import { AuthStrategyType } from '@@/auth/interfaces';
+import { AuthStrategyType, RequestWithUser } from '@@/auth/interfaces';
 import { AuthStrategy } from '@@/common/decorators/strategy.decorator';
 import {
   Body,
@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { EmployeeService } from './employee.service';
@@ -42,8 +43,21 @@ export class EmployeeController {
   }
 
   @ApiOperation({ summary: 'Edit an employee' })
-  @Patch(':id/edit')
-  async updateEmployee(@Body() dto: UpdateEmployeeDto) {
-    return dto;
+  @Patch(':id/update')
+  async updateEmployee(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateEmployeeDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.employeeService.updateEmployee(id, dto, req);
+  }
+
+  @ApiOperation({ summary: 'Suspend or Archive an employee' })
+  @Patch(':id/suspend')
+  async suspendEmployee(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.employeeService.suspendEmployee(id, req);
   }
 }
