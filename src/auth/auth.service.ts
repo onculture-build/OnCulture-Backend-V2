@@ -321,11 +321,17 @@ export class AuthService {
   }
 
   async requestPasswordReset({ email }: RequestPasswordResetDto, req: Request) {
-    const baseUser = await this.prismaClient.baseUser.findUnique({
-      where: { email: email.toLowerCase() },
-    });
-
     const companyCode = req['company'] as string;
+
+    const baseUser = await this.prismaClient.baseUserCompany.findFirst({
+      where: {
+        user: { email: email.toLowerCase() },
+        company: { code: companyCode },
+      },
+      include: {
+        user: true,
+      },
+    });
 
     if (!baseUser) throw new UnauthorizedException('Invalid email');
 
@@ -356,7 +362,7 @@ export class AuthService {
       .useTemplate(messageTemplate, {
         resetPasswordURL,
         email,
-        firstName: baseUser.firstName,
+        firstName: baseUser.user.firstName,
       })
       .addRecipients(email);
 

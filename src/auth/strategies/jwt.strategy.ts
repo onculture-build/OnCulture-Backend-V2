@@ -34,7 +34,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(request: Request, jwt: JwtPayload): Promise<JwtPayload> {
     const TOKEN_IS_EXPIRED = jwt.exp && Date.now() >= jwt.exp * 1000;
     if (TOKEN_IS_EXPIRED) {
-      throw new UnauthorizedException('User not logged in!');
+      throw new UnauthorizedException('Unauthenticated!');
     }
 
     let [, token] = String(request.headers['authorization']).split(/\s+/);
