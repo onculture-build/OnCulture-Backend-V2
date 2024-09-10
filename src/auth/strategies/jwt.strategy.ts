@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
@@ -43,7 +47,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
     const sessionPayload = await this.coreCacheService.wrap(
       `${CacheKeysEnums.TOKENS}:${jwt.userId}:${sessionKey}`,
-      () => this.prisma.baseUser.findFirst({ where: { email: jwt.email } }),
+      async () => {
+        const user = await this.prisma.baseUser.findFirst({
+          where: { email: jwt.email },
+        });
+
+        if (!user) throw new BadRequestException();
+
+        return jwt;
+      },
       { ttl: this.configService.get('jwt.expiry') },
     );
 
