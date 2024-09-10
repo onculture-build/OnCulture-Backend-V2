@@ -9,5 +9,6 @@ export class CreateJobRoleDto {
   description?: string;
 
   @IsUUID()
-  jobLevelId: string;
+  @IsOptional()
+  jobLevelId?: string;
 }

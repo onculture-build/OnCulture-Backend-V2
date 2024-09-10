@@ -17,7 +17,7 @@ import { FileModule } from './common/file/file.module';
 import { AppGuard } from './auth/guard/app.guard';
 import { MessagingModule } from './common/messaging/messaging.module';
 import { JwtStrategy } from './auth/strategies/jwt.strategy';
-import { CompanyMiddleware } from './common/middleware/tenant.middleware';
+import { CompanyMiddleware } from './common/middleware/company.middleware';
 import { PermissionsGuard } from './auth/guard/permission.guard';
 import { CaslAbilityFactory } from './auth/casl/casl-ability.factory/casl-ability.factory';
 import { PermissionModule } from './company/permission/permission.module';

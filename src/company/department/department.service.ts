@@ -29,18 +29,34 @@ export class DepartmentService extends CrudService<
       ...filters
     } = dto;
 
+    const parseSplittedTermsQuery = (term: string) => {
+      const parts = term.trim().split(/\s+/);
+      if (parts.length > 0) {
+        return {
+          manager: {
+            firstName: { in: parts, mode: 'insensitive' },
+            lastName: { in: parts, mode: 'insensitive' },
+          },
+        };
+      }
+      return undefined;
+    };
+
     const parsedQueryFilters = this.parseQueryFilter(filters, [
       'name',
       'code',
       'alias',
       {
-        key: 'managerId',
-        where: (val) => ({ managerId: val }),
+        key: 'term',
+        where: parseSplittedTermsQuery,
       },
     ]);
 
     const args: Prisma.DepartmentFindManyArgs = {
       where: { ...parsedQueryFilters },
+      include: {
+        manager: true,
+      },
     };
 
     return this.findManyPaginate(args, {

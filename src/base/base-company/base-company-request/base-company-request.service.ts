@@ -33,6 +33,8 @@ export class BaseCompanyRequestService extends CrudService<
     ...filters
   }: GetCompanyRequestsDto) {
     const parsedQueryFilters = this.parseQueryFilter(filters, [
+      'name',
+      'status',
       {
         key: 'term',
         where: (term) => ({
@@ -42,7 +44,7 @@ export class BaseCompanyRequestService extends CrudService<
           },
         }),
       },
-      { key: 'status', where: (status) => ({ status: status === 'true' }) },
+      // { key: 'status', where: (status) => ({ status: status === 'true' }) },
     ]);
 
     const args: Prisma.BaseCompanyRequestFindManyArgs = {

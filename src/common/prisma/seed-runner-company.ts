@@ -1,12 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaClient as CompanyPrismaClient } from '.prisma/company';
-import argsParser from 'args-parser';
+import * as argsParser from 'args-parser';
 import { existsSync } from 'fs';
-import path from 'path';
+import { join } from 'path';
 import { argv } from 'process';
 import { SeedRunner } from '../interfaces';
 
-const baseDir = path.join(__dirname, '../database/seed-data/runners');
+const baseDir = join(__dirname, '../database/seed-data/runners');
 
 const args = argsParser(argv);
 
@@ -20,7 +20,7 @@ if (!args['seed-file']) {
   process.exit();
 }
 
-const seedFilePath = path.join(baseDir, `${args['seed-file']}.runner.ts`);
+const seedFilePath = join(baseDir, `${args['seed-file']}.runner.ts`);
 if (!existsSync(seedFilePath)) {
   throw new Error(`--> seed file '${seedFilePath}' does not exist!`);
 }
@@ -30,7 +30,7 @@ const basePrisma = new PrismaClient();
 
 promises.push(
   new Promise(async (res, rej) => {
-    const Runner = new (await import(seedFilePath)).default(basePrisma);
+    const Runner = (await import(seedFilePath)).default;
 
     const runSeeder = async (
       companyPrisma: CompanyPrismaClient,

@@ -76,7 +76,7 @@ model BaseUser {
   firstName  String            @db.VarChar
   middleName String?           @db.VarChar
   lastName   String            @db.VarChar
-  email      String            @unique() @db.VarChar
+  email      String            @db.VarChar
   status     Boolean           @default(true) @db.Boolean
   createdAt  DateTime          @default(now()) @db.Timestamptz(6)
   createdBy  String?           @db.Uuid
@@ -180,6 +180,7 @@ model BaseUserCompany {
   user      BaseUser    @relation(fields: [userId], references: [id])
   company   BaseCompany @relation(fields: [companyId], references: [id])
 
+  @@unique([userId, companyId])
   @@map("base_user_company")
 }
 

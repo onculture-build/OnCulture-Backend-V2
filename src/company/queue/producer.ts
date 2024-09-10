@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { JobOptions, Queue } from 'bull';
-import { ISendUserSetupEmail, JOBS, QUEUE } from '../interfaces';
+import { ISendEmployeeSetupEmail, JOBS, QUEUE } from '../interfaces';
 
 @Injectable()
 export class CompanyUserQueueProducer {
@@ -10,8 +10,8 @@ export class CompanyUserQueueProducer {
     private readonly companyQueue: Queue,
   ) {}
 
-  async sendUserSetupEmail(data: ISendUserSetupEmail) {
-    await this.addToQueue(JOBS.SEND_USER_SETUP_EMAIL, data, {
+  async sendEmployeeSetupEmail(data: ISendEmployeeSetupEmail) {
+    await this.addToQueue(JOBS.SEND_EMPLOYEE_SETUP_EMAIL, data, {
       removeOnComplete: true,
     });
   }

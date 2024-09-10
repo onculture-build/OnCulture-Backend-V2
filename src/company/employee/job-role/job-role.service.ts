@@ -7,6 +7,9 @@ import { CrudService } from '@@/common/database/crud.service';
 import { JobRoleMapType } from './job-role.maptype';
 import { CreateJobRoleDto } from './dto/create-job-role.dto';
 import { RequestWithUser } from '@@/auth/interfaces';
+import { UpdateJobRoleDto } from './dto/update-job-role.dto';
+import { AppUtilities } from '@@/common/utils/app.utilities';
+import { GetAllJobRolesDto } from './dto/get-job-roles.dto';
 
 @Injectable()
 export class JobRoleService extends CrudService<
@@ -17,17 +20,65 @@ export class JobRoleService extends CrudService<
     super(prismaClient.jobRole);
   }
 
+  async getAllJobRoles(dto: GetAllJobRolesDto) {
+    const {
+      cursor,
+      size,
+      direction,
+      orderBy,
+      paginationType,
+      page,
+      ...filters
+    } = dto;
+
+    const parsedQueryFilters = this.parseQueryFilter(filters, ['name']);
+
+    const args: CompanyPrisma.JobRoleFindManyArgs = {
+      where: { ...parsedQueryFilters },
+      include: {
+        level: true,
+      },
+    };
+
+    return this.findManyPaginate(args, {
+      cursor,
+      size,
+      direction,
+      orderBy: orderBy && AppUtilities.unflatten({ [orderBy]: direction }),
+      paginationType,
+      page,
+    });
+  }
+
   async createJobRole(
     { jobLevelId, ...dto }: CreateJobRoleDto,
     req?: RequestWithUser,
   ) {
+    const exisitingJobRole = await this.findFirst({
+      where: { title: { in: [dto.title], mode: 'insensitive' } },
+    });
+
+    if (exisitingJobRole) return exisitingJobRole;
+
     const args: CompanyPrisma.JobRoleCreateArgs = {
       data: {
         ...dto,
-        level: { connect: { id: jobLevelId } },
-        createdBy: req.user.userId,
+        ...(jobLevelId && { level: { connect: { id: jobLevelId } } }),
+        ...(req?.user && { createdBy: req.user.userId }),
       },
     };
+
     return this.create(args);
+  }
+
+  updateJobRole(id: string, dto: UpdateJobRoleDto, req?: RequestWithUser) {
+    return this.update({
+      where: { id },
+      data: {
+        ...dto,
+        ...(dto.jobLevelId && { level: { connect: { id: dto.jobLevelId } } }),
+        ...(req?.user && { updatedBy: req.user.userId }),
+      },
+    });
   }
 }

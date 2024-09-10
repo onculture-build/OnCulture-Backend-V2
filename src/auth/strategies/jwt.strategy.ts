@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
@@ -30,7 +34,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(request: Request, jwt: JwtPayload): Promise<JwtPayload> {
     const TOKEN_IS_EXPIRED = jwt.exp && Date.now() >= jwt.exp * 1000;
     if (TOKEN_IS_EXPIRED) {
-      throw new UnauthorizedException('User not logged in!');
+      throw new UnauthorizedException('Unauthenticated!');
     }
 
     let [, token] = String(request.headers['authorization']).split(/\s+/);
@@ -43,7 +47,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
     const sessionPayload = await this.coreCacheService.wrap(
       `${CacheKeysEnums.TOKENS}:${jwt.userId}:${sessionKey}`,
-      () => this.prisma.baseUser.findFirst({ where: { email: jwt.email } }),
+      async () => {
+        const user = await this.prisma.baseUser.findFirst({
+          where: { email: jwt.email },
+        });
+
+        if (!user) throw new BadRequestException();
+
+        return jwt;
+      },
       { ttl: this.configService.get('jwt.expiry') },
     );
 

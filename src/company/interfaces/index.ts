@@ -3,13 +3,13 @@ import { UserInfoDto } from '@@/auth/dto/user-info.dto';
 export const QUEUE = 'onculture:company:';
 
 export enum JOBS {
-  SEND_USER_SETUP_EMAIL = 'sendUserSetupEmail',
+  SEND_EMPLOYEE_SETUP_EMAIL = 'sendEmployeeSetupEmail',
 }
 
-export interface ISendUserSetupEmail {
-  companyId: string;
+export interface ISendEmployeeSetupEmail {
+  code: string;
   dto: UserInfoDto;
-  password?: string;
+  token: string;
 }
 
 export enum UsersOrderColumns {
