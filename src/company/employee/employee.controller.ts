@@ -38,8 +38,11 @@ export class EmployeeController {
 
   @ApiOperation({ summary: 'Create an employee' })
   @Post('create')
-  async createEmployee(@Body() dto: CreateEmployeeDto) {
-    return this.employeeService.createEmployee(dto);
+  async createEmployee(
+    @Body() dto: CreateEmployeeDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.employeeService.createEmployee(dto, undefined, req);
   }
 
   @ApiOperation({ summary: 'Edit an employee' })

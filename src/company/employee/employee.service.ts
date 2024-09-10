@@ -161,7 +161,10 @@ export class EmployeeService extends CrudService<
     return client.$transaction(async (prisma: CompanyPrismaClient) => {
       let employeeJobRole;
       if (Object.keys(dto.jobRole).length) {
-        employeeJobRole = await this.jobRoleService.createJobRole(dto.jobRole);
+        employeeJobRole = await this.jobRoleService.createJobRole(
+          dto.jobRole,
+          req,
+        );
       }
 
       const employeeNo =
@@ -169,7 +172,7 @@ export class EmployeeService extends CrudService<
 
       const user = await this.userService.createUser(userInfo, req, client);
 
-      const newEmployee = await client.employee.create({
+      const newEmployee = client.employee.create({
         data: {
           employeeNo,
           employmentType: dto.employmentType,
@@ -177,18 +180,23 @@ export class EmployeeService extends CrudService<
             jobRole: { connect: { id: (employeeJobRole as any)?.id } },
           }),
           ...(dto.departmentId && {
-            departments: { connect: { id: dto.departmentId, isDefault: true } },
+            departments: { connect: { id: dto.departmentId } },
           }),
           status: EmployeeStatus.INACTIVE,
           user: { connect: { id: user.id } },
-          branch: { connect: { id: dto.branchId || req.branchId } },
+          branch: { connect: { id: dto.branchId ?? req.user.branchId } },
         },
       });
 
       if (req.user.userId) {
-        this.companyQueueProducer.sendUserSetupEmail({
+        const token = AppUtilities.encode(
+          JSON.stringify({ email: userInfo.email }),
+        );
+
+        this.companyQueueProducer.sendEmployeeSetupEmail({
           code: req['company'] as string,
           dto: { email: userInfo.email, ...userInfo },
+          token,
         });
       }
 
@@ -210,7 +218,7 @@ export class EmployeeService extends CrudService<
   ) {
     let employeeJobRole;
     if (jobRole) {
-      employeeJobRole = await this.jobRoleService.createJobRole(jobRole);
+      employeeJobRole = await this.jobRoleService.createJobRole(jobRole, req);
     }
 
     return this.update({

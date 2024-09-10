@@ -37,8 +37,6 @@ export class UserService extends CrudService<
       (await this.prismaClientManager.getCompanyPrismaClientFromRequest(req));
 
     return basePrisma.$transaction(async (prisma: PrismaClient) => {
-      // const { userInfo } = dto;
-
       await prisma.baseUser.create({
         data: {
           firstName: userInfo.firstName,
@@ -81,8 +79,7 @@ export class UserService extends CrudService<
       const user = await prisma.user.create({
         data: {
           ...restUserInfo,
-          createdBy: authUser?.userId,
-          updatedBy: authUser?.userId,
+          createdBy: authUser.user.userId,
           ...(email && {
             emails: { create: { email: email.toLowerCase(), isPrimary: true } },
           }),

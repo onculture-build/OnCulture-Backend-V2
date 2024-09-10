@@ -14,12 +14,15 @@ import { SetupUserDto } from '@@/company/user/dto/setup-user.dto';
 
 export class CreateEmployeeDto extends SetupUserDto {
   @IsString()
+  @IsOptional()
   employeeNo?: string;
 
   @IsUUID()
+  @IsOptional()
   departmentId?: string;
 
   @IsUUID()
+  @IsOptional()
   branchId?: string;
 
   @IsEnum(EmploymentType)

@@ -21,11 +21,17 @@ export class JobRoleService extends CrudService<
     { jobLevelId, ...dto }: CreateJobRoleDto,
     req?: RequestWithUser,
   ) {
+    const exisitingJobRole = await this.findFirst({
+      where: { title: { in: [dto.title], mode: 'insensitive' } },
+    });
+
+    if (exisitingJobRole) return exisitingJobRole;
+
     const args: CompanyPrisma.JobRoleCreateArgs = {
       data: {
         ...dto,
-        level: { connect: { id: jobLevelId } },
-        createdBy: req.user.userId,
+        ...(jobLevelId && { level: { connect: { id: jobLevelId } } }),
+        ...(req?.user && { createdBy: req.user.userId }),
       },
     };
     return this.create(args);
