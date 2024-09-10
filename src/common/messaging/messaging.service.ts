@@ -70,7 +70,7 @@ export class MessagingService {
     });
     const config = await this.getAppEmailConfig();
 
-    const loginUrl = new URL(
+    const passwordURL = new URL(
       `https://${companyInfo.code}.${process.env.APP_CLIENT_URL}/set-password?token=${token}`,
     );
 
@@ -78,7 +78,7 @@ export class MessagingService {
       .useTemplate(emailTemplate, {
         ...userInfo,
         ...companyInfo,
-        login: { url: loginUrl },
+        passwordURL,
       })
       .addRecipients([userInfo.email]);
 
@@ -119,10 +119,11 @@ export class MessagingService {
     password: string,
   ) {
     const baseClient = this.prismaClientManager.getPrismaClient();
-    const { name: merchantName } =
-      await baseClient.baseCompany.findFirstOrThrow({
+    const { name: companyName } = await baseClient.baseCompany.findFirstOrThrow(
+      {
         where: { id: companyId },
-      });
+      },
+    );
     // get message template from tenant db
     const prismaClient =
       this.prismaClientManager.getCompanyPrismaClient(companyId);
@@ -139,7 +140,7 @@ export class MessagingService {
       .useTemplate(emailTemplate, {
         firstName,
         lastName,
-        merchantName,
+        companyName,
         email,
         password,
         login: { url: loginUrl },
@@ -176,22 +177,6 @@ export class MessagingService {
     }
   }
 
-  private async getAppEmailConfig() {
-    return {
-      apiKey: this.configService.get<string>('smtp.transport.auth.pass'),
-      port: this.configService.get<string>('smtp.transport.port'),
-      senderAddress: this.configService.get<string>(
-        'smtp.defaults.from.address',
-      ),
-      senderName: this.configService.get<string>('smtp.defaults.from.name'),
-      authPassword: this.configService.get<string>('smtp.transport.auth.pass'),
-      authUser: this.configService.get<string>('smtp.transport.auth.user'),
-      host: this.configService.get<string>('smtp.transport.host'),
-      provider: MailProviders.Smtp,
-      secure: this.configService.get<string>('smtp.transport.secure'),
-    };
-  }
-
   public async sendCompanyOnboardingRequestEmail({
     userInfo,
     companyInfo,
@@ -217,6 +202,22 @@ export class MessagingService {
     await this.mailService
       .setMailProviderOptions(config.provider, config)
       .sendEmail(emailBuilder);
+  }
+
+  private async getAppEmailConfig() {
+    return {
+      apiKey: this.configService.get<string>('smtp.transport.auth.pass'),
+      port: this.configService.get<string>('smtp.transport.port'),
+      senderAddress: this.configService.get<string>(
+        'smtp.defaults.from.address',
+      ),
+      senderName: this.configService.get<string>('smtp.defaults.from.name'),
+      authPassword: this.configService.get<string>('smtp.transport.auth.pass'),
+      authUser: this.configService.get<string>('smtp.transport.auth.user'),
+      host: this.configService.get<string>('smtp.transport.host'),
+      provider: MailProviders.Smtp,
+      secure: this.configService.get<string>('smtp.transport.secure'),
+    };
   }
 
   private async getCompanyMailConfig(companyId: string) {

@@ -94,8 +94,11 @@ export class AuthController {
   @ApiResponseMeta({ message: 'Password reset link sent successfully' })
   @ApiOperation({ summary: 'Request reset user password' })
   @Post('request-password-reset')
-  async requestPasswordReset(@Body() dto: RequestPasswordResetDto) {
-    return this.authService.requestPasswordReset(dto);
+  async requestPasswordReset(
+    @Body() dto: RequestPasswordResetDto,
+    @Req() req: Request,
+  ) {
+    return this.authService.requestPasswordReset(dto, req);
   }
 
   @ApiResponseMeta({ message: 'Password reset successfully' })

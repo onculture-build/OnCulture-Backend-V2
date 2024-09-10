@@ -20,7 +20,7 @@ export const messageTemplateSeed = [
   {
     name: 'Employee Invite',
     code: 'invitation',
-    subject: 'You have been invited to join Onculture',
+    subject: 'You have been invited to join OnCulture',
     type: MessageType.Email,
     isHtml: true,
     body: '',
