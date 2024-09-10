@@ -12,6 +12,7 @@ import { SetupUserDto } from './dto/setup-user.dto';
 import { CompanyUserQueueProducer } from '../queue/producer';
 import { CrudService } from '@@/common/database/crud.service';
 import { UserMapType } from './user.maptype';
+import { UserInfoDto } from '@@/auth/dto/user-info.dto';
 
 @Injectable()
 export class UserService extends CrudService<
@@ -20,19 +21,23 @@ export class UserService extends CrudService<
 > {
   constructor(
     private companyPrismaClient: CompanyPrismaClient,
-    private companyQueueProducer: CompanyUserQueueProducer,
     private prismaClientManager: PrismaClientManager,
   ) {
     super(companyPrismaClient.user);
   }
 
-  async createUser(dto: SetupUserDto, req: RequestWithUser) {
+  async createUser(
+    userInfo: UserInfoDto,
+    req: RequestWithUser,
+    prisma?: CompanyPrismaClient,
+  ) {
     const basePrisma = this.prismaClientManager.getPrismaClient();
     const companyPrisma =
-      await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
+      prisma ??
+      (await this.prismaClientManager.getCompanyPrismaClientFromRequest(req));
 
     return basePrisma.$transaction(async (prisma: PrismaClient) => {
-      const { userInfo } = dto;
+      // const { userInfo } = dto;
 
       await prisma.baseUser.create({
         data: {
@@ -43,20 +48,12 @@ export class UserService extends CrudService<
         },
       });
 
-      return companyPrisma.$transaction(async (prisma: CompanyPrismaClient) => {
-        await this.setupCompanyUser(dto, req, prisma);
-
-        await this.companyQueueProducer.sendUserSetupEmail({
-          // companyId: req.user.,
-          companyId: req.user.branchId, // change this to company id
-          dto: { email: userInfo.email, ...userInfo },
-        });
-      });
+      return this.setupCompanyUser(userInfo, req, companyPrisma);
     });
   }
 
   async setupCompanyUser(
-    { userInfo }: SetupUserDto,
+    userInfo: UserInfoDto,
     authUser?: RequestWithUser,
     prisma?: CompanyPrismaClient,
   ): Promise<User | undefined> {

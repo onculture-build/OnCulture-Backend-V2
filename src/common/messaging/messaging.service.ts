@@ -114,16 +114,15 @@ export class MessagingService {
   }
 
   public async sendUserSetupEmail(
-    companyId: string,
+    code: string,
     { firstName, lastName, email }: UserInfoDto,
-    password: string,
+    password?: string,
   ) {
     const baseClient = this.prismaClientManager.getPrismaClient();
-    const { name: companyName } = await baseClient.baseCompany.findFirstOrThrow(
-      {
-        where: { id: companyId },
-      },
-    );
+    const { name: companyName, id: companyId } =
+      await baseClient.baseCompany.findFirstOrThrow({
+        where: { code },
+      });
     // get message template from tenant db
     const prismaClient =
       this.prismaClientManager.getCompanyPrismaClient(companyId);
@@ -134,7 +133,7 @@ export class MessagingService {
       throw new NotFoundException('The template does not exist');
     }
     const config = await this.getAppEmailConfig();
-    const loginUrl = new URL(`${process.env.APP_CLIENT_URL}/login`);
+    const setPasswordURL = new URL(`${process.env.APP_CLIENT_URL}/login`);
 
     const emailBuilder = new EmailBuilder()
       .useTemplate(emailTemplate, {
@@ -143,7 +142,7 @@ export class MessagingService {
         companyName,
         email,
         password,
-        login: { url: loginUrl },
+        setPasswordURL,
       })
       .addRecipients([email]);
 

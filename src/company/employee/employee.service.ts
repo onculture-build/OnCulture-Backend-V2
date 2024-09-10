@@ -13,6 +13,7 @@ import { UserService } from '../user/user.service';
 import { RequestWithUser } from '@@/auth/interfaces';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { EmployeeStatus } from '@@/common/enums';
+import { CompanyUserQueueProducer } from '../queue/producer';
 
 @Injectable()
 export class EmployeeService extends CrudService<
@@ -23,6 +24,7 @@ export class EmployeeService extends CrudService<
     private prismaClient: CompanyPrismaClient,
     private jobRoleService: JobRoleService,
     private userService: UserService,
+    private companyQueueProducer: CompanyUserQueueProducer,
   ) {
     super(prismaClient.employee);
   }
@@ -158,21 +160,16 @@ export class EmployeeService extends CrudService<
     const client = prisma || this.prismaClient;
     return client.$transaction(async (prisma: CompanyPrismaClient) => {
       let employeeJobRole;
-      if (dto.jobRole) {
+      if (Object.keys(dto.jobRole).length) {
         employeeJobRole = await this.jobRoleService.createJobRole(dto.jobRole);
       }
 
-      const employeeNo = dto.employeeNo
-        ? dto.employeeNo
-        : await this.generateEmployeeNo(prisma);
+      const employeeNo =
+        dto.employeeNo ?? (await this.generateEmployeeNo(prisma));
 
-      const user = await this.userService.setupCompanyUser(
-        { userInfo },
-        undefined,
-        client,
-      );
+      const user = await this.userService.createUser(userInfo, req, client);
 
-      return client.employee.create({
+      const newEmployee = await client.employee.create({
         data: {
           employeeNo,
           employmentType: dto.employmentType,
@@ -187,6 +184,15 @@ export class EmployeeService extends CrudService<
           branch: { connect: { id: dto.branchId || req.branchId } },
         },
       });
+
+      if (req.user.userId) {
+        this.companyQueueProducer.sendUserSetupEmail({
+          code: req['company'] as string,
+          dto: { email: userInfo.email, ...userInfo },
+        });
+      }
+
+      return newEmployee;
     });
   }
 
@@ -232,6 +238,16 @@ export class EmployeeService extends CrudService<
       where: { id },
       data: {
         status: EmployeeStatus.SUSPENDED,
+        updatedBy: req.user.userId,
+      },
+    });
+  }
+
+  async unsuspendEmployee(id: string, req: RequestWithUser) {
+    return this.update({
+      where: { id },
+      data: {
+        status: EmployeeStatus.ACTIVE,
         updatedBy: req.user.userId,
       },
     });
