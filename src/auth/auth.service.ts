@@ -320,10 +320,12 @@ export class AuthService {
     });
   }
 
-  async requestPasswordReset({ email }: RequestPasswordResetDto) {
+  async requestPasswordReset({ email }: RequestPasswordResetDto, req: Request) {
     const baseUser = await this.prismaClient.baseUser.findUnique({
       where: { email: email.toLowerCase() },
     });
+
+    const companyCode = req['company'] as string;
 
     if (!baseUser) throw new UnauthorizedException('Invalid email');
 
@@ -346,13 +348,13 @@ export class AuthService {
       );
     }
 
-    const resetUrl = new URL(
-      `${process.env.APP_CLIENT_FORGOT_PASSWORD_URL}?token=${requestId}`,
+    const resetPasswordURL = new URL(
+      `https://${companyCode}.${process.env.APP_CLIENT_URL}/reset-password?token=${requestId}`,
     );
 
     const emailBuilder = new EmailBuilder()
       .useTemplate(messageTemplate, {
-        invite: { url: resetUrl },
+        resetPasswordURL,
         email,
         firstName: baseUser.firstName,
       })
