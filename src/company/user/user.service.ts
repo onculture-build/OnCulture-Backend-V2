@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { PrismaClientManager } from '@@/common/database/prisma-client-manager';
-import { Injectable, NotAcceptableException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotAcceptableException,
+} from '@nestjs/common';
 import {
   Prisma as CompanyPrisma,
   PrismaClient as CompanyPrismaClient,
@@ -28,26 +32,52 @@ export class UserService extends CrudService<
 
   async createUser(
     userInfo: UserInfoDto,
-    req: RequestWithUser,
+    req?: RequestWithUser,
     prisma?: CompanyPrismaClient,
   ) {
     const basePrisma = this.prismaClientManager.getPrismaClient();
+
+    const companyCode = req ? (req['company'] as string) : undefined;
+
     const companyPrisma =
       prisma ??
       (await this.prismaClientManager.getCompanyPrismaClientFromRequest(req));
 
-    return basePrisma.$transaction(async (prisma: PrismaClient) => {
-      await prisma.baseUser.create({
-        data: {
-          firstName: userInfo.firstName,
-          middleName: userInfo.middleName,
-          lastName: userInfo.lastName,
-          email: userInfo.email.toLowerCase(),
-        },
+    const whereClause: any = {
+      ...(userInfo?.email && { user: { email: userInfo.email.toLowerCase() } }),
+      ...(companyCode && { company: { code: companyCode } }),
+    };
+
+    if (Object.keys(whereClause).length === 2) {
+      const existingUser = await basePrisma.baseUserCompany.findFirst({
+        where: whereClause,
       });
 
-      return this.setupCompanyUser(userInfo, req, companyPrisma);
-    });
+      if (existingUser)
+        throw new ConflictException('A user with this email already exists');
+
+      return basePrisma.$transaction(async (prisma: PrismaClient) => {
+        await prisma.baseUserCompany.create({
+          data: {
+            user: {
+              create: {
+                firstName: userInfo.firstName,
+                middleName: userInfo.middleName,
+                lastName: userInfo.lastName,
+                email: userInfo.email.toLowerCase(),
+              },
+            },
+            company: {
+              connect: { code: companyCode },
+            },
+          },
+        });
+
+        return this.setupCompanyUser(userInfo, req, companyPrisma);
+      });
+    }
+
+    return await this.setupCompanyUser(userInfo, req, companyPrisma);
   }
 
   async setupCompanyUser(
@@ -79,7 +109,7 @@ export class UserService extends CrudService<
       const user = await prisma.user.create({
         data: {
           ...restUserInfo,
-          createdBy: authUser.user.userId,
+          ...(authUser && { createdBy: authUser.user.userId }),
           ...(email && {
             emails: { create: { email: email.toLowerCase(), isPrimary: true } },
           }),

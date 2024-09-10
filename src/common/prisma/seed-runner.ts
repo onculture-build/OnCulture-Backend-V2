@@ -1,8 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaClient as CompanyPrismaClient } from '.prisma/company';
-import argsParser from 'args-parser';
+import * as argsParser from 'args-parser';
 import { existsSync } from 'fs';
-import path from 'path';
+import * as path from 'path';
 import { argv } from 'process';
 import { SeedRunner } from '../interfaces';
 

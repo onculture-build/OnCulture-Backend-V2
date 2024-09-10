@@ -165,19 +165,28 @@ export class BaseCompanyService extends CrudService<
     });
 
     //2. Create Base User
-    const baseUser = await prisma.baseUser.create({
+    const baseUser = await prisma.baseUserCompany.create({
       data: {
-        firstName: userInfo.firstName,
-        middleName: userInfo.middleName,
-        lastName: userInfo.lastName,
-        email: userInfo.email.toLowerCase(),
-        companies: { create: { companyId: company.id } },
+        user: {
+          create: {
+            firstName: userInfo.firstName,
+            middleName: userInfo.middleName,
+            lastName: userInfo.lastName,
+            email: userInfo.email.toLowerCase(),
+          },
+        },
+        company: { connect: { id: company.id } },
+      },
+      include: {
+        user: true,
       },
     });
 
+    AppUtilities.removeSensitiveData(baseUser.user, 'password', true);
+
     await this.prismaClientManager.initializeCompanySchema(companyId);
 
-    return { company, baseUser };
+    return { company, baseUser: baseUser.user };
   }
 
   async updateOnboardCompanyRequest(

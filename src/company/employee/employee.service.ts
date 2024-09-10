@@ -160,7 +160,7 @@ export class EmployeeService extends CrudService<
     const client = prisma || this.prismaClient;
     return client.$transaction(async (prisma: CompanyPrismaClient) => {
       let employeeJobRole;
-      if (Object.keys(dto.jobRole).length) {
+      if (Object.keys(dto.jobRole || {}).length) {
         employeeJobRole = await this.jobRoleService.createJobRole(
           dto.jobRole,
           req,
@@ -188,7 +188,7 @@ export class EmployeeService extends CrudService<
         },
       });
 
-      if (req.user.userId) {
+      if (req && req.user.userId) {
         const token = AppUtilities.encode(
           JSON.stringify({ email: userInfo.email }),
         );
