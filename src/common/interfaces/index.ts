@@ -20,6 +20,11 @@ export enum SortDirection {
   DESC = 'desc',
 }
 
+export enum MessageType {
+  Email = 'Email',
+  Sms = 'Sms',
+}
+
 export type GeneratePdfOptions = {
   margin?: PDFMargin;
   printBackground?: boolean;

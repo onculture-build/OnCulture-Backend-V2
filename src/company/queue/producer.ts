@@ -10,7 +10,7 @@ export class CompanyUserQueueProducer {
     private readonly companyQueue: Queue,
   ) {}
 
-  async sendUserSetupEmail(data: ISendEmployeeSetupEmail) {
+  async sendEmployeeSetupEmail(data: ISendEmployeeSetupEmail) {
     await this.addToQueue(JOBS.SEND_EMPLOYEE_SETUP_EMAIL, data, {
       removeOnComplete: true,
     });

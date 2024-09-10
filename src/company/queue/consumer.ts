@@ -16,7 +16,7 @@ export class CompanyUserQueueConsumer extends BaseQueueProcessor {
 
   @Process({ name: JOBS.SEND_EMPLOYEE_SETUP_EMAIL })
   async sendEmployeeSetupEmail({ data }: Job<ISendEmployeeSetupEmail>) {
-    const { code, dto } = data;
-    this.messagingService.sendUserSetupEmail(code, dto);
+    const { code, dto, token } = data;
+    this.messagingService.sendUserSetupEmail(code, dto, token);
   }
 }

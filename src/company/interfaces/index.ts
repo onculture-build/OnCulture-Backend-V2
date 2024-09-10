@@ -9,7 +9,7 @@ export enum JOBS {
 export interface ISendEmployeeSetupEmail {
   code: string;
   dto: UserInfoDto;
-  password?: string;
+  token: string;
 }
 
 export enum UsersOrderColumns {
