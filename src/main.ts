@@ -62,6 +62,7 @@ async function bootstrap() {
 
   const allowedOrigins = [
     /^(https:\/\/([^\.]*\.)?ngrok\.io)$/i,
+    /^(http:\/\/([^\.]*\.)?localhost:3000)$/i,
     'http://localhost:3000',
     'http://localhost:3001',
   ];

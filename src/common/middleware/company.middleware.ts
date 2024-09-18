@@ -4,8 +4,7 @@ import { Request, Response, NextFunction } from 'express';
 @Injectable()
 export class CompanyMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
-    const host = req.headers.host || '';
-    const [subdomain] = host.split('.');
+    const subdomain = req.headers['x-subdomain'] as string;
 
     req['company'] = subdomain.toLowerCase();
 
