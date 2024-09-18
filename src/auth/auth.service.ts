@@ -134,7 +134,7 @@ export class AuthService {
     const companyPrisma =
       await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
 
-    if (employeeNo) {
+    if (employeeNo.length) {
       foundEmployee = await companyPrisma.employee.findFirst({
         where: {
           employeeNo: { equals: employeeNo, mode: 'insensitive' },
@@ -183,7 +183,7 @@ export class AuthService {
     const { employee, role, ...user } = companyUser;
 
     // validate password
-    const isMatch = AppUtilities.validatePassword(
+    const isMatch = await AppUtilities.validatePassword(
       password,
       companyUser.password,
     );
