@@ -55,12 +55,24 @@ export class AuthService {
     return this.prismaClient.allowedUser.findMany({});
   }
 
-  async checkAllowedUser({ email }: FindAllowedUserDto) {
+  async checkAllowedUser({ email, firstName, lastName }: FindAllowedUserDto) {
     const allowedUser = await this.prismaClient.allowedUser.findFirst({
       where: { email: email.toLowerCase() },
     });
 
-    if (!allowedUser) throw new UnauthorizedException('User not allowed!');
+    if (!allowedUser) {
+      await this.prismaClient.waitlist.upsert({
+        where: { email: email.toLowerCase() },
+        create: {
+          email: email.toLowerCase(),
+          firstName,
+          lastName,
+        },
+        update: {},
+      });
+
+      throw new UnauthorizedException('User not allowed!');
+    }
 
     return !!allowedUser;
   }
