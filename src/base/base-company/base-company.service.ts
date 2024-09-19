@@ -25,6 +25,7 @@ import { BaseCompanyRequestService } from './base-company-request/base-company-r
 import { ConfigService } from '@nestjs/config';
 import { BaseCompanyQueueProducer } from '../queue/producer';
 import { CompanyService } from '@@/company/company.service';
+import { GetAllCompaniesDto } from './dto/get-all-companies.dto';
 
 @Injectable()
 export class BaseCompanyService extends CrudService<
@@ -46,6 +47,39 @@ export class BaseCompanyService extends CrudService<
     super(prismaClient.baseCompany);
     this.MAX_TIME = Number(configService.get('transaction_time.MAX_TIME'));
     this.TIME_OUT = Number(configService.get('transaction_time.TIME_OUT'));
+  }
+
+  async getAllCompanies(dto: GetAllCompaniesDto) {
+    const {
+      cursor,
+      size,
+      direction,
+      orderBy,
+      paginationType,
+      page,
+      ...filters
+    } = dto;
+
+    const parsedQueryFilters = this.parseQueryFilter(filters, ['name']);
+
+    const args: Prisma.BaseCompanyFindManyArgs = {
+      where: { ...parsedQueryFilters },
+    };
+
+    return this.findManyPaginate(args, {
+      cursor,
+      size,
+      direction,
+      orderBy: orderBy && AppUtilities.unflatten({ [orderBy]: direction }),
+      paginationType,
+      page,
+    });
+  }
+
+  async getCompany(code: string) {
+    return this.findFirstOrThrow({
+      where: { code },
+    });
   }
 
   async activateCompany(id: string, dto: OnboardCompanyRequestUpdateDto) {
