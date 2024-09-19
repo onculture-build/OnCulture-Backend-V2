@@ -6,7 +6,7 @@ export class CompanyMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     const subdomain = req.headers['x-subdomain'] as string;
 
-    req['company'] = subdomain.toLowerCase();
+    req['company'] = subdomain;
 
     next();
   }

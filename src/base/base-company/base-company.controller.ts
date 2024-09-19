@@ -15,16 +15,30 @@ import { BaseCompanyRequestService } from './base-company-request/base-company-r
 import { GetCompanyRequestsDto } from './base-company-request/dto/get-company-requests.dto';
 import { BaseCompanyService } from './base-company.service';
 import { OnboardCompanyRequestUpdateDto } from './base-company-request/dto/onboard-company-request-update.dto';
+import { GetAllCompaniesDto } from './dto/get-all-companies.dto';
 
 @ApiTags('Base Company')
 @ApiBearerAuth()
-@AuthStrategy(AuthStrategyType.PUBLIC)
+@AuthStrategy(AuthStrategyType.JWT)
 @Controller('company')
 export class BaseCompanyController {
   constructor(
     private companyRequestService: BaseCompanyRequestService,
     private companyService: BaseCompanyService,
   ) {}
+
+  @ApiOperation({ summary: 'Get all companies' })
+  @Get()
+  async getAllCompanies(@Query() query: GetAllCompaniesDto) {
+    return this.companyService.getAllCompanies(query);
+  }
+
+  @ApiOperation({ summary: 'Get a company using subdomain' })
+  @Get(':subdomain')
+  @AuthStrategy(AuthStrategyType.PUBLIC)
+  async getCompany(@Param('subdomain') subdomain: string) {
+    return this.companyService.getCompany(subdomain);
+  }
 
   @ApiOperation({ summary: 'Get all company requests' })
   @Get('requests')
