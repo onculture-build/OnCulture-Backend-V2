@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "company_branch" ALTER COLUMN "stateId" DROP NOT NULL,
+ALTER COLUMN "countryId" DROP NOT NULL,
+ALTER COLUMN "address1" DROP NOT NULL;
