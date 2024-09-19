@@ -38,12 +38,16 @@ export class BranchService extends CrudService<
   ) {
     const client = prisma || this.companyPrismaClient;
 
-    const baseCountry = await this.prismaClient.baseCountry.findFirst({
-      where: { id: countryId },
-    });
-    const baseState = await this.prismaClient.baseState.findFirst({
-      where: { id: stateId },
-    });
+    let baseCountry, baseState;
+
+    if (countryId && stateId) {
+      baseCountry = await this.prismaClient.baseCountry.findFirst({
+        where: { id: countryId },
+      });
+      baseState = await this.prismaClient.baseState.findFirst({
+        where: { id: stateId },
+      });
+    }
 
     return client.companyBranch.create({
       data: {
@@ -52,8 +56,10 @@ export class BranchService extends CrudService<
         email,
         phone,
         createdBy: authUser?.userId,
-        country: { connect: { iso2: baseCountry.iso2 } },
-        state: { connect: { iso2: baseState.iso2 } },
+        ...(baseCountry && {
+          country: { connect: { iso2: baseCountry.iso2 } },
+        }),
+        ...(baseState && { state: { connect: { iso2: baseState.iso2 } } }),
       },
     });
   }

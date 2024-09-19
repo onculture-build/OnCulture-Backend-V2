@@ -111,7 +111,6 @@ export class AuthService {
       })
       .catch(console.error);
 
-    // handle case for allowed user
     if (allowedUser) {
       this.companyQueueProducer.processOnboardCompany({
         companyId: companyRequest.id,
@@ -146,7 +145,7 @@ export class AuthService {
     const companyPrisma =
       await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
 
-    if (employeeNo.length) {
+    if (employeeNo?.length) {
       foundEmployee = await companyPrisma.employee.findFirst({
         where: {
           employeeNo: { equals: employeeNo, mode: 'insensitive' },

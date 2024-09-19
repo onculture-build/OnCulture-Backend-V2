@@ -188,13 +188,13 @@ export class BaseCompanyService extends CrudService<
         ...(values && {
           values: {
             createMany: {
-              data: values.map((value) => ({ value })),
+              data: values.map(({ value }) => ({ value })),
               skipDuplicates: true,
             },
           },
         }),
-        country: { connect: { id: countryId } },
-        state: { connect: { id: stateId } },
+        ...(countryId && { country: { connect: { id: countryId } } }),
+        ...(stateId && { state: { connect: { id: stateId } } }),
       },
     });
 

@@ -61,13 +61,24 @@ export class BaseCompanyRequestService extends CrudService<
   }
 
   async setupCompanyRequest({ userInfo, companyInfo }: SignUpDto) {
-    await this.validateCompanyRequestData({
-      userInfo,
-      companyInfo,
-    });
+    if (companyInfo.countryId) {
+      await this.validateCompanyRequestData({
+        userInfo,
+        companyInfo,
+      });
+    }
     return this.create({
       data: {
         ...companyInfo,
+        ...(companyInfo.countryId && {
+          country: { connect: { id: companyInfo.countryId } },
+        }),
+        ...(companyInfo.stateId && {
+          state: { connect: { id: companyInfo.stateId } },
+        }),
+        ...(companyInfo.values && {
+          values: companyInfo.values.map((val) => val.value),
+        }),
         contactEmail: userInfo.email,
         contactInfo: userInfo as any,
       },

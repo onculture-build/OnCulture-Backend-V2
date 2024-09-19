@@ -27,12 +27,13 @@ export class CompanyInfoDto {
   code: string;
 
   @IsPhoneNumber()
-  phone: string;
+  @IsOptional()
+  phone?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(150)
-  address1: string;
+  address1?: string;
 
   @IsOptional()
   @IsString()
@@ -50,22 +51,24 @@ export class CompanyInfoDto {
   postCode?: string;
 
   @IsUUID()
-  countryId: string;
+  @IsOptional()
+  countryId?: string;
 
   @IsUUID()
-  stateId: string;
+  @IsOptional()
+  stateId?: string;
 
   @IsString()
   @IsOptional()
   mission?: string;
-
+  @IsOptional()
   @IsString()
   @IsOptional()
   vision?: string;
 
   @IsArray()
   @IsOptional()
-  values?: string[];
+  values?: Record<'value', string>[];
 
   @IsObject()
   @IsOptional()
