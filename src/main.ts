@@ -64,6 +64,7 @@ async function bootstrap() {
     /^(https:\/\/([^\.]*\.)?ngrok\.io)$/i,
     /^(http:\/\/([^\.]*\.)?localhost:3000)$/i,
     /^(https:\/\/([^\.]*\.)?dev\.onculture\.io)$/i,
+    'https://landing.onculture.io',
     'http://localhost:3000',
     'http://localhost:3001',
   ];
