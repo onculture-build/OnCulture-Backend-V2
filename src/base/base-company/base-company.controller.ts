@@ -16,6 +16,9 @@ import { GetCompanyRequestsDto } from './base-company-request/dto/get-company-re
 import { BaseCompanyService } from './base-company.service';
 import { OnboardCompanyRequestUpdateDto } from './base-company-request/dto/onboard-company-request-update.dto';
 import { GetAllCompaniesDto } from './dto/get-all-companies.dto';
+import { GetCompanyDomainDto } from './dto/get-domain.dto';
+import { ForgotUserCompaniesDto } from './dto/forgot-user-companies.dto';
+import { ApiResponseMeta } from '@@/common/decorators/response.decorator';
 
 @ApiTags('Base Company')
 @ApiBearerAuth()
@@ -38,6 +41,21 @@ export class BaseCompanyController {
   @AuthStrategy(AuthStrategyType.PUBLIC)
   async getCompany(@Param('subdomain') subdomain: string) {
     return this.companyService.getCompany(subdomain);
+  }
+
+  @ApiOperation({ summary: "Get a company's URL" })
+  @Post('get-company-url')
+  @AuthStrategy(AuthStrategyType.PUBLIC)
+  async getCompanyURL(@Body() { code }: GetCompanyDomainDto) {
+    return this.companyService.getCompanyURL(code);
+  }
+
+  @ApiOperation({ summary: 'Get all companies for a user' })
+  @ApiResponseMeta({ message: 'Email sent successfully' })
+  @Post('user/forgot-companies')
+  @AuthStrategy(AuthStrategyType.PUBLIC)
+  async forgotUserCompanies(@Body() { email }: ForgotUserCompaniesDto) {
+    return this.companyService.forgotUserCompanies(email);
   }
 
   @ApiOperation({ summary: 'Get all company requests' })

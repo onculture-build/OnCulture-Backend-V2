@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { CrudService } from '@@/common/database/crud.service';
 import {
+  BadRequestException,
   Injectable,
   NotAcceptableException,
+  NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import {
@@ -79,6 +81,65 @@ export class BaseCompanyService extends CrudService<
   async getCompany(code: string) {
     return this.findFirstOrThrow({
       where: { code },
+    });
+  }
+
+  async getCompanyURL(code: string) {
+    const company = (await this.findUnique({
+      where: {
+        code,
+      },
+    })) as BaseCompany;
+
+    if (!company) {
+      throw new BadRequestException('This company domain does not exist');
+    }
+
+    const companyURL = new URL(
+      `https://${company.code}.${process.env.APP_CLIENT_URL}/login`,
+    );
+
+    return { url: companyURL };
+  }
+
+  async forgotUserCompanies(email: string) {
+    const user = await this.prismaClient.baseUser.findFirst({
+      where: { email: email.toLowerCase() },
+      select: {
+        email: true,
+        firstName: true,
+        companies: {
+          select: {
+            company: {
+              select: {
+                name: true,
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user)
+      throw new NotFoundException(`User with email "${email}" not found`);
+
+    if (!user.companies.length)
+      throw new NotFoundException('User is not attached to any company');
+
+    const data = user.companies.reduce((acc, { company }) => {
+      const companyURL = new URL(
+        `https://${company.code}.${process.env.APP_CLIENT_URL}`,
+      );
+
+      acc.push({ ...company, url: companyURL });
+      return acc;
+    }, []);
+
+    this.messagingService.sendUserCompaniesEmail({
+      email: user.email,
+      firstName: user.firstName,
+      companies: data,
     });
   }
 
@@ -202,11 +263,14 @@ export class BaseCompanyService extends CrudService<
     const baseUser = await prisma.baseUserCompany.create({
       data: {
         user: {
-          create: {
-            firstName: userInfo.firstName,
-            middleName: userInfo.middleName,
-            lastName: userInfo.lastName,
-            email: userInfo.email.toLowerCase(),
+          connectOrCreate: {
+            where: { email: userInfo.email.toLowerCase() },
+            create: {
+              firstName: userInfo.firstName,
+              middleName: userInfo.middleName,
+              lastName: userInfo.lastName,
+              email: userInfo.email.toLowerCase(),
+            },
           },
         },
         company: { connect: { id: company.id } },
