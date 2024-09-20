@@ -16,6 +16,7 @@ import { MailService } from './messaging-mail.service';
 // import { AppUtilities } from '../utils/app.utilities';
 import { SignUpDto } from '@@/auth/dto/signup.dto';
 import { UserInfoDto } from '@@/auth/dto/user-info.dto';
+import { IUserForgotCompanies } from '../interfaces';
 
 @Injectable()
 export class MessagingService {
@@ -54,6 +55,31 @@ export class MessagingService {
     emailBuilder.addFrom(config.senderAddress, config.senderName);
 
     return this.mailService
+      .setMailProviderOptions(config.provider, config)
+      .sendEmail(emailBuilder);
+  }
+
+  public async sendUserCompaniesEmail({
+    email,
+    ...data
+  }: IUserForgotCompanies) {
+    // get message template from db
+    const prismaClient = this.prismaClientManager.getPrismaClient();
+    const emailTemplate = await prismaClient.baseMessageTemplate.findFirst({
+      where: { code: 'forgot-domain' },
+    });
+
+    const config = await this.getAppEmailConfig();
+
+    const emailBuilder = new EmailBuilder()
+      .useTemplate(emailTemplate, data)
+      .addRecipients([email]);
+
+    // add sender details from config settings
+    emailBuilder.addFrom(config.senderAddress, config.senderName);
+
+    // send mail
+    await this.mailService
       .setMailProviderOptions(config.provider, config)
       .sendEmail(emailBuilder);
   }

@@ -30,3 +30,9 @@ export type GeneratePdfOptions = {
   printBackground?: boolean;
   format?: PaperFormat;
 };
+
+export interface IUserForgotCompanies {
+  email: string;
+  firstName: string;
+  companies: Record<string, string>[];
+}
