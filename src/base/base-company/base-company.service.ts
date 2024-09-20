@@ -122,7 +122,7 @@ export class BaseCompanyService extends CrudService<
     });
 
     if (!user)
-      throw new NotFoundException(`User with email ${email} does not exist`);
+      throw new NotFoundException(`User with email "${email}" not found`);
 
     if (!user.companies.length)
       throw new NotFoundException('User is not attached to any company');
