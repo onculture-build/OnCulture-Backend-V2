@@ -1,7 +1,6 @@
 import { CrudService } from '@@/common/database/crud.service';
-import { PrismaClientManager } from '@@/common/database/prisma-client-manager';
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { BaseStateMapType } from './base-state.maptype';
 import { GetStatesDto } from './dto/get-states.dto';
 
@@ -10,8 +9,7 @@ export class BaseStateService extends CrudService<
   Prisma.BaseStateDelegate,
   BaseStateMapType
 > {
-  constructor(prismaClientManager: PrismaClientManager) {
-    const prisma = prismaClientManager.getPrismaClient();
+  constructor(private prisma: PrismaClient) {
     super(prisma.baseState);
   }
 

@@ -32,7 +32,7 @@ async function bootstrap() {
   if (environment !== 'development') {
     const user = configService.get('swagger.user');
     app.use(
-      ['/swagger', '/swagger-json'],
+      ['/api', '/api-json'],
       expressBasicAuth({
         challenge: true,
         users: user,
@@ -63,12 +63,13 @@ async function bootstrap() {
   const allowedOrigins = [
     /^(https:\/\/([^\.]*\.)?ngrok\.io)$/i,
     /^(http:\/\/([^\.]*\.)?localhost:3000)$/i,
+    /^(https:\/\/([^\.]*\.)?dev\.onculture\.io)$/i,
     'http://localhost:3000',
     'http://localhost:3001',
   ];
   const allowedOriginsProd = [
     'https://onculture.io',
-    'https://app.onculture.io',
+    /^(https:\/\/([^\.]*\.)?onculture\.io)$/i,
   ];
 
   const origins =
