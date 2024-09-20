@@ -13,8 +13,9 @@ const companyPrismaClientProvider: FactoryProvider<
   provide: CompanyPrismaClient,
   scope: Scope.REQUEST,
   inject: [REQUEST, PrismaClientManager],
-  useFactory: async (request: Request, manager: PrismaClientManager) =>
-    manager.getCompanyPrismaClientFromRequest(request),
+  useFactory: async (request: Request, manager: PrismaClientManager) => {
+    return manager.getCompanyPrismaClientFromRequest(request);
+  },
 };
 
 @Module({
