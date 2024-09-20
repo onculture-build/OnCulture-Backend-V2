@@ -20,7 +20,7 @@ import { GetAllCompaniesDto } from './dto/get-all-companies.dto';
 @ApiTags('Base Company')
 @ApiBearerAuth()
 @AuthStrategy(AuthStrategyType.JWT)
-@Controller('company')
+@Controller('companies')
 export class BaseCompanyController {
   constructor(
     private companyRequestService: BaseCompanyRequestService,

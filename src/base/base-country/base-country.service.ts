@@ -1,8 +1,7 @@
 import { CrudService } from '@@/common/database/crud.service';
-import { PrismaClientManager } from '@@/common/database/prisma-client-manager';
 import { PaginationSearchOptionsDto } from '@@/common/interfaces/pagination-search-options.dto';
 import { Injectable } from '@nestjs/common';
-import { BaseCountry, Prisma } from '@prisma/client';
+import { BaseCountry, Prisma, PrismaClient } from '@prisma/client';
 import { BaseCountryMapType } from './base-country.maptype';
 import { RequestWithUser } from '@@/auth/interfaces';
 import lodash from 'lodash';
@@ -12,8 +11,7 @@ export class BaseCountryService extends CrudService<
   Prisma.BaseCountryDelegate,
   BaseCountryMapType
 > {
-  constructor(prismaClientManager: PrismaClientManager) {
-    const prisma = prismaClientManager.getPrismaClient();
+  constructor(private prisma: PrismaClient) {
     super(prisma.baseCountry);
   }
 
