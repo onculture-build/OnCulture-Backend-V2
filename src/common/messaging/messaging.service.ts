@@ -70,6 +70,10 @@ export class MessagingService {
       where: { code: 'forgot-domain' },
     });
 
+    if (!emailTemplate) {
+      throw new NotFoundException('The template does not exist');
+    }
+
     const config = await this.getAppEmailConfig();
 
     const emailBuilder = new EmailBuilder()
@@ -95,6 +99,11 @@ export class MessagingService {
     const emailTemplate = await prismaClient.baseMessageTemplate.findFirst({
       where: { code: 'welcome' },
     });
+
+    if (!emailTemplate) {
+      throw new NotFoundException('The template does not exist');
+    }
+
     const config = await this.getAppEmailConfig();
 
     const passwordURL = new URL(
