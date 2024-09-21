@@ -269,6 +269,10 @@ export class AuthService {
 
     if (!companyUser) throw new NotFoundException('User not found');
 
+    if (companyUser.password.length) {
+      throw new NotAcceptableException('Token is expired. Try reset password');
+    }
+
     const hash = await AppUtilities.hashAuthSecret(dto.password);
 
     await cPrisma.user.update({
