@@ -61,7 +61,8 @@ export class MessagingService {
 
   public async sendUserCompaniesEmail({
     email,
-    ...data
+    firstName,
+    companies,
   }: IUserForgotCompanies) {
     // get message template from db
     const prismaClient = this.prismaClientManager.getPrismaClient();
@@ -72,7 +73,7 @@ export class MessagingService {
     const config = await this.getAppEmailConfig();
 
     const emailBuilder = new EmailBuilder()
-      .useTemplate(emailTemplate, data)
+      .useTemplate(emailTemplate, { firstName, companies })
       .addRecipients([email]);
 
     // add sender details from config settings
