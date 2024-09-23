@@ -246,7 +246,7 @@ export class BaseCompanyService extends CrudService<
       data: {
         ...companyInfo,
         id: companyId,
-        ...(values.length && {
+        ...(values?.length && {
           values: {
             createMany: {
               data: values,
