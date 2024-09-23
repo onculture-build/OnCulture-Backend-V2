@@ -1,5 +1,9 @@
 import { CrudService } from '@@/common/database/crud.service';
-import { Injectable, NotAcceptableException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotAcceptableException,
+} from '@nestjs/common';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { BaseCompanyRequestMapType } from './base-company-request.maptype';
 import { SignUpDto } from '@@/auth/dto/signup.dto';
@@ -100,6 +104,15 @@ export class BaseCompanyRequestService extends CrudService<
   }
 
   async validateCompanyRequestData({ userInfo, companyInfo }: SignUpDto) {
+    const existingCompanyRequest = await this.findUnique({
+      where: {
+        email: companyInfo.email.toLowerCase(),
+      },
+    });
+
+    if (existingCompanyRequest)
+      throw new ConflictException('Company with email already exists');
+
     const uniqueCountryIds = [
       ...new Set([companyInfo.countryId, userInfo.countryId]),
     ];
