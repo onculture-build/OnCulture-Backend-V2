@@ -249,7 +249,7 @@ export class BaseCompanyService extends CrudService<
         ...(values && {
           values: {
             createMany: {
-              data: values.map(({ value }) => ({ value })),
+              data: values,
               skipDuplicates: true,
             },
           },
