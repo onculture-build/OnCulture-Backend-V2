@@ -77,7 +77,7 @@ export class BaseCompanyRequestService extends CrudService<
           state: { connect: { id: companyInfo.stateId } },
         }),
         ...(companyInfo.values && {
-          values: companyInfo.values.map((val) => val.value),
+          values: companyInfo.values as unknown as any[],
         }),
         contactEmail: userInfo.email,
         contactInfo: userInfo as any,

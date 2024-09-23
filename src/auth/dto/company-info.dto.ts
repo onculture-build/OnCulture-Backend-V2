@@ -68,11 +68,16 @@ export class CompanyInfoDto {
 
   @IsArray()
   @IsOptional()
-  values?: Record<'value', string>[];
+  values?: CompanyValue[];
 
   @IsObject()
   @IsOptional()
   @ValidateNested()
   @Type(() => UploadLogoDto)
   logo?: UploadLogoDto;
+}
+
+class CompanyValue {
+  @IsString()
+  value: string;
 }
