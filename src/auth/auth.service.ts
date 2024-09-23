@@ -270,7 +270,7 @@ export class AuthService {
 
     if (!companyUser) throw new NotFoundException('User not found');
 
-    if (companyUser.password.length) {
+    if (companyUser.password) {
       throw new NotAcceptableException('Token is expired. Try reset password');
     }
 
