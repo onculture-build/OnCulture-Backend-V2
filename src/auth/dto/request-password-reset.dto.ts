@@ -1,3 +1,7 @@
-import { FindAllowedUserDto } from './find-allowed-user.dto';
+import { IsEmail, IsNotEmpty } from 'class-validator';
 
-export class RequestPasswordResetDto extends FindAllowedUserDto {}
+export class RequestPasswordResetDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+}
