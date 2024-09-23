@@ -352,6 +352,7 @@ export class AuthService {
     if (!baseUser) throw new UnauthorizedException('Invalid email');
 
     const requestId = v4();
+
     await this.cacheService.set(
       CacheKeysEnums.REQUESTS + requestId,
       { email, userId: baseUser.id },
