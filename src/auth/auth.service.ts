@@ -90,6 +90,7 @@ export class AuthService {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onboardCompany(dto: SignUpDto, ipAddress: string) {
     const allowedUser = await this.prismaClient.allowedUser.findFirst({
       where: {
@@ -104,12 +105,12 @@ export class AuthService {
       throw new ServiceUnavailableException('Unable to onboard company');
     }
 
-    this.messagingService
-      .sendCompanyOnboardingRequestEmail({
-        ...dto,
-        ipAddress,
-      })
-      .catch(console.error);
+    // this.messagingService
+    //   .sendCompanyOnboardingRequestEmail({
+    //     ...dto,
+    //     ipAddress,
+    //   })
+    //   .catch(console.error);
 
     if (allowedUser) {
       this.companyQueueProducer.processOnboardCompany({
