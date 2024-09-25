@@ -204,22 +204,20 @@ export class EmployeeService extends CrudService<
       const newEmployee = client.employee.create({
         data: {
           employeeNo,
-          ...((employmentType || employmentTypeId) && {
-            employmentType: {
-              connectOrCreate: {
-                where: { id: employmentTypeId },
-                create: employmentType,
-              },
-            },
-          }),
-          ...((jobRole || jobRoleId) && {
-            jobRole: {
-              connectOrCreate: {
-                where: { id: jobRoleId },
-                create: jobRole,
-              },
-            },
-          }),
+          ...(employmentTypeId || employmentType
+            ? {
+                employmentType: employmentTypeId
+                  ? { connect: { id: employmentTypeId } }
+                  : { create: employmentType },
+              }
+            : {}),
+          ...(jobRoleId || jobRole
+            ? {
+                jobRole: jobRoleId
+                  ? { connect: { id: jobRoleId } }
+                  : { create: jobRole },
+              }
+            : {}),
           ...(departmentId && {
             departments: { connect: { id: departmentId } },
           }),
@@ -261,22 +259,20 @@ export class EmployeeService extends CrudService<
     return this.update({
       where: { id },
       data: {
-        ...((employmentType || employmentTypeId) && {
-          employmentType: {
-            connectOrCreate: {
-              where: { id: employmentTypeId },
-              create: employmentType,
-            },
-          },
-        }),
-        ...((jobRole || jobRoleId) && {
-          jobRole: {
-            connectOrCreate: {
-              where: { id: jobRoleId },
-              create: jobRole,
-            },
-          },
-        }),
+        ...(employmentTypeId || employmentType
+          ? {
+              employmentType: employmentTypeId
+                ? { connect: { id: employmentTypeId } }
+                : { create: employmentType },
+            }
+          : {}),
+        ...(jobRoleId || jobRole
+          ? {
+              jobRole: jobRoleId
+                ? { connect: { id: jobRoleId } }
+                : { create: jobRole },
+            }
+          : {}),
         ...(departmentId && {
           departments: { connect: { id: departmentId, isDefault: true } },
         }),
