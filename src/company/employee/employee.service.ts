@@ -66,12 +66,12 @@ export class EmployeeService extends CrudService<
         where: parseSplittedTermsQuery,
       },
       {
-        key: 'departmentId',
-        where: (id) => ({
+        key: 'departmentIds',
+        where: (ids) => ({
           departments: {
             some: {
               departmentId: {
-                equals: id,
+                in: ids,
               },
               status: true,
             },
@@ -79,14 +79,18 @@ export class EmployeeService extends CrudService<
         }),
       },
       {
-        key: 'jobRoleId',
-        where: (id) => ({
-          jobRole: { id },
+        key: 'jobRoleIds',
+        where: (ids) => ({
+          jobRole: { id: { in: ids } },
         }),
       },
       {
         key: 'employmentType',
-        where: (employmentType) => ({ employmentType }),
+        where: (employmentType) => ({ employmentType: { in: employmentType } }),
+      },
+      {
+        key: 'status',
+        where: (status) => ({ status: { in: status } }),
       },
     ]);
 
@@ -97,9 +101,9 @@ export class EmployeeService extends CrudService<
         branch: true,
         departments: {
           include: { department: true },
-          ...(filters.departmentId && {
+          ...(filters.departmentIds?.length && {
             where: {
-              departmentId: filters.departmentId,
+              departmentId: { in: filters.departmentIds },
               status: true,
             },
           }),
