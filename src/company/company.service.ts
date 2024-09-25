@@ -5,8 +5,8 @@ import { roleSeed } from '@@/common/database/seed-data/company/company-role.seed
 import { SignUpDto } from '@@/auth/dto/signup.dto';
 import { BranchService } from './branch/branch.service';
 import { EmployeeService } from './employee/employee.service';
-import { EmploymentType } from './interfaces';
 import { RequestWithUser } from '@@/auth/interfaces';
+import { employmentTypeSeed } from '@@/common/database/seed-data/company/employment-type.seed';
 
 @Injectable()
 export class CompanyService {
@@ -24,6 +24,7 @@ export class CompanyService {
     const client = prisma ?? this.prismaClient;
 
     const roleId = roleSeed[0].id;
+    const employmentTypeId = employmentTypeSeed[0].id;
 
     const { code, mission, vision, values, ...rest } = companyInfo;
 
@@ -39,7 +40,7 @@ export class CompanyService {
     const employee = await this.employeeService.createEmployee(
       {
         userInfo: { ...userInfo, roleId },
-        employmentType: EmploymentType.Fulltime,
+        employmentTypeId,
         branchId: branch.id,
       },
       client,

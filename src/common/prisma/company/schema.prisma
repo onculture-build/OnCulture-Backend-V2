@@ -32,12 +32,6 @@ enum RelationshipType {
     Niece
 }
 
-enum EmploymentType {
-    Fulltime
-    Contract
-    Internship
-}
-
 enum AddressType {
     Physical
     Postal
@@ -387,7 +381,7 @@ model Employee {
     userId             String               @unique @db.Uuid
     branchId           String?              @db.Uuid
     jobRoleId          String?              @db.Uuid
-    employmentType     EmploymentType
+    employmentTypeId   String?              @db.Uuid
     status             EmployeeStatus       @default(Active)
     createdAt          DateTime             @default(now()) @db.Timestamptz(6)
     createdBy          String?              @db.Uuid
@@ -396,6 +390,7 @@ model Employee {
     jobRole            JobRole?             @relation(fields: [jobRoleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     departments        EmployeeDepartment[]
     files              EmployeeFile[]
+    employmentType     EmploymentType?      @relation(fields: [employmentTypeId], references: [id])
     user               User                 @relation(fields: [userId], references: [id])
     sumups             EmployeeSumUp[]
     feedbacks          EmployeeFeedback[]
@@ -404,6 +399,20 @@ model Employee {
     managedDepartments DepartmentManager[]
 
     @@map("employee")
+}
+
+model EmploymentType {
+    id          String     @id @default(uuid()) @db.Uuid
+    title       String     @unique @db.VarChar(50)
+    description String?    @db.VarChar(255)
+    status      Boolean    @default(true) @db.Boolean
+    createdAt   DateTime   @default(now()) @db.Timestamptz(6)
+    createdBy   String?    @db.Uuid
+    updatedAt   DateTime   @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy   String?    @db.Uuid
+    employees   Employee[]
+
+    @@map("employment_type")
 }
 
 model EmployeeDepartment {
