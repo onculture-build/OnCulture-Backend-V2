@@ -1,5 +1,5 @@
 import { PaginationSearchOptionsDto } from '@@/common/interfaces/pagination-search-options.dto';
-import { EmploymentType } from '@@/company/interfaces';
+import { EmployeeOrderColumns, EmploymentType } from '@@/company/interfaces';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class GetEmployeesDto extends PaginationSearchOptionsDto {
@@ -18,4 +18,8 @@ export class GetEmployeesDto extends PaginationSearchOptionsDto {
   @IsEnum(EmploymentType)
   @IsOptional()
   employmentType?: EmploymentType;
+
+  @IsOptional()
+  @IsEnum(EmployeeOrderColumns)
+  orderBy?: EmployeeOrderColumns;
 }
