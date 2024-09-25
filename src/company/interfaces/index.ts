@@ -28,12 +28,6 @@ export const MapUsersOrderByToValue = {
   status: 'status',
 };
 
-export enum EmploymentType {
-  Fulltime = 'Fulltime',
-  Contract = 'Contract',
-  Internship = 'Internship',
-}
-
 export const MapEmployeesOrderByToValue = {
   name: 'user.firstName',
   employmentType: 'employmentType',

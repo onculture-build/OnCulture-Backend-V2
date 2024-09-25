@@ -6,7 +6,6 @@ import {
 } from '@@prisma/company';
 import { EmployeeMaptype } from './employee.maptype';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
-import { JobRoleService } from './job-role/job-role.service';
 import { GetEmployeesDto } from './dto/get-employees.dto';
 import { AppUtilities } from '@@/common/utils/app.utilities';
 import { UserService } from '../user/user.service';
@@ -23,11 +22,29 @@ export class EmployeeService extends CrudService<
 > {
   constructor(
     private prismaClient: CompanyPrismaClient,
-    private jobRoleService: JobRoleService,
     private userService: UserService,
     private companyQueueProducer: CompanyUserQueueProducer,
   ) {
     super(prismaClient.employee);
+  }
+
+  async getEmployeeFilterFields() {
+    const [roles, departments, employmentTypes] = await Promise.all([
+      this.getRoles(),
+      this.getDepartments(),
+      this.getEmploymentTypes(),
+    ]);
+
+    return {
+      roles,
+      departments,
+      employmentTypes,
+      statuses: Object.values(EmployeeStatus).map((status, idx) => ({
+        id: idx,
+        name: status,
+        isStatus: true,
+      })),
+    };
   }
 
   async getAllEmployees(dto: GetEmployeesDto) {
@@ -66,7 +83,7 @@ export class EmployeeService extends CrudService<
         where: parseSplittedTermsQuery,
       },
       {
-        key: 'departmentIds',
+        key: 'departments',
         where: (ids) => ({
           departments: {
             some: {
@@ -79,14 +96,16 @@ export class EmployeeService extends CrudService<
         }),
       },
       {
-        key: 'jobRoleIds',
+        key: 'roles',
         where: (ids) => ({
           jobRole: { id: { in: ids } },
         }),
       },
       {
-        key: 'employmentType',
-        where: (employmentType) => ({ employmentType: { in: employmentType } }),
+        key: 'employmentTypes',
+        where: (employmentTypes) => ({
+          employmentType: { id: { in: employmentTypes } },
+        }),
       },
       {
         key: 'status',
@@ -101,9 +120,9 @@ export class EmployeeService extends CrudService<
         branch: true,
         departments: {
           include: { department: true },
-          ...(filters.departmentIds?.length && {
+          ...(filters.departments?.length && {
             where: {
-              departmentId: { in: filters.departmentIds },
+              departmentId: { in: filters.departments },
               status: true,
             },
           }),
@@ -163,20 +182,20 @@ export class EmployeeService extends CrudService<
   }
 
   async createEmployee(
-    { userInfo, ...dto }: CreateEmployeeDto,
+    {
+      userInfo,
+      jobRole,
+      jobRoleId,
+      employmentType,
+      employmentTypeId,
+      departmentId,
+      ...dto
+    }: CreateEmployeeDto,
     prisma?: CompanyPrismaClient,
     req?: RequestWithUser,
   ) {
     const client = prisma || this.prismaClient;
     return client.$transaction(async (prisma: CompanyPrismaClient) => {
-      let employeeJobRole;
-      if (Object.keys(dto.jobRole || {}).length) {
-        employeeJobRole = await this.jobRoleService.createJobRole(
-          dto.jobRole,
-          req,
-        );
-      }
-
       const employeeNo =
         dto.employeeNo ?? (await this.generateEmployeeNo(prisma));
 
@@ -185,12 +204,22 @@ export class EmployeeService extends CrudService<
       const newEmployee = client.employee.create({
         data: {
           employeeNo,
-          employmentType: dto.employmentType,
-          ...(dto.jobRole && {
-            jobRole: { connect: { id: (employeeJobRole as any)?.id } },
-          }),
-          ...(dto.departmentId && {
-            departments: { connect: { id: dto.departmentId } },
+          ...(employmentTypeId || employmentType
+            ? {
+                employmentType: employmentTypeId
+                  ? { connect: { id: employmentTypeId } }
+                  : { create: employmentType },
+              }
+            : {}),
+          ...(jobRoleId || jobRole
+            ? {
+                jobRole: jobRoleId
+                  ? { connect: { id: jobRoleId } }
+                  : { create: jobRole },
+              }
+            : {}),
+          ...(departmentId && {
+            departments: { connect: { id: departmentId } },
           }),
           status: EmployeeStatus.INACTIVE,
           user: { connect: { id: user.id } },
@@ -221,26 +250,29 @@ export class EmployeeService extends CrudService<
       departmentId,
       employeeNo: _,
       employmentType,
+      employmentTypeId,
       jobRole,
       jobRoleId,
     }: UpdateEmployeeDto,
     req: RequestWithUser,
   ) {
-    let employeeJobRole;
-    if (jobRole) {
-      employeeJobRole = await this.jobRoleService.createJobRole(jobRole, req);
-    }
-
     return this.update({
       where: { id },
       data: {
-        employmentType,
-        ...(jobRole && {
-          jobRole: { connect: { id: (employeeJobRole as any)?.id } },
-        }),
-        ...(jobRoleId && {
-          jobRole: { connect: { id: jobRoleId } },
-        }),
+        ...(employmentTypeId || employmentType
+          ? {
+              employmentType: employmentTypeId
+                ? { connect: { id: employmentTypeId } }
+                : { create: employmentType },
+            }
+          : {}),
+        ...(jobRoleId || jobRole
+          ? {
+              jobRole: jobRoleId
+                ? { connect: { id: jobRoleId } }
+                : { create: jobRole },
+            }
+          : {}),
         ...(departmentId && {
           departments: { connect: { id: departmentId, isDefault: true } },
         }),
@@ -292,5 +324,35 @@ export class EmployeeService extends CrudService<
       String(sequence.lastId).padStart(sequence.length, '0'),
       sequence.suffix,
     ].join('');
+  }
+
+  private async getRoles() {
+    return this.prismaClient.jobRole.findMany({
+      where: { status: true },
+      select: {
+        id: true,
+        title: true,
+      },
+    });
+  }
+
+  private async getDepartments() {
+    return this.prismaClient.department.findMany({
+      where: { status: true },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+  }
+
+  private async getEmploymentTypes() {
+    return this.prismaClient.employmentType.findMany({
+      where: { status: true },
+      select: {
+        id: true,
+        title: true,
+      },
+    });
   }
 }

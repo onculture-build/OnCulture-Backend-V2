@@ -4,6 +4,7 @@ import { stateSeed } from '../database/seed-data/base/state.seed';
 import { roleSeed } from '../database/seed-data/company/company-role.seed';
 import { employeeSettingSeed } from '../database/seed-data/company/employee-setting.seed';
 import { messageTemplateSeed } from '../database/seed-data/company/message-template.seed';
+import { employmentTypeSeed } from '../database/seed-data/company/employment-type.seed';
 
 const companyPrisma = new PrismaClient();
 
@@ -49,6 +50,13 @@ promises.push(
 promises.push(
   companyPrisma.messageTemplate.createMany({
     data: messageTemplateSeed,
+    skipDuplicates: true,
+  }),
+);
+
+promises.push(
+  companyPrisma.employmentType.createMany({
+    data: employmentTypeSeed,
     skipDuplicates: true,
   }),
 );

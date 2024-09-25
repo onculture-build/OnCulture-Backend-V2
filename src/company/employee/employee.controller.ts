@@ -24,6 +24,12 @@ import { UpdateEmployeeDto } from './dto/update-employee.dto';
 export class EmployeeController {
   constructor(private employeeService: EmployeeService) {}
 
+  @ApiOperation({ summary: 'Get filter fields for employees' })
+  @Get('filters')
+  async getEmployeeFilterFields() {
+    return this.employeeService.getEmployeeFilterFields();
+  }
+
   @ApiOperation({ summary: 'Get all company employees' })
   @Get()
   async getAllEmployees(@Query() dto: GetEmployeesDto) {
