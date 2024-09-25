@@ -192,6 +192,12 @@ export class AuthService {
       },
     });
 
+    if (!companyUser.password) {
+      throw new NotAcceptableException(
+        'Unable to login. Kindly reset your password',
+      );
+    }
+
     const { employee, role, ...user } = companyUser;
 
     // validate password
@@ -392,7 +398,7 @@ export class AuthService {
     );
 
     if (!storedEmail) {
-      throw new NotAcceptableException('Invalid Request!');
+      throw new NotAcceptableException('Invalid Request! Token expired');
     }
 
     const modifyingUser = await this.prismaClient.baseUser.findFirst({
