@@ -1,6 +1,6 @@
 import { EmployeeStatus } from '@@/common/enums';
 import { PaginationSearchOptionsDto } from '@@/common/interfaces/pagination-search-options.dto';
-import { EmployeeOrderColumns, EmploymentType } from '@@/company/interfaces';
+import { EmployeeOrderColumns } from '@@/company/interfaces';
 import { IsArray, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class GetEmployeesDto extends PaginationSearchOptionsDto {
@@ -9,24 +9,24 @@ export class GetEmployeesDto extends PaginationSearchOptionsDto {
   employeeNo?: string;
 
   @IsOptional()
-  @IsString()
+  @IsUUID(undefined, { each: true })
   @IsArray()
-  jobRoleIds?: string[];
+  roles?: string[];
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID(undefined, { each: true })
   @IsArray()
-  departmentIds?: string[];
-
-  @IsEnum(EmploymentType)
-  @IsOptional()
-  @IsArray()
-  employmentType?: EmploymentType[];
+  departments?: string[];
 
   @IsOptional()
-  @IsEnum(EmployeeStatus)
+  @IsUUID(undefined, { each: true })
   @IsArray()
-  status?: EmployeeStatus[];
+  employmentTypes?: string[];
+
+  @IsOptional()
+  @IsEnum(EmployeeStatus, { each: true })
+  @IsArray()
+  statuses?: EmployeeStatus[];
 
   @IsOptional()
   @IsEnum(EmployeeOrderColumns)
