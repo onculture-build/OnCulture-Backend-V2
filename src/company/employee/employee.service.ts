@@ -14,6 +14,7 @@ import { RequestWithUser } from '@@/auth/interfaces';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { EmployeeStatus } from '@@/common/enums';
 import { CompanyUserQueueProducer } from '../queue/producer';
+import { MapEmployeesOrderByToValue } from '../interfaces';
 
 @Injectable()
 export class EmployeeService extends CrudService<
@@ -59,17 +60,18 @@ export class EmployeeService extends CrudService<
       'user.lastName',
       'employeeNo',
       'jobRole.name|equals',
+      'status|equals',
       {
         key: 'term',
         where: parseSplittedTermsQuery,
       },
       {
-        key: 'departmentId',
-        where: (id) => ({
+        key: 'departmentIds',
+        where: (ids) => ({
           departments: {
             some: {
               departmentId: {
-                equals: id,
+                in: ids,
               },
               status: true,
             },
@@ -77,27 +79,31 @@ export class EmployeeService extends CrudService<
         }),
       },
       {
-        key: 'jobRoleId',
-        where: (id) => ({
-          jobRole: { id },
+        key: 'jobRoleIds',
+        where: (ids) => ({
+          jobRole: { id: { in: ids } },
         }),
       },
       {
         key: 'employmentType',
-        where: (employmentType) => ({ employmentType }),
+        where: (employmentType) => ({ employmentType: { in: employmentType } }),
+      },
+      {
+        key: 'status',
+        where: (status) => ({ status: { in: status } }),
       },
     ]);
 
     const args: CompanyPrisma.EmployeeFindManyArgs = {
       where: { ...parsedQueryFilters },
       include: {
-        user: { include: { emails: true, phones: true } },
+        user: { include: { emails: true, phones: true, photo: true } },
         branch: true,
         departments: {
           include: { department: true },
-          ...(filters.departmentId && {
+          ...(filters.departmentIds?.length && {
             where: {
-              departmentId: filters.departmentId,
+              departmentId: { in: filters.departmentIds },
               status: true,
             },
           }),
@@ -117,7 +123,11 @@ export class EmployeeService extends CrudService<
         cursor,
         size,
         direction,
-        orderBy: orderBy && AppUtilities.unflatten({ [orderBy]: direction }),
+        orderBy:
+          orderBy &&
+          AppUtilities.unflatten({
+            [MapEmployeesOrderByToValue[orderBy]]: direction,
+          }),
         paginationType,
         page,
       },

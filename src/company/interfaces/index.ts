@@ -33,3 +33,15 @@ export enum EmploymentType {
   Contract = 'Contract',
   Internship = 'Internship',
 }
+
+export const MapEmployeesOrderByToValue = {
+  name: 'user.firstName',
+  employmentType: 'employmentType',
+  status: 'status',
+};
+
+export enum EmployeeOrderColumns {
+  Name = 'name',
+  EmploymentType = 'employmentType',
+  Status = 'status',
+}

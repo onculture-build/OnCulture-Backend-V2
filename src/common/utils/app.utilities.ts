@@ -12,7 +12,7 @@ import { BrowserEvents, MediaTypes } from '../enums';
 import { GeneratePdfOptions } from '../interfaces';
 import puppeteer from 'puppeteer';
 import { customAlphabet } from 'nanoid';
-import _ from 'lodash';
+import * as _ from 'lodash';
 
 const CUSTOM_CHARS =
   '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
