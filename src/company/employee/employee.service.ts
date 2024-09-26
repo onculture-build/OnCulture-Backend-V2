@@ -77,7 +77,6 @@ export class EmployeeService extends CrudService<
       'user.lastName',
       'employeeNo',
       'jobRole.name|equals',
-      'status|equals',
       {
         key: 'term',
         where: parseSplittedTermsQuery,
@@ -108,8 +107,8 @@ export class EmployeeService extends CrudService<
         }),
       },
       {
-        key: 'status',
-        where: (status) => ({ status: { in: status } }),
+        key: 'statuses',
+        where: (statuses) => ({ status: { in: statuses } }),
       },
     ]);
 
