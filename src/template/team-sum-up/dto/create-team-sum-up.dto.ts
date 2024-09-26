@@ -12,13 +12,13 @@ export class CreateTeamSumUpConfig extends BaseTemplateConfig {
 
     @IsArray()
     @IsNotEmpty()
-    plan: String[];
+    plan: string[];
+
+    @IsString()
+    @IsNotEmpty()
+    blockers: string;
 
     @IsArray()
     @IsNotEmpty()
-    blockers: String[];
-
-    @IsArray()
-    @IsNotEmpty()
-    support: String[];
+    support: string[];
 }

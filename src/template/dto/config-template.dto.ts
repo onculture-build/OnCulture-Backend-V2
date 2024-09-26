@@ -1,5 +1,5 @@
 import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
-import { TemplateFrequency, TemplateStatus } from "../interfaces";
+import { TemplateFrequency, TemplateStatus } from ".prisma/company";
 
 export class BaseTemplateConfig {
     @IsOptional()
@@ -11,29 +11,29 @@ export class BaseTemplateConfig {
     @IsEnum(TemplateFrequency)
     frequency: TemplateFrequency;
 
-    @IsOptional()
+    @IsNotEmpty()
     @IsString()
-    scheduleTime?: string;
+    scheduleTime: string;
 
-    @IsOptional()
+    @IsNotEmpty()
     @IsString()
-    nextScheduleAt?: string;
+    nextScheduleAt: string;
 
-    @IsOptional()
+    @IsNotEmpty()
     @IsString()
-    lastScheduleAt?: string;
+    lastScheduleAt: string;
 
-    @IsOptional()
+    @IsNotEmpty()
     @IsString()
-    scheduleDate?: string;
+    scheduleDate: string;
 
     @IsOptional()
     @IsNumber()
-    noOfDaysInterval?: Number;
+    noOfDaysInterval: number;
 
     @IsOptional()
     @IsArray()
-    scheduleDay?: Number[];
+    scheduleDay?: number[];
 
     @IsNotEmpty()
     @IsString()
@@ -41,5 +41,5 @@ export class BaseTemplateConfig {
 
     @IsOptional()
     @IsBoolean()
-    anonymous?: boolean;
+    anonymous: boolean;
 }

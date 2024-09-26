@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CreateTeamSumUpDto } from './dto/create-team-sum-up.dto';
+import { CreateTeamSumUpConfig, CreateTeamSumUpDto } from './dto/create-team-sum-up.dto';
 import { UpdateTeamSumUpDto } from './dto/update-team-sum-up.dto';
 import { RequestWithUser } from '../../auth/interfaces';
 import { ConfigService } from '@nestjs/config';
@@ -16,20 +16,28 @@ export class TeamSumUpService {
   ) {
     
   }
-  async create(createTeamSumUpDto: CreateTeamSumUpDto, companyId:string) {
+  async createConfig(createTeamSumUpConfig: CreateTeamSumUpConfig, companyId:string) {
     const companyClient = this.prismaClientManager.getCompanyPrismaClient(companyId)
-    // return await companyClient.teamSumUpConfig.create({
-    //   data: {
-    //     ...createTeamSumUpDto
-    //   }
-    // })
+    return await companyClient.teamSumUpConfig.create({
+      data: {
+        ...createTeamSumUpConfig
+      }
+    })
+  }
+
+  async createSumUp(createTeamSumUpConfig: CreateTeamSumUpConfig, companyId: string) {
+    const companyClient = this.prismaClientManager.getCompanyPrismaClient(companyId)
+    return await companyClient.employeeSumUp.create({
+      data: {
+        ...createTeamSumUpConfig
+      }
+    })
   }
 
   async findAll(companyId: string) {
     const companyClient = this.prismaClientManager.getCompanyPrismaClient(companyId)
     return await companyClient.teamSumUpConfig.findFirst({
       where: {
-        
       }
     })
   }
