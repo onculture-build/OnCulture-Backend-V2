@@ -1,7 +1,7 @@
 export enum EmployeeStatus {
   ACTIVE = 'Active',
   INACTIVE = 'Inactive',
-  SUSPENDED = 'Suspended',
+  DEACTIVATED = 'Deactivated',
 }
 
 export enum EmailProviders {
@@ -31,6 +31,13 @@ export enum RelationshipType {
   SISTER = 'Sister',
   NEPHEW = 'Nephew',
   NEICE = 'Niece',
+}
+
+export enum AddressPurpose {
+  PRIMARY = 'Primary',
+  BILLING = 'Billing',
+  TEMPORARY = 'Temporary',
+  OLD = 'Old',
 }
 
 export enum CompanyRequestStatus {

@@ -1,5 +1,9 @@
 import { CrudService } from '@@/common/database/crud.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   Prisma as CompanyPrisma,
   PrismaClient as CompanyPrismaClient,
@@ -163,6 +167,9 @@ export class EmployeeService extends CrudService<
             phones: true,
             addresses: true,
             photo: true,
+            nextOfKin: true,
+            emergencyContact: true,
+            bank: true,
           },
         },
         departments: {
@@ -276,47 +283,69 @@ export class EmployeeService extends CrudService<
       employmentTypeId,
       jobRole,
       jobRoleId,
+      ...dto
     }: UpdateEmployeeDto,
     req: RequestWithUser,
   ) {
-    return this.update({
+    const employee = await this.findFirst({
       where: { id },
-      data: {
-        ...(employmentTypeId || employmentType
-          ? {
-              employmentType: employmentTypeId
-                ? { connect: { id: employmentTypeId } }
-                : { create: employmentType },
-            }
-          : {}),
-        ...(jobRoleId || jobRole
-          ? {
-              jobRole: jobRoleId
-                ? { connect: { id: jobRoleId } }
-                : { create: jobRole },
-            }
-          : {}),
-        ...(departmentId && {
-          departments: { connect: { id: departmentId, isDefault: true } },
-        }),
-        ...(branchId && {
-          branch: { connect: { id: branchId || req.branchId } },
-        }),
-      },
     });
+
+    if (!employee) throw new NotFoundException('Employee not found!');
+
+    return this.prismaClient.$transaction(
+      async (prisma: CompanyPrismaClient) => {
+        await this.userService.updateUser(employee.userId, dto, prisma, req);
+
+        return prisma.employee.update({
+          where: { id },
+          data: {
+            ...(employmentTypeId || employmentType
+              ? {
+                  employmentType: employmentTypeId
+                    ? { connect: { id: employmentTypeId } }
+                    : { create: employmentType },
+                }
+              : {}),
+            ...(jobRoleId || jobRole
+              ? {
+                  jobRole: jobRoleId
+                    ? { connect: { id: jobRoleId } }
+                    : { create: jobRole },
+                }
+              : {}),
+            ...(departmentId && {
+              departments: { connect: { id: departmentId, isDefault: true } },
+            }),
+            ...(branchId && {
+              branch: { connect: { id: branchId || req.branchId } },
+            }),
+          },
+        });
+      },
+    );
   }
 
-  async suspendEmployee(id: string, req: RequestWithUser) {
+  async deactivateEmployee(id: string, req: RequestWithUser) {
+    const employee = await this.findFirst({ where: { id } });
+
+    if (!employee) {
+      throw new NotFoundException('Employee not found');
+    }
+
+    if (req.user.userId === employee.userId) {
+      throw new BadRequestException('You cannot deactivate yourself!');
+    }
     return this.update({
       where: { id },
       data: {
-        status: EmployeeStatus.SUSPENDED,
+        status: EmployeeStatus.DEACTIVATED,
         updatedBy: req.user.userId,
       },
     });
   }
 
-  async unsuspendEmployee(id: string, req: RequestWithUser) {
+  async reactivateEmployee(id: string, req: RequestWithUser) {
     return this.update({
       where: { id },
       data: {

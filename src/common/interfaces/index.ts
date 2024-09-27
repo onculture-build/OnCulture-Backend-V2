@@ -10,6 +10,14 @@ export enum Gender {
   UNKNOWN = 'Unknown',
 }
 
+export enum MaritalStatus {
+  SINGLE = 'Single',
+  MARRIED = 'Married',
+  DIVORCED = 'Divorced',
+  SEPARATED = 'Separated',
+  WIDOWED = 'Widowed',
+}
+
 export enum ResponseMessage {
   SUCCESS = 'Request Successful!',
   FAILED = 'Request Failed!',

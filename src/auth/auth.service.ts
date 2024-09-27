@@ -199,10 +199,12 @@ export class AuthService {
       },
     });
 
-    if (!companyUser.password) {
-      throw new NotAcceptableException(
-        'Unable to login. Kindly reset your password',
-      );
+    if (companyUser.employee.status === EmployeeStatus.INACTIVE) {
+      throw new UnauthorizedException('User is inactive');
+    }
+
+    if (companyUser.employee.status === EmployeeStatus.DEACTIVATED) {
+      throw new UnauthorizedException('User is deactivated');
     }
 
     const { employee, role, ...user } = companyUser;
@@ -436,9 +438,16 @@ export class AuthService {
       where: { id: companyUser.id },
       data: {
         password: hash,
+        employee: {
+          update: {
+            status: EmployeeStatus.ACTIVE,
+          },
+        },
         updatedBy: companyUser.id,
       },
     });
+
+    await this.cacheService.remove(CacheKeysEnums.REQUESTS + token);
   }
 
   private setCookies(token: string, response: Response) {

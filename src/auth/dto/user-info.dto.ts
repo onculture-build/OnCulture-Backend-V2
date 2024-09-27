@@ -1,5 +1,5 @@
 import { IsBirthDate } from '@@/common/decorators/is-birth-date';
-import { Gender } from '@@/common/interfaces';
+import { Gender, MaritalStatus } from '@@/common/interfaces';
 import { ApiHideProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
@@ -64,6 +64,14 @@ export class UserInfoDto {
   @IsEnum(Gender)
   @IsOptional()
   gender?: Gender;
+
+  @IsEnum(MaritalStatus)
+  @IsOptional()
+  maritalStatus?: MaritalStatus;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
 
   @IsOptional()
   @IsString()
