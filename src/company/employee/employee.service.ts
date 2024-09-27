@@ -162,13 +162,37 @@ export class EmployeeService extends CrudService<
             emails: true,
             phones: true,
             addresses: true,
+            photo: true,
           },
         },
         departments: {
           where: { status: true },
-          include: { department: true },
+          include: {
+            department: {
+              include: {
+                manager: {
+                  select: {
+                    manager: {
+                      select: {
+                        user: {
+                          select: {
+                            firstName: true,
+                            lastName: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
-        jobRole: true,
+        jobRole: {
+          include: {
+            level: true,
+          },
+        },
       },
     };
     const employee = await this.findFirst(dto);
