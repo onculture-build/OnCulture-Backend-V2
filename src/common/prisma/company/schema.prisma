@@ -32,6 +32,14 @@ enum RelationshipType {
     Niece
 }
 
+enum MaritalStatus {
+    Single
+    Married
+    Divorced
+    Separated
+    Widowed
+}
+
 enum AddressType {
     Physical
     Postal
@@ -40,7 +48,6 @@ enum AddressType {
 enum AddressPurpose {
     Primary
     Billing
-    Operational
     Temporary
     Old
 }
@@ -139,40 +146,46 @@ model State {
 }
 
 model User {
-    id                String         @id @default(uuid()) @db.Uuid
-    firstName         String         @db.VarChar
-    middleName        String?        @db.VarChar
-    lastName          String         @db.VarChar
-    maidenName        String?        @db.VarChar
-    formerNames       String?        @db.VarChar
-    dateOfBirth       DateTime?      @db.Date
+    id                String                @id @default(uuid()) @db.Uuid
+    firstName         String                @db.VarChar
+    middleName        String?               @db.VarChar
+    lastName          String                @db.VarChar
+    maidenName        String?               @db.VarChar
+    formerNames       String?               @db.VarChar
+    dateOfBirth       DateTime?             @db.Date
     password          String?
-    prefix            String?        @db.VarChar
-    suffix            String?        @db.VarChar
+    prefix            String?               @db.VarChar
+    suffix            String?               @db.VarChar
     gender            Gender?
-    photoId           String?        @db.Uuid
-    preferredLanguage String?        @db.VarChar
+    maritalStatus     MaritalStatus?
+    photoId           String?               @db.Uuid
+    preferredLanguage String?               @db.VarChar
     lastLogin         DateTime?
     lastLoginIp       String?
-    roleId            String?        @db.Uuid
-    employeeId        String?        @unique @db.Uuid
-    stateId           String?        @db.Uuid
-    countryId         String?        @db.Uuid
-    createdAt         DateTime       @default(now()) @db.Timestamptz(6)
-    createdBy         String?        @db.Uuid
-    updatedAt         DateTime       @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy         String?        @db.Uuid
+    linkedInURL       String?
+    address           String?
+    bankId            String?               @db.Uuid
+    roleId            String?               @db.Uuid
+    employeeId        String?               @unique @db.Uuid
+    stateId           String?               @db.Uuid
+    countryId         String?               @db.Uuid
+    createdAt         DateTime              @default(now()) @db.Timestamptz(6)
+    createdBy         String?               @db.Uuid
+    updatedAt         DateTime              @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy         String?               @db.Uuid
     employee          Employee?
-    role              Role?          @relation(fields: [roleId], references: [id])
+    role              Role?                 @relation(fields: [roleId], references: [id])
     messages          Message[]
-    photo             File?          @relation(fields: [photoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    bank              UserBank?
+    photo             File?                 @relation(fields: [photoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     emails            UserEmail[]
     phones            UserPhone[]
     addresses         UserAddress[]
     nextOfKin         UserNextOfKin?
     relations         UserRelation[]
-    state             State?         @relation(fields: [stateId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-    country           Country?       @relation(fields: [countryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    state             State?                @relation(fields: [stateId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    country           Country?              @relation(fields: [countryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    emergencyContact  UserEmergencyContact?
 
     @@map("user")
 }
@@ -190,6 +203,7 @@ model UserEmail {
     updatedBy  String?  @db.Uuid
     user       User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
+    @@unique([userId, email])
     @@map("user_email")
 }
 
@@ -206,30 +220,32 @@ model UserPhone {
     updatedBy String?  @db.Uuid
     user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
+    @@unique([userId, phone])
     @@map("user_phone")
 }
 
 model UserAddress {
-    id        String   @id @default(uuid()) @db.Uuid
-    label     String?  @db.VarChar
-    address1  String   @db.VarChar
-    address2  String?  @db.VarChar
-    townCity  String?  @db.VarChar
-    stateId   String   @db.Uuid
-    countryId String   @db.Uuid
-    purpose   String?  @db.VarChar
-    type      String?  @db.VarChar
-    postCode  String?  @db.VarChar
-    userId    String   @db.Uuid
-    status    Boolean  @default(true)
-    createdAt DateTime @default(now()) @db.Timestamptz(6)
-    createdBy String?  @db.Uuid
-    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy String?  @db.Uuid
-    user      User     @relation(fields: [userId], references: [id])
-    country   Country  @relation(fields: [countryId], references: [id])
-    state     State    @relation(fields: [stateId], references: [id])
+    id        String          @id @default(uuid()) @db.Uuid
+    label     String?         @db.VarChar
+    address1  String          @db.VarChar
+    address2  String?         @db.VarChar
+    townCity  String?         @db.VarChar
+    stateId   String?         @db.Uuid
+    countryId String?         @db.Uuid
+    purpose   AddressPurpose? @default(Primary)
+    type      String?         @db.VarChar
+    postCode  String?         @db.VarChar
+    userId    String          @db.Uuid
+    status    Boolean         @default(true)
+    createdAt DateTime        @default(now()) @db.Timestamptz(6)
+    createdBy String?         @db.Uuid
+    updatedAt DateTime        @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?         @db.Uuid
+    user      User            @relation(fields: [userId], references: [id])
+    country   Country?        @relation(fields: [countryId], references: [id])
+    state     State?          @relation(fields: [stateId], references: [id])
 
+    @@unique([userId, purpose])
     @@map("user_address")
 }
 
@@ -242,10 +258,27 @@ model UserNextOfKin {
     maidenName   String?          @db.VarChar
     formerNames  String?          @db.VarChar
     dateOfBirth  DateTime?        @db.Timestamptz(6)
+    email        String?          @db.VarChar
+    phone        String?          @db.VarChar
     relationship RelationshipType
     user         User?            @relation(fields: [userId], references: [id])
 
     @@map("user_next_of_kin")
+}
+
+model UserEmergencyContact {
+    id           String           @id @default(uuid()) @db.Uuid
+    userId       String           @unique() @db.Uuid
+    firstName    String           @db.VarChar
+    middleName   String?          @db.VarChar
+    lastName     String           @db.VarChar
+    maidenName   String?          @db.VarChar
+    formerNames  String?          @db.VarChar
+    dateOfBirth  DateTime?        @db.Timestamptz(6)
+    relationship RelationshipType
+    user         User?            @relation(fields: [userId], references: [id])
+
+    @@map("user_emergency_contact")
 }
 
 model UserRelation {
@@ -266,6 +299,23 @@ model UserRelation {
     user         User             @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
     @@map("user_relation")
+}
+
+model UserBank {
+    id            String   @id @default(uuid()) @db.Uuid
+    userId        String   @unique @db.Uuid
+    bankName      String   @db.VarChar
+    accountName   String   @db.VarChar
+    accountNumber String   @db.VarChar
+    swiftCode     String?  @db.VarChar
+    status        Boolean  @default(true) @db.Boolean
+    createdAt     DateTime @default(now()) @db.Timestamptz(6)
+    createdBy     String?  @db.Uuid
+    updatedAt     DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy     String?  @db.Uuid
+    user          User     @relation(fields: [userId], references: [id])
+
+    @@map("user_bank")
 }
 
 model Role {
