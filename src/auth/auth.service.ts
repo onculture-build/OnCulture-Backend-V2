@@ -438,9 +438,16 @@ export class AuthService {
       where: { id: companyUser.id },
       data: {
         password: hash,
+        employee: {
+          update: {
+            status: EmployeeStatus.ACTIVE,
+          },
+        },
         updatedBy: companyUser.id,
       },
     });
+
+    await this.cacheService.remove(CacheKeysEnums.REQUESTS + token);
   }
 
   private setCookies(token: string, response: Response) {
