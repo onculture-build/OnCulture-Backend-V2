@@ -33,6 +33,13 @@ export enum RelationshipType {
   NEICE = 'Niece',
 }
 
+export enum AddressPurpose {
+  PRIMARY = 'Primary',
+  BILLING = 'Billing',
+  TEMPORARY = 'Temporary',
+  OLD = 'Old',
+}
+
 export enum CompanyRequestStatus {
   Approved = 'Approved',
   Onboarded = 'Onboarded',
