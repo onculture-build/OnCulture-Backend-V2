@@ -61,12 +61,21 @@ export class EmployeeController {
     return this.employeeService.updateEmployee(id, dto, req);
   }
 
-  @ApiOperation({ summary: 'Suspend or Archive an employee' })
-  @Patch(':id/suspend')
-  async suspendEmployee(
+  @ApiOperation({ summary: 'Deactivate or Archive an employee' })
+  @Patch(':id/deactivate')
+  async deactivateEmployee(
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.employeeService.suspendEmployee(id, req);
+    return this.employeeService.deactivateEmployee(id, req);
+  }
+
+  @ApiOperation({ summary: 'Reactivate or Archive an employee' })
+  @Patch(':id/reactivate')
+  async reactivateEmployee(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.employeeService.reactivateEmployee(id, req);
   }
 }

@@ -1,7 +1,7 @@
 export enum EmployeeStatus {
   ACTIVE = 'Active',
   INACTIVE = 'Inactive',
-  SUSPENDED = 'Suspended',
+  DEACTIVATED = 'Deactivated',
 }
 
 export enum EmailProviders {

@@ -306,17 +306,20 @@ export class EmployeeService extends CrudService<
     });
   }
 
-  async suspendEmployee(id: string, req: RequestWithUser) {
+  async deactivateEmployee(id: string, req: RequestWithUser) {
+    if (req.user.userId === id) {
+      throw new NotFoundException('You cannot deactivate yourself!');
+    }
     return this.update({
       where: { id },
       data: {
-        status: EmployeeStatus.SUSPENDED,
+        status: EmployeeStatus.DEACTIVATED,
         updatedBy: req.user.userId,
       },
     });
   }
 
-  async unsuspendEmployee(id: string, req: RequestWithUser) {
+  async reactivateEmployee(id: string, req: RequestWithUser) {
     return this.update({
       where: { id },
       data: {
