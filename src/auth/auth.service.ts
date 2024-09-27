@@ -139,7 +139,7 @@ export class AuthService {
 
       if (!baseUser)
         throw new UnauthorizedException(
-          'Cannot login. Check credentials or contact your administrator.',
+          'Unable to login. Check credentials or contact your administrator.',
         );
     }
 
@@ -167,7 +167,7 @@ export class AuthService {
 
       if (!foundEmployee)
         throw new UnauthorizedException(
-          'Cannot login. Check credentials or contact your administrator.',
+          'Unable to login. Check credentials or contact your administrator.',
         );
 
       baseUser = await this.prismaClient.baseUser.findFirst({
@@ -177,14 +177,21 @@ export class AuthService {
       });
     }
 
+    const companyUserId = await companyPrisma.userEmail.findUnique({
+      where: {
+        email: email || foundEmployee.user.emails[0].email,
+      },
+    });
+
+    if (!companyUserId) {
+      throw new UnauthorizedException(
+        'Unable to login. Check credentials or contact your administrator.',
+      );
+    }
+
     const companyUser = await companyPrisma.user.findFirst({
       where: {
-        emails: {
-          some: {
-            email: email || foundEmployee.user.emails[0].email,
-            isPrimary: true,
-          },
-        },
+        id: companyUserId.userId,
       },
       include: {
         employee: true,
@@ -355,7 +362,7 @@ export class AuthService {
       },
     });
 
-    if (!baseUser) throw new UnauthorizedException('Invalid email');
+    if (!baseUser) throw new UnauthorizedException('Invalid email address');
 
     const requestId = v4();
 
