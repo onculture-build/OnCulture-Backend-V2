@@ -58,7 +58,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Authenticate a user' })
-  @ApiResponseMeta({ message: 'User authenticated successfully' })
+  @ApiResponseMeta({ message: 'You have logged in' })
   @Post('login')
   async signin(
     @Body() dto: LoginDto,
