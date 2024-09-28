@@ -275,6 +275,8 @@ model UserEmergencyContact {
     maidenName   String?          @db.VarChar
     formerNames  String?          @db.VarChar
     dateOfBirth  DateTime?        @db.Timestamptz(6)
+    email        String?          @db.VarChar
+    phone        String?          @db.VarChar
     relationship RelationshipType
     user         User?            @relation(fields: [userId], references: [id])
 
