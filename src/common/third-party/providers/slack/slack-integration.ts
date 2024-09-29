@@ -11,7 +11,7 @@ export class SlackProvider extends BaseIntegrationProvider<WebClient> {
   private readonly clientSecret: string;
   private readonly clientBotToken: string;
   private readonly clientScope: string;
-  private readonly userScope:string
+  private readonly userScope: string;
   constructor(private configService: ConfigService) {
     super(IntegrationProviders.SLACK);
     this.clientBotToken = this.configService.get<string>('slack.token.bot');
@@ -42,8 +42,8 @@ export class SlackProvider extends BaseIntegrationProvider<WebClient> {
   }
 
   getIntegrationUri(payload?: Record<string, any>): string {
-    const authBaseUri = "https://slack.com/oauth/v2/authorize" 
-    const params = JSON.stringify(payload)
-    return `${authBaseUri}?client_id=${this.clientId}&scope=${this.clientScope}&user_scope=${this.userScope}&state=${params}`
+    const authBaseUri = 'https://slack.com/oauth/v2/authorize';
+    const params = JSON.stringify(payload);
+    return `${authBaseUri}?client_id=${this.clientId}&scope=${this.clientScope}&user_scope=${this.userScope}&state=${params}`;
   }
 }
