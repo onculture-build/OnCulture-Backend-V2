@@ -79,12 +79,12 @@ export class AuthService {
 
   async addAllowedUsers(
     { emails }: CreateAllowedUserDto,
-    req: RequestWithUser,
+    _req: RequestWithUser,
   ) {
     return this.prismaClient.allowedUser.createMany({
       data: emails.map((email) => ({
         email: email.toLowerCase(),
-        createdBy: req.user.userId,
+        createdBy: null,
       })),
       skipDuplicates: true,
     });

@@ -11,7 +11,14 @@ import { PermissionModule } from './permission/permission.module';
 import { DepartmentModule } from './department/department.module';
 
 @Module({
-  imports: [PasswordPolicyModule, EmployeeModule, UserModule, BranchModule, PermissionModule, DepartmentModule],
+  imports: [
+    PasswordPolicyModule,
+    EmployeeModule,
+    UserModule,
+    BranchModule,
+    PermissionModule,
+    DepartmentModule,
+  ],
   providers: [BranchService, CompanyService, EmployeeService, JobRoleService],
   exports: [BranchModule, CompanyService, EmployeeModule, UserModule],
 })
