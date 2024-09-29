@@ -1,33 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
 import { IntegrationsService } from './integrations.service';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AuthStrategy } from '../../common/decorators/strategy.decorator';
+import { AuthStrategyType, RequestWithUser } from '../../auth/interfaces';
+import { ReadIntegrationDto } from './dto/read-integration.dto';
 
-
+@ApiTags('Integrations')
+@ApiBearerAuth()
+@AuthStrategy(AuthStrategyType.JWT)
 @Controller('integrations')
 export class IntegrationsController {
   constructor(private readonly integrationsService: IntegrationsService) {}
 
-  // @Post()
-  // create(@Body() createIntegrationDto: CreateIntegrationDto) {
-  //   return this.integrationsService.create(createIntegrationDto);
-  // }
-
-  // @Get()
-  // findAll() {
-  //   return this.integrationsService.findAll();
-  // }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.integrationsService.findOne(+id);
-  // }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateIntegrationDto: UpdateIntegrationDto) {
-  //   return this.integrationsService.update(+id, updateIntegrationDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.integrationsService.remove(+id);
-  // }
+  @ApiOperation({ summary: 'Integrate third party service' })
+  @Get(':type')
+  async initIntegration(@Param() params: ReadIntegrationDto, @Req() req: RequestWithUser,) {
+    return this.integrationsService.handleIntegrationRequest(params.type, req);
+  }
 }
