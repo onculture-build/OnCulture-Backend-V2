@@ -5,13 +5,19 @@ import { IntegrationProviders, ProviderConfig } from '../../common/third-party/i
 import { CrudService } from '../../common/database/crud.service';
 import { IntegrationMapType } from './integrations.maptype';
 import { Prisma, PrismaClient } from '.prisma/company';
+import { ConfigService } from '@nestjs/config';
+import { PrismaClientManager } from '../../common/database/prisma-client-manager';
 
 @Injectable()
 export class IntegrationsService extends CrudService<
   Prisma.IntegrationsConfigDelegate,
   IntegrationMapType
 > {
-  constructor(private slack: SlackProvider, private companyPrismaClient: PrismaClient) {
+  constructor(private slack: SlackProvider,
+    private companyPrismaClient: PrismaClient,
+    private config: ConfigService,
+    private prismaClientManager: PrismaClientManager,
+  ) {
     super(companyPrismaClient.integrationsConfig);
   }
 
@@ -35,10 +41,23 @@ export class IntegrationsService extends CrudService<
   public async configure(
     integration_type: IntegrationProviders,
     payload: any,
-  ): Promise<ProviderConfig> {
+  ): Promise<boolean> {
+    const cPrisma =
+      await this.prismaClientManager.getCompanyPrismaClientFromRequest(payload);
     const provider = this.getIntegration(integration_type);
     const config = provider.getConfig(payload);
-    return config;
+    const env:any = this.config.get<string>('environment')
+    await cPrisma.integrationsConfig.create({
+      data: {
+        config_meta: JSON.stringify(config),
+        source: integration_type,
+        environment: env,
+        createdBy: payload?.user?.userId
+        
+      }
+    })
+
+    return true
   }
 
   public handleIntegrationRequest(

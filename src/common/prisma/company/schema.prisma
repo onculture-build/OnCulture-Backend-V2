@@ -848,10 +848,10 @@ model TeamSumUpConfig {
 
 model IntegrationsConfig {
     id        String   @id @default(uuid()) @db.Uuid
-    config_meta Json
-    integration_type   IntegrationType 
+    config_meta Json    @db.JsonB
+    integration_type   IntegrationType @default(template)
     source      IntegrationSource
-    version     Int 
+    version     Int  @default(1)
     environment IntegrationEnvironment
     redirect_uri String? @db.VarChar
     createdAt DateTime @default(now()) @db.Timestamptz(6)
