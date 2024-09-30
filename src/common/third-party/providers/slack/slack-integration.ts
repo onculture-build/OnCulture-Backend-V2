@@ -4,6 +4,7 @@ import { SlackConfig } from './slack-utils';
 import { WebClient } from '@slack/web-api';
 import { IntegrationProviders } from '../../interfaces';
 import { ConfigService } from '@nestjs/config';
+import { AppUtilities } from '../../../utils/app.utilities';
 
 @Injectable()
 export class SlackProvider extends BaseIntegrationProvider<WebClient> {
@@ -43,7 +44,9 @@ export class SlackProvider extends BaseIntegrationProvider<WebClient> {
 
   getIntegrationUri(payload?: Record<string, any>): string {
     const authBaseUri = 'https://slack.com/oauth/v2/authorize';
-    const params = JSON.stringify(payload);
+    const params =  AppUtilities.encode(
+      JSON.stringify(payload)
+    ); 
     return `${authBaseUri}?client_id=${this.clientId}&scope=${this.clientScope}&user_scope=${this.userScope}&state=${params}`;
   }
 }

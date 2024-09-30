@@ -37,7 +37,8 @@ export class IntegrationsService extends CrudService<
     payload: any,
   ): Promise<ProviderConfig> {
     const provider = this.getIntegration(integration_type);
-    return provider.getConfig(payload);
+    const config = provider.getConfig(payload);
+    return config;
   }
 
   public handleIntegrationRequest(

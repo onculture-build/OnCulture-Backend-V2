@@ -22,4 +22,5 @@ export interface ProviderConfig {
   slackAccessToken?: string;
   slackTeamId?: string;
   botId?: string;
+  name?: string;
 }
