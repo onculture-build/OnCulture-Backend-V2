@@ -79,16 +79,16 @@ export class AuthService {
 
   async addAllowedUsers(
     { emails }: CreateAllowedUserDto,
-    _req: RequestWithUser,
+    req: RequestWithUser,
   ) {
     return this.prismaClient.allowedUser.createMany({
       data: emails.map((email) => ({
         email: email.toLowerCase(),
-        createdBy: null,
+        createdBy: req.user.userId,
       })),
       skipDuplicates: true,
     });
-  }
+  } 
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onboardCompany(dto: SignUpDto, ipAddress: string) {
