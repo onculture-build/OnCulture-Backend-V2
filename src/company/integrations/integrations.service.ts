@@ -16,7 +16,6 @@ export class IntegrationsService extends CrudService<
   constructor(private slack: SlackProvider,
     private companyPrismaClient: PrismaClient,
     private config: ConfigService,
-    private prismaClientManager: PrismaClientManager,
   ) {
     super(companyPrismaClient.integrationsConfig);
   }
