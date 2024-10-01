@@ -1,15 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Req,
-  Query,
-  Res,
-} from '@nestjs/common';
+import { Controller, Get, Param, Req, Query, Res } from '@nestjs/common';
 import { IntegrationsService } from './integrations.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthStrategy } from '../../common/decorators/strategy.decorator';

@@ -1,20 +1,11 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { SlackProvider } from '../../common/third-party/providers/slack/slack-integration';
 import { BaseIntegrationProvider } from '../../common/third-party/providers/base-integration';
-import {
-  IntegrationProviders,
-  ProviderConfig,
-} from '../../common/third-party/interfaces';
+import { IntegrationProviders } from '../../common/third-party/interfaces';
 import { CrudService } from '../../common/database/crud.service';
 import { IntegrationMapType } from './integrations.maptype';
 import { Prisma, PrismaClient } from '.prisma/company';
 import { ConfigService } from '@nestjs/config';
-import { PrismaClientManager } from '../../common/database/prisma-client-manager';
 
 @Injectable()
 export class IntegrationsService extends CrudService<
