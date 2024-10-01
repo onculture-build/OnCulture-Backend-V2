@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { SlackProvider } from '../../common/third-party/providers/slack/slack-integration';
 import { BaseIntegrationProvider } from '../../common/third-party/providers/base-integration';
 import { IntegrationProviders } from '../../common/third-party/interfaces';
@@ -32,7 +32,7 @@ export class IntegrationsService extends CrudService<
     const getPlatform = this.getIntegrations();
     const provider = getPlatform[integration_type];
     if (!provider) {
-      throw new Error(`Integration provider not found for ${integration_type}`);
+      throw new NotFoundException(`Integration provider not found for ${integration_type}`);
     }
     return provider;
   }

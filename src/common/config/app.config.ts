@@ -113,9 +113,7 @@ const appConfig = {
     user: {
       scope: env('SLACK_USER_SCOPE'),
     },
-    base: {
-      url: env('SLACK_BASE_URL'),
-    },
+    base_url: env('SLACK_BASE_URL'),
   },
   smtp: {
     transport: {

@@ -46,7 +46,7 @@ export class SlackProvider extends BaseIntegrationProvider<WebClient> {
   }
 
   getIntegrationUri(payload?: Record<string, any>): string {
-    const authBaseUri = this.configService.get<string>('slack.base.url');
+    const authBaseUri = this.configService.get<string>('slack.base_url');
     const params = AppUtilities.encode(JSON.stringify(payload));
     return `${authBaseUri}?client_id=${this.clientId}&scope=${this.clientScope}&state=${params}`;
   }
