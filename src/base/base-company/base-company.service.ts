@@ -149,7 +149,6 @@ export class BaseCompanyService extends CrudService<
         where: { id },
       },
     );
-
     if (companyRequest.status === CompanyRequestStatus.Approved) {
       throw new NotAcceptableException('Company is already active!');
     }

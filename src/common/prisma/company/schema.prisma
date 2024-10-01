@@ -98,6 +98,23 @@ enum FeedbackType {
     Suggestion
 }
 
+enum IntegrationType {
+    template
+}
+
+enum IntegrationSource {
+    slack
+    whatsapp
+    teams 
+    zoom
+    google
+}
+
+enum IntegrationEnvironment {
+    staging
+    production
+}
+
 model Country {
     id             String          @id @default(uuid()) @db.Uuid
     name           String          @unique() @db.VarChar(50)
@@ -827,4 +844,21 @@ model TeamSumUpConfig {
     updatedBy String?  @db.Uuid
 
     @@map("team_sum_up_config")
+}
+
+model IntegrationsConfig {
+    id        String   @id @default(uuid()) @db.Uuid
+    config_meta Json    @db.JsonB
+    integration_type   IntegrationType @default(template)
+    source      IntegrationSource
+    version     Int  @default(1)
+    environment IntegrationEnvironment
+    redirect_uri String? @db.VarChar
+    createdAt DateTime @default(now()) @db.Timestamptz(6)
+    createdBy String?  @db.Uuid
+    updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy String?  @db.Uuid
+
+    @@unique([integration_type, version, environment, source]) 
+    @@map("integrations_config")
 }

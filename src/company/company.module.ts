@@ -9,9 +9,18 @@ import { BranchModule } from './branch/branch.module';
 import { BranchService } from './branch/branch.service';
 import { PermissionModule } from './permission/permission.module';
 import { DepartmentModule } from './department/department.module';
+import { IntegrationsModule } from './integrations/integrations.module';
 
 @Module({
-  imports: [PasswordPolicyModule, EmployeeModule, UserModule, BranchModule, PermissionModule, DepartmentModule],
+  imports: [
+    PasswordPolicyModule,
+    EmployeeModule,
+    UserModule,
+    BranchModule,
+    PermissionModule,
+    DepartmentModule,
+    IntegrationsModule,
+  ],
   providers: [BranchService, CompanyService, EmployeeService, JobRoleService],
   exports: [BranchModule, CompanyService, EmployeeModule, UserModule],
 })
