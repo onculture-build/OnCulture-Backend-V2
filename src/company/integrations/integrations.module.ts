@@ -7,6 +7,6 @@ import { SlackProvider } from '../../common/third-party/providers/slack/slack-in
 @Module({
   controllers: [IntegrationsController],
   providers: [IntegrationsService, SlackProvider],
-  exports: [IntegrationsService]
+  exports: [IntegrationsService],
 })
 export class IntegrationsModule {}

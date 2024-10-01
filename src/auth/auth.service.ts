@@ -88,7 +88,7 @@ export class AuthService {
       })),
       skipDuplicates: true,
     });
-  } 
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async onboardCompany(dto: SignUpDto, ipAddress: string) {

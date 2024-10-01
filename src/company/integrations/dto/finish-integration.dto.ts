@@ -1,11 +1,11 @@
-import { IsOptional, IsString } from "class-validator";
+import { IsOptional, IsString } from 'class-validator';
 
 export class FinishIntegrationDto {
-    @IsOptional()
-    @IsString()
-    code?: string;
+  @IsOptional()
+  @IsString()
+  code?: string;
 
-    @IsOptional()
-    @IsString()
-    state?: string;
+  @IsOptional()
+  @IsString()
+  state?: string;
 }

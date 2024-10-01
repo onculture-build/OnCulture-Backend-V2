@@ -1,7 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { SlackProvider } from '../../common/third-party/providers/slack/slack-integration';
 import { BaseIntegrationProvider } from '../../common/third-party/providers/base-integration';
-import { IntegrationProviders, ProviderConfig } from '../../common/third-party/interfaces';
+import {
+  IntegrationProviders,
+  ProviderConfig,
+} from '../../common/third-party/interfaces';
 import { CrudService } from '../../common/database/crud.service';
 import { IntegrationMapType } from './integrations.maptype';
 import { Prisma, PrismaClient } from '.prisma/company';
@@ -13,7 +21,8 @@ export class IntegrationsService extends CrudService<
   Prisma.IntegrationsConfigDelegate,
   IntegrationMapType
 > {
-  constructor(private slack: SlackProvider,
+  constructor(
+    private slack: SlackProvider,
     private companyPrismaClient: PrismaClient,
     private config: ConfigService,
   ) {
@@ -42,29 +51,33 @@ export class IntegrationsService extends CrudService<
     payload: any,
   ): Promise<string> {
     const provider = this.getIntegration(integration_type);
-    let result = false
+    let result = false;
     try {
       const config = await provider.getConfig(payload);
-      const env: any = this.config.get<string>('environment') === 'development' ? 'staging' : 'production'
+      const env: any =
+        this.config.get<string>('environment') === 'development'
+          ? 'staging'
+          : 'production';
       if (config) {
         await this.companyPrismaClient.integrationsConfig.create({
           data: {
             config_meta: JSON.stringify(config),
             source: integration_type,
             environment: env,
-            createdBy: payload?.user?.userId
-
-          }
-        })
-        result = true
+            createdBy: payload?.user?.userId,
+          },
+        });
+        result = true;
       }
     } catch (error) {
-      result = false
-      throw new Error(error.message || 'an error occurred')
+      result = false;
+      throw new HttpException(
+        error.message || 'an error occurred',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     } finally {
-      return `${process.env.CLIENT_URL}/dashboard/account?type=${integration_type}&success=${result}`
-    } 
-    
+      return `${process.env.CLIENT_URL}/dashboard/account?type=${integration_type}&success=${result}`;
+    }
   }
 
   public handleIntegrationRequest(
@@ -73,6 +86,6 @@ export class IntegrationsService extends CrudService<
   ) {
     const provider = this.getIntegration(integration_type);
     const uri = provider.getIntegrationUri(payload);
-    return { uri }
+    return { uri };
   }
 }
