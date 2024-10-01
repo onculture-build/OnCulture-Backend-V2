@@ -43,6 +43,7 @@ export class EmployeeController {
     return this.employeeService.getEmployee(id);
   }
 
+  @ApiResponseMeta({ message: 'Employee created successfully' })
   @ApiOperation({ summary: 'Create an employee' })
   @Post('create')
   async createEmployee(

@@ -118,7 +118,7 @@ export class UserService extends CrudService<
           ...(phone && { phones: { create: { phone, isPrimary: true } } }),
           ...(stateId && { state: { connect: { id: stateId } } }),
           ...(countryId && { country: { connect: { id: countryId } } }),
-          role: { connect: { id: roleId } },
+          ...(roleId && { role: { connect: { id: roleId } } }),
         },
       });
 
