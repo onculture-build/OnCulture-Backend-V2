@@ -22,20 +22,23 @@ export class SlackProvider extends BaseIntegrationProvider<WebClient> {
     this.userScope = this.configService.get<string>('slack.user.scope');
     this.baseClient = new WebClient(this.clientBotToken);
   }
-  async getConfig(code: string): Promise<SlackConfig> {
-    const response = await this.baseClient.oauth.v2.access({
-      client_id: this.clientId,
-      client_secret: this.clientSecret,
-      code,
-    });
-
-    const config: SlackConfig = {
-      slackAccessToken: response?.access_token,
-      slackTeamId: response?.team?.id,
-      botId: response?.bot_user_id,
-    };
-
-    return config;
+  async getConfig(payload: any): Promise<SlackConfig> {
+    const {code} = payload
+    try {
+      const response = await this.baseClient.oauth.v2.access({
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
+        code,
+      });
+      const config: SlackConfig = {
+        slackAccessToken: response?.access_token,
+        slackTeamId: response?.team?.id,
+        botId: response?.bot_user_id,
+      };
+      return config;
+    } catch (error) {
+      throw new Error(error?.message || 'an error occurred creating config')
+    }
   }
   async connect(config: SlackConfig): Promise<WebClient> {
     const client = new WebClient(config.slackAccessToken);
@@ -44,9 +47,9 @@ export class SlackProvider extends BaseIntegrationProvider<WebClient> {
 
   getIntegrationUri(payload?: Record<string, any>): string {
     const authBaseUri = 'https://slack.com/oauth/v2/authorize';
-    const params =  AppUtilities.encode(
+    const params = AppUtilities.encode(
       JSON.stringify(payload)
-    ); 
-    return `${authBaseUri}?client_id=${this.clientId}&scope=${this.clientScope}&user_scope=${this.userScope}&state=${params}`;
+    );
+    return `${authBaseUri}?client_id=${this.clientId}&scope=${this.clientScope}&state=${params}`;
   }
 }

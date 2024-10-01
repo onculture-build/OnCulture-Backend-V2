@@ -41,23 +41,31 @@ export class IntegrationsService extends CrudService<
   public async configure(
     integration_type: IntegrationProviders,
     payload: any,
-  ): Promise<boolean> {
-    const cPrisma =
-      await this.prismaClientManager.getCompanyPrismaClientFromRequest(payload);
+  ): Promise<string> {
     const provider = this.getIntegration(integration_type);
-    const config = provider.getConfig(payload);
-    const env:any = this.config.get<string>('environment')
-    await cPrisma.integrationsConfig.create({
-      data: {
-        config_meta: JSON.stringify(config),
-        source: integration_type,
-        environment: env,
-        createdBy: payload?.user?.userId
-        
-      }
-    })
+    let result = false
+    try {
+      const config = await provider.getConfig(payload);
+      const env: any = this.config.get<string>('environment') === 'development' ? 'staging' : 'production'
+      if (config) {
+        await this.companyPrismaClient.integrationsConfig.create({
+          data: {
+            config_meta: JSON.stringify(config),
+            source: integration_type,
+            environment: env,
+            createdBy: payload?.user?.userId
 
-    return true
+          }
+        })
+        result = true
+      }
+    } catch (error) {
+      result = false
+      throw new Error(error.message || 'an error occurred')
+    } finally {
+      return `${process.env.CLIENT_URL}/dashboard/account?type=${integration_type}&success=${result}`
+    } 
+    
   }
 
   public handleIntegrationRequest(

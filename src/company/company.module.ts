@@ -9,7 +9,6 @@ import { BranchModule } from './branch/branch.module';
 import { BranchService } from './branch/branch.service';
 import { PermissionModule } from './permission/permission.module';
 import { DepartmentModule } from './department/department.module';
-import { SettingsModule } from './settings/settings.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 
 @Module({
@@ -20,7 +19,6 @@ import { IntegrationsModule } from './integrations/integrations.module';
     BranchModule,
     PermissionModule,
     DepartmentModule,
-    SettingsModule,
     IntegrationsModule,
   ],
   providers: [BranchService, CompanyService, EmployeeService, JobRoleService],
