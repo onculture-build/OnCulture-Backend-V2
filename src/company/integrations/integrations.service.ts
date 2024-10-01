@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { SlackProvider } from '../../common/third-party/providers/slack/slack-integration';
 import { BaseIntegrationProvider } from '../../common/third-party/providers/base-integration';
 import { IntegrationProviders } from '../../common/third-party/interfaces';
@@ -62,9 +62,8 @@ export class IntegrationsService extends CrudService<
       }
     } catch (error) {
       result = false;
-      throw new HttpException(
-        error.message || 'an error occurred',
-        HttpStatus.UNPROCESSABLE_ENTITY,
+      throw new UnprocessableEntityException(
+        error.message || 'an error occurred'
       );
     } finally {
       return `${process.env.CLIENT_URL}/dashboard/account?type=${integration_type}&success=${result}`;
