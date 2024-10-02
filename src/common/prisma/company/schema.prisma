@@ -597,7 +597,6 @@ model DepartmentManager {
 
 model File {
     id        String         @id @default(uuid()) @db.Uuid
-    url       String         @db.VarChar
     key       String         @unique() @db.VarChar
     eTag      String?        @db.VarChar
     bucket    String?        @db.VarChar

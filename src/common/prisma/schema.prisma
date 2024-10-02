@@ -104,7 +104,7 @@ model BaseCompany {
   name      String             @unique() @db.VarChar(255)
   email     String             @unique() @db.VarChar(255)
   code      String             @unique() @db.VarChar(20)
-  logo      String?            @db.VarChar
+  logoId    String?            @db.VarChar
   phone     String?            @db.VarChar(50)
   countryId String?            @db.Uuid
   stateId   String?            @db.Uuid
@@ -124,6 +124,7 @@ model BaseCompany {
   messages  BaseMessage[]
   country   BaseCountry?       @relation(fields: [countryId], references: [id])
   state     BaseState?         @relation(fields: [stateId], references: [id])
+  logo      BaseCompanyLogo?
 
   @@map("base_company")
 }
@@ -166,6 +167,21 @@ model BaseCompanyValue {
   company   BaseCompany @relation(fields: [companyId], references: [id])
 
   @@map("base_company_value")
+}
+
+model BaseCompanyLogo {
+  id          String      @id @default(uuid()) @db.Uuid
+  companyCode String      @unique()
+  key         String      @db.VarChar(255)
+  eTag        String      @db.VarChar(255)
+  status      Boolean     @default(true) @db.Boolean
+  createdAt   DateTime    @default(now()) @db.Timestamptz(6)
+  createdBy   String?     @db.Uuid
+  updatedAt   DateTime    @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy   String?     @db.Uuid
+  company     BaseCompany @relation(fields: [companyCode], references: [code])
+
+  @@map("base_company_logo")
 }
 
 model BaseUserCompany {
