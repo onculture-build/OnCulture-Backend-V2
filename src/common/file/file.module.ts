@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
+import { FileService } from './file.service';
 
-@Module({})
+@Global()
+@Module({
+  providers: [FileService],
+  exports: [FileService],
+})
 export class FileModule {}

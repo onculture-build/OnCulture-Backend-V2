@@ -8,15 +8,30 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
   Query,
   Req,
+  UnprocessableEntityException,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { EmployeeService } from './employee.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { GetEmployeesDto } from './dto/get-employees.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { ApiResponseMeta } from '@@/common/decorators/response.decorator';
+import {
+  allowedImageMimeTypes,
+  PROFILE_UPLOAD_MAX_SIZE_BYTES,
+} from '@@/common/constants';
+import { DocumentUploadInterceptor } from '@@/common/interceptors/document.interceptor';
+import { UploadUserPhotoDto } from '../user/dto/upload-user-photo.dto';
 
 @ApiTags('Employees')
 @AuthStrategy(AuthStrategyType.JWT)
@@ -62,6 +77,34 @@ export class EmployeeController {
     @Req() req: RequestWithUser,
   ) {
     return this.employeeService.updateEmployee(id, dto, req);
+  }
+
+  @ApiResponseMeta({ message: 'Profile picture updated successfully' })
+  @ApiOperation({ summary: 'Upload employee profile picture' })
+  @ApiConsumes('multipart/form-data')
+  @Put(':id/profile-photo')
+  @UseInterceptors(
+    new DocumentUploadInterceptor().createInterceptor(
+      'photo',
+      allowedImageMimeTypes,
+      null,
+      PROFILE_UPLOAD_MAX_SIZE_BYTES,
+    ),
+  )
+  async changeUserPhoto(
+    @Param('id', ParseUUIDPipe) id: string,
+    @UploadedFile() photo: Express.Multer.File,
+    @Body() dto: UploadUserPhotoDto,
+    @Req() req: RequestWithUser,
+  ) {
+    if (!photo) throw new UnprocessableEntityException('Photo is required');
+    dto.photo = photo;
+
+    return await this.employeeService.updateEmployeeProfilePicture(
+      id,
+      dto,
+      req,
+    );
   }
 
   @ApiResponseMeta({ message: 'Employee deactivated successfully' })

@@ -2,6 +2,7 @@ import { CrudService } from '@@/common/database/crud.service';
 import {
   BadRequestException,
   Injectable,
+  NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
 import {
@@ -18,6 +19,8 @@ import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { EmployeeStatus } from '@@/common/enums';
 import { CompanyUserQueueProducer } from '../queue/producer';
 import { MapEmployeesOrderByToValue } from '../interfaces';
+import { UploadUserPhotoDto } from '../user/dto/upload-user-photo.dto';
+import { FileService } from '@@/common/file/file.service';
 
 @Injectable()
 export class EmployeeService extends CrudService<
@@ -28,6 +31,7 @@ export class EmployeeService extends CrudService<
     private prismaClient: CompanyPrismaClient,
     private userService: UserService,
     private companyQueueProducer: CompanyUserQueueProducer,
+    private fileService: FileService,
   ) {
     super(prismaClient.employee);
   }
@@ -134,7 +138,10 @@ export class EmployeeService extends CrudService<
       },
     };
 
-    const dataMapper = (data) => {
+    const dataMapper = async (data) => {
+      if (data.user.photo) {
+        data.user.photo = await this.fileService.getFile(data.user.photo.key);
+      }
       AppUtilities.removeSensitiveData(data.user, 'password', true);
       return data;
     };
@@ -206,6 +213,12 @@ export class EmployeeService extends CrudService<
 
     if (!employee) throw new NotFoundException('Employee not found');
 
+    if (employee.user.photo) {
+      employee.user.photo = await this.fileService.getFile(
+        employee.user.photo.key,
+      );
+    }
+
     AppUtilities.removeSensitiveData(employee.user, 'password', true);
 
     return employee;
@@ -231,7 +244,7 @@ export class EmployeeService extends CrudService<
 
       const user = await this.userService.createUser(userInfo, req, client);
 
-      const newEmployee = client.employee.create({
+      const newEmployee = await client.employee.create({
         data: {
           employeeNo,
           ...(employmentTypeId || employmentType
@@ -326,8 +339,63 @@ export class EmployeeService extends CrudService<
     );
   }
 
+  async updateEmployeeProfilePicture(
+    id: string,
+    { photo }: UploadUserPhotoDto,
+    req: RequestWithUser,
+  ) {
+    const { key, eTag } = await this.fileService.uploadFile(
+      {
+        imageBuffer: photo.buffer,
+      },
+      photo.originalname.toLowerCase(),
+    );
+
+    const employee = await this.prismaClient.employee.findFirst({
+      where: { id },
+    });
+
+    const updatedUser = await this.prismaClient.user.update({
+      where: { id: employee.userId },
+      data: {
+        photo: {
+          upsert: {
+            create: {
+              key,
+              eTag,
+              createdBy: req.user.userId,
+            },
+            update: {
+              key,
+              eTag,
+              updatedBy: req.user.userId,
+            },
+          },
+        },
+      },
+      include: {
+        photo: true,
+      },
+    });
+
+    return await this.fileService.getFile(updatedUser.photo.key);
+  }
+
   async deactivateEmployee(id: string, req: RequestWithUser) {
-    const employee = await this.findFirst({ where: { id } });
+    const employee = await this.findFirst({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            role: {
+              select: {
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
     if (!employee) {
       throw new NotFoundException('Employee not found');
@@ -336,6 +404,10 @@ export class EmployeeService extends CrudService<
     if (req.user.userId === employee.userId) {
       throw new BadRequestException('You cannot deactivate yourself!');
     }
+
+    if (employee.user.role.code === 'owner')
+      throw new NotAcceptableException('Cannot deactivate an account owner');
+
     return this.update({
       where: { id },
       data: {
