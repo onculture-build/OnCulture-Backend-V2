@@ -1,16 +1,25 @@
-import { AuthStrategyType } from '@@/auth/interfaces';
+import { AuthStrategyType, RequestWithUser } from '@@/auth/interfaces';
 import { AuthStrategy } from '@@/common/decorators/strategy.decorator';
 import {
   Body,
   Controller,
   Get,
+  NotAcceptableException,
   Param,
   ParseUUIDPipe,
   Patch,
   Post,
   Query,
+  Req,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiConsumes,
+} from '@nestjs/swagger';
 import { BaseCompanyRequestService } from './base-company-request/base-company-request.service';
 import { GetCompanyRequestsDto } from './base-company-request/dto/get-company-requests.dto';
 import { BaseCompanyService } from './base-company.service';
@@ -19,6 +28,12 @@ import { GetAllCompaniesDto } from './dto/get-all-companies.dto';
 import { GetCompanyDomainDto } from './dto/get-domain.dto';
 import { ForgotUserCompaniesDto } from './dto/forgot-user-companies.dto';
 import { ApiResponseMeta } from '@@/common/decorators/response.decorator';
+import { UploadLogoDto } from '@@/auth/dto/upload-logo.dto';
+import { DocumentUploadInterceptor } from '@@/common/interceptors/document.interceptor';
+import {
+  allowedImageMimeTypes,
+  PROFILE_UPLOAD_MAX_SIZE_BYTES,
+} from '@@/common/constants';
 
 @ApiTags('Base Company')
 @ApiBearerAuth()
@@ -40,7 +55,7 @@ export class BaseCompanyController {
   @Get(':subdomain')
   @AuthStrategy(AuthStrategyType.PUBLIC)
   async getCompany(@Param('subdomain') subdomain: string) {
-    return this.companyService.getCompany(subdomain);
+    return this.companyService.getCompanyWithSubdomain(subdomain);
   }
 
   @ApiOperation({ summary: "Get a company's URL" })
@@ -88,5 +103,29 @@ export class BaseCompanyController {
     dto: OnboardCompanyRequestUpdateDto,
   ) {
     return this.companyRequestService.updateCompanyRequest(id, dto);
+  }
+
+  @ApiResponseMeta({ message: 'Logo uploaded successfully' })
+  @ApiOperation({ summary: 'Upload a logo for a tenant request' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    new DocumentUploadInterceptor().createInterceptor(
+      'logo',
+      allowedImageMimeTypes,
+      null,
+      PROFILE_UPLOAD_MAX_SIZE_BYTES,
+    ),
+  )
+  @Post('upload-logo')
+  async uploadLogo(
+    @UploadedFile() logo: Express.Multer.File,
+    @Body() dto: UploadLogoDto,
+    @Req() req: RequestWithUser,
+  ) {
+    if (!logo) {
+      throw new NotAcceptableException('File not uploaded ');
+    }
+    dto.logo = logo;
+    return this.companyService.uploadCompanyLogo(dto, req);
   }
 }

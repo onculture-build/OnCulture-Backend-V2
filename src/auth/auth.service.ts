@@ -30,6 +30,7 @@ import { BaseCompanyRequestService } from '@@/base/base-company/base-company-req
 import { BaseCompanyQueueProducer } from '@@/base/queue/producer';
 import { SetPasswordDto } from './dto/set-password.dto';
 import { FindAllowedUserDto } from './dto/find-allowed-user.dto';
+import { FileService } from '@@/common/file/file.service';
 
 @Injectable()
 export class AuthService {
@@ -44,7 +45,7 @@ export class AuthService {
     private prismaClient: PrismaClient,
     private messagingService: MessagingService,
     private companyQueueProducer: BaseCompanyQueueProducer,
-    // private readonly fileService: FileService,
+    private readonly fileService: FileService,
   ) {
     this.jwtExpires = this.configService.get<number>('jwt.expiry');
   }
@@ -196,6 +197,11 @@ export class AuthService {
       include: {
         employee: true,
         role: true,
+        photo: {
+          select: {
+            key: true,
+          },
+        },
       },
     });
 
@@ -207,7 +213,7 @@ export class AuthService {
       throw new UnauthorizedException('User is deactivated');
     }
 
-    const { employee, role, ...user } = companyUser;
+    const { employee, role, photo, ...user } = companyUser;
 
     // validate password
     const isMatch = await AppUtilities.validatePassword(
@@ -241,7 +247,7 @@ export class AuthService {
     await this.cacheService.set(
       `${CacheKeysEnums.TOKENS}:${baseUser.id}:${sessionId}`,
       payload,
-      this.jwtExpires,
+      AppUtilities.secondsToMilliseconds(this.jwtExpires),
     );
 
     await companyPrisma.user.update({
@@ -254,13 +260,24 @@ export class AuthService {
     });
 
     // set response cookie
-    this.setCookies(accessToken, response);
+    this.setCookies(
+      accessToken,
+      response,
+      AppUtilities.secondsToMilliseconds(this.jwtExpires),
+    );
+
+    // get user picture
+    let photoUrl: string = null;
+
+    if (photo) {
+      photoUrl = await this.fileService.getFile(photo.key);
+    }
 
     const usr = AppUtilities.removeSensitiveData(user, 'password', true);
 
     return {
       accessToken,
-      user: usr,
+      user: { ...usr, photoUrl },
       employee,
       role: { ...role, menus: [] },
     };
@@ -283,7 +300,7 @@ export class AuthService {
       },
     });
 
-    if (!companyUser) throw new NotFoundException('User not found');
+    if (!companyUser) throw new NotFoundException('User not found!');
 
     if (companyUser.password) {
       throw new NotAcceptableException('Token is expired. Try reset password');
@@ -371,7 +388,9 @@ export class AuthService {
     await this.cacheService.set(
       CacheKeysEnums.REQUESTS + requestId,
       { email, userId: baseUser.id },
-      parseInt(process.env.PASSWORD_RESET_EXPIRES),
+      AppUtilities.secondsToMilliseconds(
+        parseInt(process.env.PASSWORD_RESET_EXPIRES),
+      ),
     );
 
     // Get template
@@ -450,8 +469,7 @@ export class AuthService {
     await this.cacheService.remove(CacheKeysEnums.REQUESTS + token);
   }
 
-  private setCookies(token: string, response: Response) {
-    const maxAge = parseInt(this.configService.get('jwt.expiry'));
+  private setCookies(token: string, response: Response, maxAge: number) {
     const expires = new Date(new Date().getTime() + maxAge);
     const cookieOptions: CookieOptions = { maxAge, expires, httpOnly: true };
     if (['remote', 'prod'].includes(this.configService.get('app.stage'))) {
