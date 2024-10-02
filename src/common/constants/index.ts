@@ -10,4 +10,4 @@ export const allowedImageMimeTypes = [
   'image/heic',
 ];
 
-export const PROFILE_UPLOAD_MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+export const PROFILE_UPLOAD_MAX_SIZE_BYTES = 10 * 1024 * 1024; // 5 MB

@@ -57,6 +57,6 @@ export class UserController {
     if (!photo) throw new UnprocessableEntityException('Photo is required');
     dto.photo = photo;
 
-    await this.userService.updateUserProfilePicture(dto, req);
+    return await this.userService.updateUserProfilePicture(dto, req);
   }
 }

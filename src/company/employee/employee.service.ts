@@ -243,7 +243,7 @@ export class EmployeeService extends CrudService<
 
       const user = await this.userService.createUser(userInfo, req, client);
 
-      const newEmployee = client.employee.create({
+      const newEmployee = await client.employee.create({
         data: {
           employeeNo,
           ...(employmentTypeId || employmentType
@@ -350,8 +350,12 @@ export class EmployeeService extends CrudService<
       photo.originalname.toLowerCase(),
     );
 
+    const employee = await this.prismaClient.employee.findFirst({
+      where: { id },
+    });
+
     const updatedUser = await this.prismaClient.user.update({
-      where: { employeeId: id },
+      where: { id: employee.userId },
       data: {
         photo: {
           upsert: {

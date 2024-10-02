@@ -100,7 +100,11 @@ export class EmployeeController {
     if (!photo) throw new UnprocessableEntityException('Photo is required');
     dto.photo = photo;
 
-    await this.employeeService.updateEmployeeProfilePicture(id, dto, req);
+    return await this.employeeService.updateEmployeeProfilePicture(
+      id,
+      dto,
+      req,
+    );
   }
 
   @ApiResponseMeta({ message: 'Employee deactivated successfully' })
