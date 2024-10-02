@@ -213,7 +213,7 @@ export class AuthService {
       throw new UnauthorizedException('User is deactivated');
     }
 
-    const { employee, role, photo, ...user } = companyUser;
+    const { employee, role, ...user } = companyUser;
 
     // validate password
     const isMatch = await AppUtilities.validatePassword(
@@ -267,17 +267,15 @@ export class AuthService {
     );
 
     // get user picture
-    let photoUrl: string = null;
-
-    if (photo) {
-      photoUrl = await this.fileService.getFile(photo.key);
+    if (user.photo) {
+      user.photo = await this.fileService.getFile(user.photo.key);
     }
 
     const usr = AppUtilities.removeSensitiveData(user, 'password', true);
 
     return {
       accessToken,
-      user: { ...usr, photoUrl },
+      user: usr,
       employee,
       role: { ...role, menus: [] },
     };
