@@ -2,6 +2,7 @@ import { CrudService } from '@@/common/database/crud.service';
 import {
   BadRequestException,
   Injectable,
+  NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
 import {
@@ -381,7 +382,20 @@ export class EmployeeService extends CrudService<
   }
 
   async deactivateEmployee(id: string, req: RequestWithUser) {
-    const employee = await this.findFirst({ where: { id } });
+    const employee = await this.findFirst({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            role: {
+              select: {
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
     if (!employee) {
       throw new NotFoundException('Employee not found');
@@ -390,6 +404,10 @@ export class EmployeeService extends CrudService<
     if (req.user.userId === employee.userId) {
       throw new BadRequestException('You cannot deactivate yourself!');
     }
+
+    if (employee.user.role.code === 'owner')
+      throw new NotAcceptableException('Cannot deactivate an account owner');
+
     return this.update({
       where: { id },
       data: {
