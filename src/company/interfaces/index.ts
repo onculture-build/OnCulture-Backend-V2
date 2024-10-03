@@ -39,3 +39,10 @@ export enum EmployeeOrderColumns {
   EmploymentType = 'employmentType',
   Status = 'status',
 }
+
+export interface IntegrationQuery {
+  integration_type?: string;
+  version?: string;
+  environment?: string;
+  source?: string;
+}
