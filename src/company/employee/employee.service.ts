@@ -231,6 +231,7 @@ export class EmployeeService extends CrudService<
       jobRoleId,
       employmentType,
       employmentTypeId,
+      departmentCode,
       departmentId,
       ...dto
     }: CreateEmployeeDto,
@@ -243,6 +244,16 @@ export class EmployeeService extends CrudService<
         dto.employeeNo ?? (await this.generateEmployeeNo(prisma)); // handle existing
 
       const user = await this.userService.createUser(userInfo, req, client);
+
+      const department = departmentCode
+        ? await prisma.department.findUnique({
+            where: { code: departmentCode },
+          })
+        : departmentId
+          ? await prisma.department.findUnique({
+              where: { id: departmentId },
+            })
+          : null;
 
       const newEmployee = await client.employee.create({
         data: {
@@ -261,8 +272,14 @@ export class EmployeeService extends CrudService<
                   : { create: jobRole },
               }
             : {}),
-          ...(departmentId && {
-            departments: { connect: { id: departmentId } },
+          ...(department && {
+            departments: {
+              create: {
+                department: { connect: { id: department.id } },
+                status: true,
+                isDefault: true,
+              },
+            },
           }),
           status: EmployeeStatus.INACTIVE,
           user: { connect: { id: user.id } },

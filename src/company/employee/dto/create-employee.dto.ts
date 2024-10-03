@@ -10,6 +10,7 @@ import { CreateJobRoleDto } from '../job-role/dto/create-job-role.dto';
 import { Expose, Type } from 'class-transformer';
 import { SetupUserDto } from '@@/company/user/dto/setup-user.dto';
 import { CreateEmploymentTypeDto } from './create-employee-type.dto';
+import { ApiHideProperty } from '@nestjs/swagger';
 
 export class CreateEmployeeDto extends SetupUserDto {
   @Expose({ name: 'Employee No' })
@@ -17,7 +18,12 @@ export class CreateEmployeeDto extends SetupUserDto {
   @IsOptional()
   employeeNo?: string;
 
-  @Expose({ name: 'Department Id' })
+  @ApiHideProperty()
+  @Expose({ name: 'Department Code' })
+  @IsString()
+  @IsOptional()
+  departmentCode?: string;
+
   @IsUUID()
   @IsOptional()
   departmentId?: string;
