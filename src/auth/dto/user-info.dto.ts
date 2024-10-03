@@ -1,7 +1,7 @@
 import { IsBirthDate } from '@@/common/decorators/is-birth-date';
 import { Gender, MaritalStatus } from '@@/common/interfaces';
 import { ApiHideProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -15,14 +15,17 @@ import {
 } from 'class-validator';
 
 export class UserInfoDto {
+  @Expose({ name: 'First Name' })
   @IsNotEmpty()
   @IsString()
   firstName: string;
 
+  @Expose({ name: 'Middle Name' })
   @IsString()
   @IsOptional()
   middleName?: string;
 
+  @Expose({ name: 'Last Name' })
   @IsNotEmpty()
   @IsString()
   lastName: string;
@@ -35,10 +38,12 @@ export class UserInfoDto {
   @IsString()
   formerNames?: string;
 
+  @Expose({ name: 'Email' })
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
+  @Expose({ name: 'Phone' })
   @IsOptional()
   @IsPhoneNumber()
   phone?: string;
@@ -47,6 +52,7 @@ export class UserInfoDto {
   @IsOptional()
   phoneCountry?: string;
 
+  @Expose({ name: 'Date of Birth' })
   @IsDate()
   @IsOptional()
   @Type(() => Date)
@@ -61,10 +67,12 @@ export class UserInfoDto {
   @IsString()
   suffix?: string;
 
+  @Expose({ name: 'Gender' })
   @IsEnum(Gender)
   @IsOptional()
   gender?: Gender;
 
+  @Expose({ name: 'Marital Status' })
   @IsEnum(MaritalStatus)
   @IsOptional()
   maritalStatus?: MaritalStatus;

@@ -44,3 +44,5 @@ export interface IUserForgotCompanies {
   firstName: string;
   companies: Record<string, string>[];
 }
+
+export type FileUploadType = 'private' | 'public';

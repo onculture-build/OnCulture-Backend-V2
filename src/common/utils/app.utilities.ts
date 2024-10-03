@@ -13,6 +13,8 @@ import { GeneratePdfOptions } from '../interfaces';
 import puppeteer from 'puppeteer';
 import { customAlphabet } from 'nanoid';
 import * as _ from 'lodash';
+import 'reflect-metadata';
+import { instanceToPlain } from 'class-transformer';
 
 const CUSTOM_CHARS =
   '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -61,6 +63,61 @@ export class AppUtilities {
     );
 
     return password.join('');
+  }
+
+  public static generateFormFields(dtoInstance: any, nestedKey: string[] = []) {
+    if (!dtoInstance || typeof dtoInstance !== 'object') {
+      console.error('Invalid DTO instance provided to generateFormFields');
+      return [];
+    }
+
+    const plainObject = instanceToPlain(dtoInstance);
+    return this.generateFieldsRecursive(plainObject, nestedKey);
+  }
+
+  private static generateFieldsRecursive(obj: any, nestedKey: string[] = []) {
+    return Object.entries(obj).flatMap(([key, value]) => {
+      if (nestedKey.length && nestedKey.includes(key)) {
+        return Object.entries(value).map(([subKey, _subValue]) => ({
+          label: this.removeIdSuffix(subKey),
+          value: AppUtilities.toCamelCase(subKey),
+        }));
+      } else {
+        return [
+          {
+            label: this.removeIdSuffix(key),
+            value: AppUtilities.toCamelCase(key),
+          },
+        ];
+      }
+    });
+  }
+
+  private static removeIdSuffix(key: string, suffix = 'Id'): string {
+    const val = key.endsWith(suffix) ? key.slice(0, -suffix.length) : key;
+
+    return val.trim();
+  }
+
+  public static async streamToBuffer(stream: ReadableStream): Promise<Buffer> {
+    const reader = stream.getReader();
+    const chunks = [];
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+
+    return Buffer.concat(chunks);
+  }
+
+  public static toCamelCase(str: string) {
+    str = str.toLowerCase().trim();
+    str = str.replace(/[\s_]+/g, '-');
+    return str.replace(/(^|-)([a-z])/g, (_, separator, letter, index) =>
+      index === 0 ? letter : letter.toUpperCase(),
+    );
   }
 
   public static unflatten = (flattedObject: any) => {

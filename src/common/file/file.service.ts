@@ -3,7 +3,11 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaClientManager } from '../database/prisma-client-manager';
 import { UploadFileDto } from './dto/upload-file.dto';
@@ -12,6 +16,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { CacheService } from '../cache/cache.service';
 import { AppUtilities } from '../utils/app.utilities';
 import { CreateFileDto } from './dto/create-file.dto';
+import { FileUploadType } from '../interfaces';
 
 @Injectable()
 export class FileService {
@@ -40,7 +45,11 @@ export class FileService {
     });
   }
 
-  async uploadFile(data: UploadFileDto, key: string, filePath = 'public') {
+  async uploadFile(
+    data: UploadFileDto,
+    key: string,
+    filePath: FileUploadType = 'public',
+  ) {
     key = `${filePath}/${key}`;
 
     const command = new PutObjectCommand({
@@ -79,6 +88,21 @@ export class FileService {
     );
 
     return url;
+  }
+
+  async getFileAsStream(key: string) {
+    const command = new GetObjectCommand({
+      Key: key,
+      Bucket: this.S3Bucket,
+    });
+
+    const response = await this.s3Sdk.send(command);
+
+    if (response.$metadata.httpStatusCode !== 200) {
+      throw new NotFoundException('File not found');
+    }
+
+    return response.Body.transformToWebStream();
   }
 
   async createCompanyFile(companyId: string, data: CreateFileDto) {
