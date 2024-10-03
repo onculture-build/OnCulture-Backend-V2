@@ -3,12 +3,11 @@ import { IntegrationsService } from './integrations.service';
 import { IntegrationsController } from './integrations.controller';
 import { SlackProvider } from '../../common/third-party/providers/slack/slack-integration';
 import { JwtService } from '@nestjs/jwt';
-import { AuthService } from '../../auth/auth.service';
 
 @Global()
 @Module({
   controllers: [IntegrationsController],
-  providers: [IntegrationsService, SlackProvider,JwtService],
+  providers: [IntegrationsService, SlackProvider, JwtService],
   exports: [IntegrationsService],
 })
 export class IntegrationsModule {}
