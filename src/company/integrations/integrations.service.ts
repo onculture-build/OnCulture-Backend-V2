@@ -104,7 +104,7 @@ export class IntegrationsService extends CrudService<
     } finally {
       const getBaseClient = this.config.get<string>('app.clientUrl');
       const protocol =
-        this.config.get<string>('environment') === 'prod'
+        this.config.get<string>('environment') !== 'development'
           ? 'https://'
           : 'http://';
       const base = getBaseClient.split(protocol);
