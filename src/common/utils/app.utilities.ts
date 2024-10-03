@@ -25,6 +25,10 @@ export class AppUtilities {
     return nanoid();
   }
 
+  public static secondsToMilliseconds(seconds: number) {
+    return seconds * 1000;
+  }
+
   public static generatePassword(passLen = 15): string {
     const specialChars = [
       '!',

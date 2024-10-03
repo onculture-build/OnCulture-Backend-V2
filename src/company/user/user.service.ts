@@ -18,6 +18,9 @@ import { UserMapType } from './user.maptype';
 import { UserInfoDto } from '@@/auth/dto/user-info.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AddressPurpose } from '@@/common/enums';
+import { UploadUserPhotoDto } from './dto/upload-user-photo.dto';
+import { FileService } from '@@/common/file/file.service';
+import { AppUtilities } from '@@/common/utils/app.utilities';
 
 @Injectable()
 export class UserService extends CrudService<
@@ -28,8 +31,50 @@ export class UserService extends CrudService<
     private basePrismaClient: PrismaClient,
     private companyPrismaClient: CompanyPrismaClient,
     private prismaClientManager: PrismaClientManager,
+    private fileService: FileService,
   ) {
     super(companyPrismaClient.user);
+  }
+
+  async getUser(userId: string) {
+    const user = await this.findFirst({
+      where: {
+        id: userId,
+      },
+      include: {
+        employee: {
+          include: {
+            jobRole: {
+              include: {
+                level: true,
+              },
+            },
+            departments: {
+              include: {
+                department: true,
+              },
+            },
+          },
+        },
+        role: true,
+        emails: true,
+        phones: true,
+        addresses: true,
+        photo: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.photo) {
+      user.photo = await this.fileService.getFile(user.photo.key);
+    }
+
+    const usr = AppUtilities.removeSensitiveData(user, 'password', true);
+
+    return usr;
   }
 
   async createUser(
@@ -118,7 +163,7 @@ export class UserService extends CrudService<
           ...(phone && { phones: { create: { phone, isPrimary: true } } }),
           ...(stateId && { state: { connect: { id: stateId } } }),
           ...(countryId && { country: { connect: { id: countryId } } }),
-          role: { connect: { id: roleId } },
+          ...(roleId && { role: { connect: { id: roleId } } }),
         },
       });
 
@@ -378,5 +423,42 @@ export class UserService extends CrudService<
         update: {},
       });
     });
+  }
+
+  async updateUserProfilePicture(
+    { photo }: UploadUserPhotoDto,
+    req: RequestWithUser,
+  ) {
+    const { key, eTag } = await this.fileService.uploadFile(
+      {
+        imageBuffer: photo.buffer,
+      },
+      photo.originalname.toLowerCase(),
+    );
+
+    const updatedUser = await this.companyPrismaClient.user.update({
+      where: { id: req.user.userId },
+      data: {
+        photo: {
+          upsert: {
+            create: {
+              key,
+              eTag,
+              createdBy: req.user.userId,
+            },
+            update: {
+              key,
+              eTag,
+              updatedBy: req.user.userId,
+            },
+          },
+        },
+      },
+      include: {
+        photo: true,
+      },
+    });
+
+    return await this.fileService.getFile(updatedUser.photo.key);
   }
 }

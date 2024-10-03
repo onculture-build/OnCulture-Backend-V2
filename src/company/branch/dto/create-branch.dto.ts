@@ -69,8 +69,4 @@ export class CreateBranchDto {
   @IsBoolean()
   @IsOptional()
   isDefault?: boolean;
-
-  @IsString()
-  @IsOptional()
-  logoId?: string;
 }

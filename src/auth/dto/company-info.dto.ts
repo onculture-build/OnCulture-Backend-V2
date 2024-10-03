@@ -7,11 +7,7 @@ import {
   IsOptional,
   IsUUID,
   IsArray,
-  IsObject,
-  ValidateNested,
 } from 'class-validator';
-import { UploadLogoDto } from './upload-logo.dto';
-import { Type } from 'class-transformer';
 
 export class CompanyInfoDto {
   @IsNotEmpty()
@@ -69,12 +65,6 @@ export class CompanyInfoDto {
   @IsArray()
   @IsOptional()
   values?: CompanyValue[];
-
-  @IsObject()
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => UploadLogoDto)
-  logo?: UploadLogoDto;
 }
 
 class CompanyValue {

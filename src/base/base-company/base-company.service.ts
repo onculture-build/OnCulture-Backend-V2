@@ -28,6 +28,9 @@ import { ConfigService } from '@nestjs/config';
 import { BaseCompanyQueueProducer } from '../queue/producer';
 import { CompanyService } from '@@/company/company.service';
 import { GetAllCompaniesDto } from './dto/get-all-companies.dto';
+import { FileService } from '@@/common/file/file.service';
+import { UploadLogoDto } from '@@/auth/dto/upload-logo.dto';
+import { RequestWithUser } from '@@/auth/interfaces';
 
 @Injectable()
 export class BaseCompanyService extends CrudService<
@@ -45,6 +48,7 @@ export class BaseCompanyService extends CrudService<
     private messagingService: MessagingService,
     private baseCompanyQueue: BaseCompanyQueueProducer,
     private companyService: CompanyService,
+    private fileService: FileService,
   ) {
     super(prismaClient.baseCompany);
     this.MAX_TIME = Number(configService.get('transaction_time.MAX_TIME'));
@@ -78,10 +82,23 @@ export class BaseCompanyService extends CrudService<
     });
   }
 
-  async getCompany(code: string) {
-    return this.findFirstOrThrow({
+  async getCompanyWithSubdomain(code: string) {
+    const company = await this.findFirstOrThrow({
       where: { code },
+      include: {
+        logo: true,
+      },
     });
+
+    if (!company) {
+      throw new NotFoundException('Company not found');
+    }
+
+    if (company.logo) {
+      company.logo = await this.fileService.getFile(company.logo.key);
+    }
+
+    return company;
   }
 
   async getCompanyURL(code: string) {
@@ -232,8 +249,7 @@ export class BaseCompanyService extends CrudService<
 
   async setupBaseCompany(
     {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      companyInfo: { countryId, stateId, logo, values, ...companyInfo },
+      companyInfo: { countryId, stateId, values, ...companyInfo },
       userInfo,
     }: SignUpDto,
     prisma: PrismaClient,
@@ -338,5 +354,31 @@ export class BaseCompanyService extends CrudService<
     }
 
     return await this.companyRequestService.updateCompanyRequest(id, updateDto);
+  }
+
+  async uploadCompanyLogo({ logo }: UploadLogoDto, req: RequestWithUser) {
+    const { key, eTag } = await this.fileService.uploadFile(
+      {
+        imageBuffer: logo.buffer,
+      },
+      logo.originalname.toLowerCase(),
+    );
+
+    await this.prismaClient.baseCompanyLogo.upsert({
+      where: {
+        companyCode: req['company'],
+      },
+      update: {
+        key,
+        eTag,
+        updatedBy: req.user.userId,
+      },
+      create: {
+        key,
+        eTag,
+        companyCode: req['company'],
+        createdBy: req.user.userId,
+      },
+    });
   }
 }
