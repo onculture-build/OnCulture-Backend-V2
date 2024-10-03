@@ -6,22 +6,25 @@ import { AuthStrategyType, RequestWithUser } from '../../auth/interfaces';
 import { InitIntegrationDto } from './dto/init-integration.dto';
 import { FinishIntegrationDto } from './dto/finish-integration.dto';
 import { AppUtilities } from '../../common/utils/app.utilities';
-import { Response } from 'express';
+import { response, Response } from 'express';
+import { IntegrationQuery } from '../interfaces';
+import { da } from '@faker-js/faker';
 
 @ApiTags('Integrations')
 @ApiBearerAuth()
 @Controller('integrations')
 export class IntegrationsController {
-  constructor(private readonly integrationsService: IntegrationsService) {}
+  constructor(private readonly integrationsService: IntegrationsService) { }
 
   @ApiOperation({ summary: 'Integrate third party service' })
   @AuthStrategy(AuthStrategyType.JWT)
   @Get(':type/init')
   async initIntegration(
     @Param() params: InitIntegrationDto,
+    @Query() query: {code:string},
     @Req() req: RequestWithUser,
   ) {
-    const data = { ...req.user, type: params?.type };
+    const data = { ...req.user, type: params?.type, companyCode:query?.code };
     return this.integrationsService.handleIntegrationRequest(
       params?.type,
       data,
@@ -36,8 +39,19 @@ export class IntegrationsController {
     @Res() res: Response,
   ) {
     const { type, ...data } = JSON.parse(AppUtilities.decode(query?.state));
+    console.log(data)
     data.code = query.code;
-    const link = await this.integrationsService.configure(type, data);
+    const link = await this.integrationsService.configure(type, data, response);
+    console.log(link,"ME LIKK UP")
     return res.redirect(link);
+  }
+
+  @ApiOperation({ summary: 'fetch integrations' })
+  @AuthStrategy(AuthStrategyType.JWT)
+  @Get('/')
+  async getAllIntegrations(
+    @Query() query: IntegrationQuery,
+  ) {
+    return await this.integrationsService.getAllIntegrations(query);
   }
 }
