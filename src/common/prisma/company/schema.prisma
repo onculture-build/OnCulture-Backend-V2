@@ -115,6 +115,13 @@ enum IntegrationEnvironment {
     production
 }
 
+enum FileUploadStatus {
+    Pending
+    Processing
+    Completed
+    Failed
+}
+
 model Country {
     id             String          @id @default(uuid()) @db.Uuid
     name           String          @unique() @db.VarChar(50)
@@ -608,8 +615,23 @@ model File {
     updatedBy         String?        @db.Uuid
     employeeDocuments EmployeeFile[]
     user              User?
+    uploads           FileUpload[]
 
     @@map("file")
+}
+
+model FileUpload {
+    id           String           @id @default(uuid()) @db.Uuid
+    fileId       String           @db.Uuid
+    status       FileUploadStatus @default(Pending)
+    errorMessage String?          @db.VarChar
+    createdAt    DateTime         @default(now()) @db.Timestamptz(6)
+    createdBy    String?          @db.Uuid
+    updatedAt    DateTime         @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy    String?          @db.Uuid
+    file         File             @relation(fields: [fileId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+    @@map("file_upload")
 }
 
 model EmployeeFile {
