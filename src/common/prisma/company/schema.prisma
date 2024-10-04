@@ -584,7 +584,7 @@ model Department {
     employees   EmployeeDepartment[]
     manager     DepartmentManager?   @relation(fields: [managerId], references: [id])
 
-    @@map("deparment")
+    @@map("department")
 }
 
 model DepartmentManager {
@@ -621,15 +621,16 @@ model File {
 }
 
 model FileUpload {
-    id           String           @id @default(uuid()) @db.Uuid
-    fileId       String           @db.Uuid
-    status       FileUploadStatus @default(Pending)
-    errorMessage String?          @db.VarChar
-    createdAt    DateTime         @default(now()) @db.Timestamptz(6)
-    createdBy    String?          @db.Uuid
-    updatedAt    DateTime         @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy    String?          @db.Uuid
-    file         File             @relation(fields: [fileId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    id            String           @id @default(uuid()) @db.Uuid
+    fileId        String           @db.Uuid
+    status        FileUploadStatus @default(Pending)
+    uploadResult  Json?            @db.JsonB
+    statusMessage String?          @db.VarChar
+    createdAt     DateTime         @default(now()) @db.Timestamptz(6)
+    createdBy     String?          @db.Uuid
+    updatedAt     DateTime         @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy     String?          @db.Uuid
+    file          File             @relation(fields: [fileId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
     @@map("file_upload")
 }
