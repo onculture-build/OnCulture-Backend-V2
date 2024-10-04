@@ -45,6 +45,7 @@ export class SlackProvider extends BaseIntegrationProvider<WebClient> {
     }
   }
   async connect(config: SlackConfig): Promise<WebClient> {
+    console.log(config['slackAccessToken'], "all good")
     const client = new WebClient(config.slackAccessToken);
     return client;
   }
@@ -56,9 +57,11 @@ export class SlackProvider extends BaseIntegrationProvider<WebClient> {
   }
 
   async getMembers(config: SlackConfig) {
+    console.log(config,config.slackAccessToken,"POLO")
     const webClientAgent = await this.connect(config);
     try {
       const res = await webClientAgent.users.list({});
+      console.log(res,"THE RES")
       return res.members.map((member) => {
         return {
           email: member?.profile?.email,
@@ -69,6 +72,7 @@ export class SlackProvider extends BaseIntegrationProvider<WebClient> {
         };
       });
     } catch (error) {
+      console.log(error)
       throw new UnprocessableEntityException(error);
     }
   }

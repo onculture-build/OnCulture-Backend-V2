@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Query, Res, Body } from '@nestjs/common';
+import { Controller, Get, Req, Query, Res, Body, Post } from '@nestjs/common';
 import { IntegrationsService } from './integrations.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthStrategy } from '../../common/decorators/strategy.decorator';
@@ -18,7 +18,7 @@ export class IntegrationsController {
 
   @ApiOperation({ summary: 'Integrate third party service' })
   @AuthStrategy(AuthStrategyType.JWT)
-  @Get('/init')
+  @Post('/init')
   async initIntegration(
     @Body() body: InitIntegrationDto,
     @Req() req: RequestWithUser,

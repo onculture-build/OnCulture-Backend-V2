@@ -71,7 +71,7 @@ export class IntegrationsService extends CrudService<
       if (config) {
         await this.companyPrismaClient.integrationsConfig.create({
           data: {
-            config_meta: JSON.stringify(config),
+            config_meta: config as Prisma.JsonObject,
             source: integration_type,
             environment: env,
             createdBy: payload?.user?.userId,
@@ -148,13 +148,15 @@ export class IntegrationsService extends CrudService<
   }
 
   public async getAllMembers(
-    integration_type: IntegrationProviders,
+    source: IntegrationProviders,
   ): Promise<ProviderMember[]> {
-    const provider = this.getIntegrationProvider(integration_type);
+    const provider = this.getIntegrationProvider(source);
     const { config_meta } = await this.getIntegrationConfig({
-      integration_type,
+      source,
     });
-    return await provider.getMembers(config_meta as ProviderConfig);
+    const config = config_meta as Prisma.JsonObject
+    console.log(config?.slackAccessToken, "O BOY!!!!")
+    return await provider.getMembers(config);
   }
 
   public async getAllGroups(
