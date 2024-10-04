@@ -115,11 +115,35 @@ export class DepartmentService extends CrudService<
   }
 
   async createDepartment(
-    { managerId, ...dto }: CreateDepartmentDto,
+    { managerId, name, ...dto }: CreateDepartmentDto,
     req: RequestWithUser,
   ) {
+    let departmentCode = this.generateDepartmentCode(name);
+
+    const departmentWithCode = await this.findFirst({
+      where: { code: departmentCode },
+    });
+
+    if (departmentWithCode) {
+      departmentCode = this.generateDepartmentCode(
+        name + '_' + Math.random().toString(36).substring(2, 15),
+      );
+    }
+
+    let departmentName = name;
+
+    const departmentWithName = await this.findFirst({
+      where: { name: { equals: departmentName, mode: 'insensitive' } },
+    });
+
+    if (departmentWithName) {
+      departmentName = name + '_' + Math.random().toString(36).substring(2, 15);
+    }
+
     return this.create({
       data: {
+        name: departmentName,
+        code: departmentCode,
         ...dto,
         ...(managerId && { manager: { connect: { id: managerId } } }),
         createdBy: req.user.userId,
@@ -154,5 +178,9 @@ export class DepartmentService extends CrudService<
         updatedBy: req.user.userId,
       },
     });
+  }
+
+  private generateDepartmentCode(name: string) {
+    return name.trim().toUpperCase().replace(/\s+/g, '_');
   }
 }

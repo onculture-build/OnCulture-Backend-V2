@@ -1,7 +1,12 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { JobOptions, Queue } from 'bull';
-import { ISendEmployeeSetupEmail, JOBS, QUEUE } from '../interfaces';
+import {
+  IProcessEmployeeCsvUpload,
+  ISendEmployeeSetupEmail,
+  JOBS,
+  QUEUE,
+} from '../interfaces';
 
 @Injectable()
 export class CompanyUserQueueProducer {
@@ -9,6 +14,12 @@ export class CompanyUserQueueProducer {
     @InjectQueue(QUEUE)
     private readonly companyQueue: Queue,
   ) {}
+
+  async processEmployeeCsvUpload(data: IProcessEmployeeCsvUpload) {
+    await this.addToQueue(JOBS.PROCESS_EMPLOYEE_CSV_UPLOAD, data, {
+      removeOnComplete: true,
+    });
+  }
 
   async sendEmployeeSetupEmail(data: ISendEmployeeSetupEmail) {
     await this.addToQueue(JOBS.SEND_EMPLOYEE_SETUP_EMAIL, data, {

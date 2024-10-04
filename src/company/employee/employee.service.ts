@@ -241,7 +241,7 @@ export class EmployeeService extends CrudService<
     const client = prisma || this.prismaClient;
     return client.$transaction(async (prisma: CompanyPrismaClient) => {
       const employeeNo =
-        dto.employeeNo ?? (await this.generateEmployeeNo(prisma)); // handle existing
+        dto.employeeNo ?? (await this.generateEmployeeNo(prisma));
 
       const user = await this.userService.createUser(userInfo, req, client);
 

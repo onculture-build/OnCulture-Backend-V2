@@ -39,5 +39,7 @@ export abstract class BaseQueueProcessor {
         2,
       )}`,
     );
+
+    // Emit an event to notify the backend
   }
 }

@@ -7,12 +7,17 @@ import { Readable } from 'stream';
 import { MappedHeadersDto } from './dto/mapped-headers.dto';
 import { PrismaClient } from '@@prisma/company';
 import { AppUtilities } from '@@/common/utils/app.utilities';
+import { CompanyUserQueueProducer } from '@@/company/queue/producer';
+import { IProcessEmployeeCsvUpload } from '@@/company/interfaces';
+import { PrismaClient as BasePrismaClient } from '@prisma/client';
 
 @Injectable()
 export class CsvService {
   constructor(
     private readonly fileService: FileService,
     private prismaClient: PrismaClient,
+    private basePrismaClient: BasePrismaClient,
+    private queueProducer: CompanyUserQueueProducer,
   ) {}
 
   async uploadCSV({ file }: UploadCsvDto, req: RequestWithUser) {
@@ -49,7 +54,7 @@ export class CsvService {
   async processUpload(
     uploadId: string,
     mappedHeaders: MappedHeadersDto,
-    _req: RequestWithUser,
+    req: RequestWithUser,
   ) {
     return this.prismaClient.$transaction(async (prisma: PrismaClient) => {
       const upload = await prisma.fileUpload.findUnique({
@@ -81,16 +86,25 @@ export class CsvService {
       const fileBuffer = await AppUtilities.streamToBuffer(uploadedFile);
 
       const records = await this.parseCSV(fileBuffer, mappedHeaders);
-      console.log(
-        '🚀 ~ CsvService ~ returnthis.prismaClient.$transaction ~ records:',
-        records,
-      );
 
       // map the headers to the records
 
       // send the records to the queue
+      // const company = await this.basePrismaClient.baseCompany.findUnique({
+      //   where: {
+      //     code: req['company'],
+      //   },
+      // });
 
-      //   return records;
+      const data: IProcessEmployeeCsvUpload = {
+        records,
+        uploadId,
+        companyId: '9c109e01-67ab-45a4-b568-f40262b0d5b5',
+      };
+
+      this.queueProducer.processEmployeeCsvUpload(data);
+
+      return records;
     });
   }
 
@@ -115,7 +129,10 @@ export class CsvService {
     });
   }
 
-  private async parseCSV(buffer: Buffer, { mappedHeaders }: MappedHeadersDto) {
+  private async parseCSV(
+    buffer: Buffer,
+    { mappedHeaders }: MappedHeadersDto,
+  ): Promise<Record<string, any>[]> {
     const stream = Readable.from(buffer);
     return new Promise((resolve, reject) => {
       const records = [];
@@ -124,7 +141,9 @@ export class CsvService {
         .on('data', (row) => {
           const mappedRow = {};
           Object.keys(mappedHeaders).forEach((header) => {
-            mappedRow[mappedHeaders[header]] = row[header];
+            if (mappedHeaders[header] !== '') {
+              mappedRow[mappedHeaders[header]] = row[header];
+            }
           });
           records.push(mappedRow);
         })
