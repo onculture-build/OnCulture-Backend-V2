@@ -504,7 +504,7 @@ model EmployeeDepartment {
     department   Department @relation(fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     employee     Employee   @relation(fields: [employeeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-    @@index([employeeId, departmentId])
+    @@unique([employeeId, departmentId])
     @@map("employee_department")
 }
 
