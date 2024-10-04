@@ -75,7 +75,7 @@ export class CompanyUserQueueConsumer extends BaseQueueProcessor {
       },
     });
 
-    return result; // TODO: emit event so the server can update the progress
+    return result; // TODO: send an email to the user with the results
   }
 
   @Process({ name: JOBS.SEND_EMPLOYEE_SETUP_EMAIL })

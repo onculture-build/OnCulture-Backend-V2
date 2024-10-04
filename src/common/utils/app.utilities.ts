@@ -14,7 +14,6 @@ import puppeteer from 'puppeteer';
 import { customAlphabet } from 'nanoid';
 import * as _ from 'lodash';
 import 'reflect-metadata';
-import { instanceToPlain } from 'class-transformer';
 
 const CUSTOM_CHARS =
   '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -65,32 +64,11 @@ export class AppUtilities {
     return password.join('');
   }
 
-  public static generateFormFields(dtoInstance: any, nestedKey: string[] = []) {
-    if (!dtoInstance || typeof dtoInstance !== 'object') {
-      console.error('Invalid DTO instance provided to generateFormFields');
-      return [];
-    }
-
-    const plainObject = instanceToPlain(dtoInstance);
-    return this.generateFieldsRecursive(plainObject, nestedKey);
-  }
-
-  private static generateFieldsRecursive(obj: any, nestedKey: string[] = []) {
-    return Object.entries(obj).flatMap(([key, value]) => {
-      if (nestedKey.length && nestedKey.includes(key)) {
-        return Object.entries(value).map(([subKey, _subValue]) => ({
-          label: this.removeIdSuffix(subKey),
-          value: AppUtilities.toCamelCase(subKey),
-        }));
-      } else {
-        return [
-          {
-            label: this.removeIdSuffix(key),
-            value: AppUtilities.toCamelCase(key),
-          },
-        ];
-      }
-    });
+  public static convertEnumToObject(enumData: any) {
+    return Object.entries(enumData).map(([key, value]) => ({
+      label: value,
+      value: key,
+    }));
   }
 
   private static removeIdSuffix(key: string, suffix = 'Id'): string {
@@ -225,6 +203,31 @@ export class AppUtilities {
     }
 
     return data;
+  }
+
+  public static transformObject(
+    sourceObject: Record<string, any>,
+    mappings: Record<string, any>,
+  ): Record<string, any> {
+    const transformedObject = {};
+
+    Object.keys(mappings).forEach((key) => {
+      const value = mappings[key];
+
+      if (typeof value === 'object' && !Array.isArray(value)) {
+        const nestedTransformed = AppUtilities.transformObject(
+          sourceObject,
+          value,
+        );
+        if (Object.keys(nestedTransformed).length > 0) {
+          transformedObject[key] = nestedTransformed;
+        }
+      } else if (sourceObject.hasOwnProperty(value)) {
+        transformedObject[key] = sourceObject[value];
+      }
+    });
+
+    return transformedObject;
   }
 
   public static requestErrorHandler = (response: any = {}) => {

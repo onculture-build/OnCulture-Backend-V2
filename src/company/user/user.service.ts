@@ -100,8 +100,7 @@ export class UserService extends CrudService<
         where: whereClause,
       });
 
-      if (existingUser)
-        throw new ConflictException('A user with this email already exists');
+      if (existingUser) return existingUser;
 
       return basePrisma.$transaction(async (prisma: PrismaClient) => {
         await prisma.baseUserCompany.create({

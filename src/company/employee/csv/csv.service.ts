@@ -1,5 +1,9 @@
 import { RequestWithUser } from '@@/auth/interfaces';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UploadCsvDto } from './dto/upload-csv.dto';
 import * as csvParser from 'csv-parser';
 import { FileService } from '@@/common/file/file.service';
@@ -8,8 +12,12 @@ import { MappedHeadersDto } from './dto/mapped-headers.dto';
 import { PrismaClient } from '@@prisma/company';
 import { AppUtilities } from '@@/common/utils/app.utilities';
 import { CompanyUserQueueProducer } from '@@/company/queue/producer';
-import { IProcessEmployeeCsvUpload } from '@@/company/interfaces';
+import {
+  FileUploadStatus,
+  IProcessEmployeeCsvUpload,
+} from '@@/company/interfaces';
 import { PrismaClient as BasePrismaClient } from '@prisma/client';
+import { EMPLOYEE_MAPPINGS } from '@@/common/constants';
 
 @Injectable()
 export class CsvService {
@@ -65,19 +73,31 @@ export class CsvService {
               key: true,
             },
           },
+          status: true,
         },
       });
 
       if (!upload) {
-        throw new NotFoundException('Upload not found');
+        throw new NotFoundException('File upload not found');
       }
 
-      await prisma.fileUpload.update({
-        where: { id: uploadId },
-        data: {
-          status: 'Processing',
-        },
-      });
+      switch (upload.status) {
+        case FileUploadStatus.Processing:
+          throw new BadRequestException(
+            'File upload is already being processed',
+          );
+        case FileUploadStatus.Completed:
+          throw new BadRequestException(
+            'File cannot be processed because upload is already completed',
+          );
+        default:
+          await prisma.fileUpload.update({
+            where: { id: uploadId },
+            data: {
+              status: 'Processing',
+            },
+          });
+      }
 
       const uploadedFile = await this.fileService.getFileAsStream(
         upload.file.key,
@@ -87,24 +107,24 @@ export class CsvService {
 
       const records = await this.parseCSV(fileBuffer, mappedHeaders);
 
-      // map the headers to the records
+      const transformedRecords = records.map((record) =>
+        AppUtilities.transformObject(record, EMPLOYEE_MAPPINGS),
+      );
 
       // send the records to the queue
-      // const company = await this.basePrismaClient.baseCompany.findUnique({
-      //   where: {
-      //     code: req['company'],
-      //   },
-      // });
+      const company = await this.basePrismaClient.baseCompany.findUnique({
+        where: {
+          code: req['company'],
+        },
+      });
 
       const data: IProcessEmployeeCsvUpload = {
-        records,
+        records: transformedRecords,
         uploadId,
-        companyId: '9c109e01-67ab-45a4-b568-f40262b0d5b5',
+        companyId: company.id,
       };
 
       this.queueProducer.processEmployeeCsvUpload(data);
-
-      return records;
     });
   }
 
