@@ -1,8 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { BaseIntegrationProvider } from '../base-integration';
 import { SlackConfig } from './slack-utils';
 import { WebClient } from '@slack/web-api';
-import { IntegrationProviders } from '../../interfaces';
+import {
+  IntegrationProviders,
+  ProviderConfig,
+  ProviderMember,
+} from '../../interfaces';
 import { ConfigService } from '@nestjs/config';
 import { AppUtilities } from '../../../utils/app.utilities';
 
@@ -45,9 +49,69 @@ export class SlackProvider extends BaseIntegrationProvider<WebClient> {
     return client;
   }
 
-  getIntegrationUri(payload?: Record<string, any>): string {
+  getIntegrationUri(payload?: Record<string, any>) {
     const authBaseUri = this.configService.get<string>('slack.base_url');
     const params = AppUtilities.encode(JSON.stringify(payload));
     return `${authBaseUri}?client_id=${this.clientId}&scope=${this.clientScope}&state=${params}`;
+  }
+
+  async getMembers(config: SlackConfig) {
+    const webClientAgent = await this.connect(config);
+    try {
+      const res = await webClientAgent.users.list({});
+      return res.members.map((member) => {
+        return {
+          email: member?.profile?.email,
+          firstName: member?.profile?.real_name,
+          image: member?.profile?.image_original,
+          id: member?.id,
+          lastName: member?.profile?.last_name,
+        };
+      });
+    } catch (error) {
+      throw new UnprocessableEntityException(error);
+    }
+  }
+
+  async getGroups(config: SlackConfig) {
+    const webClientAgent = await this.connect(config);
+    try {
+      const res = await webClientAgent.conversations.list({
+        types: 'public_channel',
+      });
+      return res?.channels?.map((channel) => {
+        return {
+          id: channel.id,
+          name: channel.name,
+        };
+      });
+    } catch (error) {
+      throw new UnprocessableEntityException(error);
+    }
+  }
+
+  async groupMembers(
+    config: ProviderConfig,
+    groupId: string,
+  ): Promise<Array<ProviderMember>> {
+    const webClientAgent = await this.connect(config);
+    try {
+      const res = await webClientAgent.conversations.members({
+        channel: groupId,
+      });
+
+      const getMemebersInfo = res.members.map((userId) =>
+        webClientAgent.users.info({ user: userId }).then((userInfo) => ({
+          id: userInfo.user.id,
+          email: userInfo.user.profile.email,
+          firstName: userInfo.user.profile.real_name,
+          image: userInfo.user.profile.image_original,
+          lastName: userInfo.user.profile.last_name,
+        })),
+      );
+      return await Promise.all(getMemebersInfo);
+    } catch (error) {
+      throw new UnprocessableEntityException(error);
+    }
   }
 }

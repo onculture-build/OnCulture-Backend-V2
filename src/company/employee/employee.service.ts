@@ -21,6 +21,9 @@ import { CompanyUserQueueProducer } from '../queue/producer';
 import { MapEmployeesOrderByToValue } from '../interfaces';
 import { UploadUserPhotoDto } from '../user/dto/upload-user-photo.dto';
 import { FileService } from '@@/common/file/file.service';
+import { IntegrationMemberDto } from './dto/create-employee-integration.dto';
+import { PrismaClient as BasePrismaClient } from '@prisma/client';
+import { PrismaClientManager } from '../../common/database/prisma-client-manager';
 
 @Injectable()
 export class EmployeeService extends CrudService<
@@ -32,6 +35,8 @@ export class EmployeeService extends CrudService<
     private userService: UserService,
     private companyQueueProducer: CompanyUserQueueProducer,
     private fileService: FileService,
+    private basePrismaCLient: BasePrismaClient,
+    private prismaClientManager: PrismaClientManager,
   ) {
     super(prismaClient.employee);
   }
@@ -477,6 +482,98 @@ export class EmployeeService extends CrudService<
         id: true,
         title: true,
       },
+    });
+  }
+
+  async createEmployeesFromIntegration(
+    payload: IntegrationMemberDto,
+    companyId: string,
+    code: string,
+  ) {
+    const employeeData: CreateEmployeeDto[] = [];
+    for (const member of payload.data) {
+      employeeData.push({
+        userInfo: {
+          firstName: member?.firstName,
+          email: member?.email,
+          lastName: member?.lastName,
+        },
+      });
+    }
+    const client = this.prismaClientManager.getCompanyPrismaClient(companyId);
+    return client.$transaction(async (prisma: CompanyPrismaClient) => {
+      for (const employee of employeeData) {
+        const {
+          userInfo,
+          employmentTypeId,
+          employmentType,
+          jobRole,
+          jobRoleId,
+          departmentId,
+        } = employee;
+        const employeeNo =
+          employee.employeeNo ?? (await this.generateEmployeeNo(prisma));
+
+        const user = await this.userService.createUser(
+          employee.userInfo,
+          undefined,
+          client,
+        );
+
+        const newEmployee = await client.employee.create({
+          data: {
+            employeeNo,
+            ...(employmentTypeId || employmentType
+              ? {
+                  employmentType: employmentTypeId
+                    ? { connect: { id: employmentTypeId } }
+                    : { create: employmentType },
+                }
+              : {}),
+            ...(jobRoleId || jobRole
+              ? {
+                  jobRole: jobRoleId
+                    ? { connect: { id: jobRoleId } }
+                    : { create: jobRole },
+                }
+              : {}),
+            ...(departmentId && {
+              departments: { connect: { id: departmentId } },
+            }),
+            status: EmployeeStatus.INACTIVE,
+            user: { connect: { id: user.id } },
+            branch: { connect: { id: employee.branchId } },
+          },
+        });
+
+        const token = AppUtilities.encode(
+          JSON.stringify({ email: userInfo.email }),
+        );
+
+        this.companyQueueProducer.sendEmployeeSetupEmail({
+          code,
+          dto: { email: userInfo.email, ...userInfo },
+          token,
+        });
+
+        return newEmployee;
+      }
+    });
+  }
+
+  async enqueueEmployeeCreation(
+    payload: IntegrationMemberDto,
+    req: RequestWithUser,
+  ) {
+    const company = await this.basePrismaCLient.baseCompany.findUnique({
+      where: {
+        code: req['company'],
+      },
+    });
+    return await this.companyQueueProducer.inviteEmployeeToCompany({
+      dto: payload,
+      companyId: company?.id,
+      code: req['company'],
     });
   }
 }

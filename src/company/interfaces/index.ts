@@ -1,15 +1,23 @@
 import { UserInfoDto } from '@@/auth/dto/user-info.dto';
+import { IntegrationMemberDto } from '../employee/dto/create-employee-integration.dto';
 
 export const QUEUE = 'onculture:company:';
 
 export enum JOBS {
   SEND_EMPLOYEE_SETUP_EMAIL = 'sendEmployeeSetupEmail',
+  CREATE_EMPLOYEES_BULK = 'createEmployeeBulk',
 }
 
 export interface ISendEmployeeSetupEmail {
   code: string;
   dto: UserInfoDto;
   token: string;
+}
+
+export interface CreateEmployeeIntegration {
+  dto: IntegrationMemberDto;
+  companyId: string;
+  code: string;
 }
 
 export enum UsersOrderColumns {

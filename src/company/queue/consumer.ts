@@ -1,15 +1,24 @@
 import { BaseQueueProcessor } from '@@common/interfaces/base-queue';
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
-import { ISendEmployeeSetupEmail, JOBS, QUEUE } from '../interfaces';
+import {
+  CreateEmployeeIntegration,
+  ISendEmployeeSetupEmail,
+  JOBS,
+  QUEUE,
+} from '../interfaces';
 import { Job } from 'bull';
 import { MessagingService } from '@@/common/messaging/messaging.service';
+import { EmployeeService } from '../employee/employee.service';
 
 @Processor(QUEUE)
 export class CompanyUserQueueConsumer extends BaseQueueProcessor {
   protected logger: Logger;
 
-  constructor(private messagingService: MessagingService) {
+  constructor(
+    private messagingService: MessagingService,
+    private employeeService: EmployeeService,
+  ) {
     super();
     this.logger = new Logger('CompanyQueueConsumer');
   }
@@ -18,5 +27,13 @@ export class CompanyUserQueueConsumer extends BaseQueueProcessor {
   async sendEmployeeSetupEmail({ data }: Job<ISendEmployeeSetupEmail>) {
     const { code, dto, token } = data;
     this.messagingService.sendUserSetupEmail(code, dto, token);
+  }
+
+  @Process({ name: JOBS.CREATE_EMPLOYEES_BULK })
+  async createEmployeeFromIntegration({
+    data,
+  }: Job<CreateEmployeeIntegration>) {
+    const { dto, companyId, code } = data;
+    this.employeeService.createEmployeesFromIntegration(dto, companyId, code);
   }
 }
