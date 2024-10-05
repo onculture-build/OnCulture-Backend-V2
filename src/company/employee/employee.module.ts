@@ -6,11 +6,12 @@ import { JobLevelModule } from './job-level/job-level.module';
 import { JobRoleService } from './job-role/job-role.service';
 import { UserModule } from '../user/user.module';
 import { CsvModule } from './csv/csv.module';
+import { EmploymentTypesService } from './employment-types/employment-types.service';
 
 @Module({
-  providers: [EmployeeService, JobRoleService],
+  providers: [EmployeeService, JobRoleService, EmploymentTypesService],
   controllers: [EmployeeController],
   imports: [JobRoleModule, JobLevelModule, UserModule, CsvModule],
-  exports: [EmployeeService],
+  exports: [EmployeeService, EmploymentTypesService],
 })
 export class EmployeeModule {}

@@ -21,6 +21,7 @@ import { CompanyUserQueueProducer } from '../queue/producer';
 import { MapEmployeesOrderByToValue } from '../interfaces';
 import { UploadUserPhotoDto } from '../user/dto/upload-user-photo.dto';
 import { FileService } from '@@/common/file/file.service';
+import { EmploymentTypesService } from './employment-types/employment-types.service';
 
 @Injectable()
 export class EmployeeService extends CrudService<
@@ -32,6 +33,7 @@ export class EmployeeService extends CrudService<
     private userService: UserService,
     private companyQueueProducer: CompanyUserQueueProducer,
     private fileService: FileService,
+    private employmentTypeService: EmploymentTypesService,
   ) {
     super(prismaClient.employee);
   }
@@ -40,7 +42,13 @@ export class EmployeeService extends CrudService<
     const [roles, departments, employmentTypes] = await Promise.all([
       this.getRoles(),
       this.getDepartments(),
-      this.getEmploymentTypes(),
+      this.employmentTypeService.findMany({
+        where: { status: true },
+        select: {
+          id: true,
+          title: true,
+        },
+      }),
     ]);
 
     return {
@@ -239,14 +247,14 @@ export class EmployeeService extends CrudService<
     req?: RequestWithUser,
   ) {
     const client = prisma || this.prismaClient;
-    return client.$transaction(async (prisma: CompanyPrismaClient) => {
+    const executeCreateEmployee = async (prisma: CompanyPrismaClient) => {
       const employeeNo =
         dto.employeeNo ?? (await this.generateEmployeeNo(prisma));
 
       const user = await this.userService.createUser(userInfo, req, prisma);
 
       const existingEmployee = await prisma.employee.findFirst({
-        where: { employeeNo },
+        where: { userId: user.id },
       });
 
       if (existingEmployee) {
@@ -321,7 +329,14 @@ export class EmployeeService extends CrudService<
       }
 
       return newEmployee;
-    });
+    };
+
+    return prisma
+      ? await executeCreateEmployee(prisma)
+      : await client.$transaction(
+          async (cPrisma: CompanyPrismaClient) =>
+            await executeCreateEmployee(cPrisma),
+        );
   }
 
   async updateEmployee(
@@ -540,16 +555,6 @@ export class EmployeeService extends CrudService<
       select: {
         id: true,
         name: true,
-      },
-    });
-  }
-
-  private async getEmploymentTypes() {
-    return this.prismaClient.employmentType.findMany({
-      where: { status: true },
-      select: {
-        id: true,
-        title: true,
       },
     });
   }
