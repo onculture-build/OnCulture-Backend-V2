@@ -214,7 +214,6 @@ export class UserService extends CrudService<
         user: true,
       },
     });
-    console.log('🚀 ~ existingCompanyUser:', existingCompanyUser);
 
     if (existingCompanyUser) return existingCompanyUser.user;
 

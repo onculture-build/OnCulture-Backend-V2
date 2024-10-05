@@ -30,32 +30,34 @@ export class CsvService {
 
   async uploadCSV({ file }: UploadCsvDto, req: RequestWithUser) {
     return this.prismaClient.$transaction(async (prisma: PrismaClient) => {
-      // map headers to be returned
-      const headers = await this.parseCsvHeaders(file.buffer);
+      const parsedData = await this.parseCsvHeadersAndRows(file.buffer);
 
-      // upload file to s3
-      const csvKey = `${new Date().getTime()}-csv-${file.originalname.toLowerCase()}`;
+      const csvKey = `csv-${file.originalname.toLowerCase()}`;
       const uploadedFile = await this.fileService.uploadFile(
         { imageBuffer: file.buffer },
         csvKey,
         'private',
       );
 
-      // create a record in the database for the uploaded file
       const fileRecord = await prisma.fileUpload.create({
         data: {
           file: {
-            create: {
-              name: csvKey,
-              key: uploadedFile.key,
-              eTag: uploadedFile.eTag,
-              createdBy: req?.user?.userId,
+            connectOrCreate: {
+              create: {
+                name: csvKey,
+                key: uploadedFile.key,
+                eTag: uploadedFile.eTag,
+                createdBy: req?.user?.userId,
+              },
+              where: {
+                key: uploadedFile.key,
+              },
             },
           },
         },
       });
 
-      return { headers, uploadId: fileRecord.id };
+      return { data: parsedData, uploadId: fileRecord.id };
     });
   }
 
@@ -111,7 +113,6 @@ export class CsvService {
         AppUtilities.transformObject(record, EMPLOYEE_MAPPINGS),
       );
 
-      // send the records to the queue
       const company = await this.basePrismaClient.baseCompany.findUnique({
         where: {
           code: req['company'],
@@ -128,16 +129,41 @@ export class CsvService {
     });
   }
 
-  private async parseCsvHeaders(buffer: Buffer): Promise<string[]> {
+  private async parseCsvHeadersAndRows(
+    buffer: Buffer,
+  ): Promise<Array<{ header: string; sampleData: string[] }>> {
     return new Promise((resolve, reject) => {
       const stream = Readable.from(buffer);
-
       const parser = csvParser();
+      const headerData: { [key: string]: string[] } = {};
+      let headers: string[] = [];
+      let rowCount = 0;
 
       parser.on('headers', (headerList: string[]) => {
-        resolve(headerList);
-        stream.unpipe(parser);
-        parser.end();
+        headers = headerList;
+        headers.forEach((header) => {
+          headerData[header] = [];
+        });
+      });
+
+      parser.on('data', (row) => {
+        if (rowCount < 3) {
+          headers.forEach((header) => {
+            headerData[header].push(row[header]);
+          });
+          rowCount++;
+        } else {
+          stream.unpipe(parser);
+          parser.end();
+        }
+      });
+
+      parser.on('end', () => {
+        const result = headers.map((header) => ({
+          header,
+          sampleData: headerData[header],
+        }));
+        resolve(result);
       });
 
       parser.on('error', (error) => {

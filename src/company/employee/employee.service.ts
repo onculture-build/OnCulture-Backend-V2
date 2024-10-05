@@ -267,7 +267,6 @@ export class EmployeeService extends CrudService<
           departmentCode,
           departmentId,
           ...employeeDto,
-          ...userInfo,
         };
         return this.updateEmployee(existingEmployee.id, obj, req, prisma);
       }

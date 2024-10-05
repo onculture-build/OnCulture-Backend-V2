@@ -66,7 +66,7 @@ export class AppUtilities {
 
   public static convertEnumToObject(enumData: any) {
     return Object.entries(enumData).map(([key, value]) => ({
-      label: value,
+      label: value as string,
       value: key,
     }));
   }

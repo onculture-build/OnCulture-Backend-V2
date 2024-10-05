@@ -6,6 +6,7 @@ import {
 import {
   Injectable,
   NotFoundException,
+  ServiceUnavailableException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -58,13 +59,17 @@ export class FileService {
       Body: data.imageBuffer,
     });
 
-    const uploadResult = await this.s3Sdk.send(command);
+    try {
+      const uploadResult = await this.s3Sdk.send(command);
 
-    if (uploadResult.$metadata.httpStatusCode !== 200) {
-      throw new UnprocessableEntityException('Failed to upload file');
+      if (uploadResult.$metadata.httpStatusCode !== 200) {
+        throw new UnprocessableEntityException('Failed to upload file');
+      }
+
+      return { eTag: uploadResult.ETag, key };
+    } catch (error) {
+      throw new ServiceUnavailableException('Failed to upload file');
     }
-
-    return { eTag: uploadResult.ETag, key };
   }
 
   async getFile(key: string, expiresIn = 3600) {
