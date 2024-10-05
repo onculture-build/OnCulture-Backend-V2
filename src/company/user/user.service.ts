@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { PrismaClientManager } from '@@/common/database/prisma-client-manager';
 import {
-  ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, PrismaClient } from '@@prisma/client';
+import { PrismaClient } from '@@prisma/client';
 import {
   Prisma as CompanyPrisma,
   PrismaClient as CompanyPrismaClient,
@@ -21,19 +21,25 @@ import { AddressPurpose } from '@@/common/enums';
 import { UploadUserPhotoDto } from './dto/upload-user-photo.dto';
 import { FileService } from '@@/common/file/file.service';
 import { AppUtilities } from '@@/common/utils/app.utilities';
-
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class UserService extends CrudService<
   CompanyPrisma.UserDelegate,
   UserMapType
 > {
+  private MAX_TIME: number;
+  private TIME_OUT: number;
+
   constructor(
+    configService: ConfigService,
     private basePrismaClient: PrismaClient,
     private companyPrismaClient: CompanyPrismaClient,
     private prismaClientManager: PrismaClientManager,
     private fileService: FileService,
   ) {
     super(companyPrismaClient.user);
+    this.MAX_TIME = Number(configService.get('transaction_time.MAX_TIME'));
+    this.TIME_OUT = Number(configService.get('transaction_time.TIME_OUT'));
   }
 
   async getUser(userId: string) {
@@ -83,47 +89,98 @@ export class UserService extends CrudService<
     prisma?: CompanyPrismaClient,
   ) {
     const basePrisma = this.prismaClientManager.getPrismaClient();
-
-    const companyCode = req ? (req['company'] as string) : undefined;
-
+    const companyCode = req?.['company'] as string;
     const companyPrisma =
       prisma ??
       (await this.prismaClientManager.getCompanyPrismaClientFromRequest(req));
 
-    const whereClause: any = {
-      ...(userInfo?.email && { user: { email: userInfo.email.toLowerCase() } }),
-      ...(companyCode && { company: { code: companyCode } }),
-    };
-
-    if (Object.keys(whereClause).length === 2) {
-      const existingUser = await basePrisma.baseUserCompany.findFirst({
-        where: whereClause,
-      });
-
-      if (existingUser) return existingUser;
-
-      return basePrisma.$transaction(async (prisma: PrismaClient) => {
-        await prisma.baseUserCompany.create({
-          data: {
-            user: {
-              create: {
-                firstName: userInfo.firstName,
-                middleName: userInfo.middleName,
-                lastName: userInfo.lastName,
-                email: userInfo.email.toLowerCase(),
-              },
-            },
-            company: {
-              connect: { code: companyCode },
-            },
-          },
-        });
-
-        return this.setupCompanyUser(userInfo, req, companyPrisma);
-      });
+    if (companyCode && userInfo?.email) {
+      return this.createUserWithCompany(
+        userInfo,
+        companyCode,
+        basePrisma,
+        companyPrisma,
+      );
     }
 
-    return await this.setupCompanyUser(userInfo, req, companyPrisma);
+    return this.setupCompanyUser(userInfo, req, companyPrisma);
+  }
+
+  // New method to handle user creation with company
+  private async createUserWithCompany(
+    userInfo: UserInfoDto,
+    companyCode: string,
+    basePrisma: PrismaClient,
+    companyPrisma: CompanyPrismaClient,
+  ) {
+    return basePrisma.$transaction(
+      async (transaction: PrismaClient) => {
+        const existingBaseUser = await this.findExistingBaseUser(
+          transaction,
+          userInfo.email,
+          companyCode,
+        );
+        const baseUserCompany =
+          existingBaseUser ||
+          (await this.createBaseUserCompany(
+            transaction,
+            userInfo,
+            companyCode,
+          ));
+
+        try {
+          return await this.setupCompanyUser(
+            userInfo,
+            undefined,
+            companyPrisma,
+          );
+        } catch (error) {
+          if (!existingBaseUser) {
+            await this.deleteBaseUserCompany(transaction, baseUserCompany.id);
+          }
+          throw new InternalServerErrorException('Failed to create user');
+        }
+      },
+      { maxWait: this.MAX_TIME, timeout: this.TIME_OUT },
+    );
+  }
+
+  // Helper methods for createUserWithCompany
+  private async findExistingBaseUser(
+    transaction: PrismaClient,
+    email: string,
+    companyCode: string,
+  ) {
+    return transaction.baseUserCompany.findFirst({
+      where: {
+        user: { email: email.toLowerCase() },
+        company: { code: companyCode },
+      },
+    });
+  }
+
+  private async createBaseUserCompany(
+    transaction: PrismaClient,
+    userInfo: UserInfoDto,
+    companyCode: string,
+  ) {
+    return transaction.baseUserCompany.create({
+      data: {
+        user: {
+          create: {
+            firstName: userInfo.firstName,
+            middleName: userInfo.middleName,
+            lastName: userInfo.lastName,
+            email: userInfo.email.toLowerCase(),
+          },
+        },
+        company: { connect: { code: companyCode } },
+      },
+    });
+  }
+
+  private async deleteBaseUserCompany(transaction: PrismaClient, id: string) {
+    await transaction.baseUserCompany.delete({ where: { id } });
   }
 
   async setupCompanyUser(
@@ -150,6 +207,16 @@ export class UserService extends CrudService<
     if (!role) {
       throw new NotAcceptableException('User assigned role does not exist!');
     }
+
+    const existingCompanyUser = await client.userEmail.findFirst({
+      where: { email },
+      select: {
+        user: true,
+      },
+    });
+    console.log('🚀 ~ existingCompanyUser:', existingCompanyUser);
+
+    if (existingCompanyUser) return existingCompanyUser.user;
 
     const executeSetupUser = async (prisma: CompanyPrismaClient) => {
       const user = await prisma.user.create({

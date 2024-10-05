@@ -44,6 +44,18 @@ export const MapEmployeesOrderByToValue = {
   status: 'status',
 };
 
+export const MapEmploymentTypesOrderByToValue = {
+  title: 'title',
+  status: 'status',
+};
+
+export const MapRolesOrderByToValue = {
+  name: 'name',
+  code: 'code',
+  type: 'type',
+  status: 'status',
+};
+
 export enum EmployeeOrderColumns {
   Name = 'name',
   EmploymentType = 'employmentType',

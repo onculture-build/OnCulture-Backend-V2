@@ -9,6 +9,7 @@ import {
   UnprocessableEntityException,
   UploadedFile,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -24,17 +25,27 @@ import {
 import { DocumentUploadInterceptor } from '@@/common/interceptors/document.interceptor';
 import { UploadUserPhotoDto } from './dto/upload-user-photo.dto';
 import { ApiResponseMeta } from '@@/common/decorators/response.decorator';
+import { UserRolesService } from './user-roles/user-roles.service';
+import { PaginationSearchOptionsDto } from '@@/common/interfaces/pagination-search-options.dto';
 
-@ApiTags('User & Profile')
+@ApiTags('Users & Profile')
 @AuthStrategy(AuthStrategyType.JWT)
 @ApiBearerAuth()
 @Controller('user')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private userRolesService: UserRolesService,
+  ) {}
 
   @Get()
   async getUser(@Req() req: RequestWithUser) {
     return this.userService.getUser(req.user.userId);
+  }
+
+  @Get('roles')
+  async getUserRoles(@Query() dto: PaginationSearchOptionsDto) {
+    return this.userRolesService.getUserRoles(dto);
   }
 
   @ApiResponseMeta({ message: 'Profile picture updated successfully' })
