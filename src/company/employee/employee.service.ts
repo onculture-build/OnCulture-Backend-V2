@@ -251,7 +251,17 @@ export class EmployeeService extends CrudService<
       const employeeNo =
         dto.employeeNo ?? (await this.generateEmployeeNo(prisma));
 
-      const user = await this.userService.createUser(userInfo, req, prisma);
+      const employeeRole = await client.role.findUnique({
+        where: { code: 'employee' },
+      });
+
+      const roleId = userInfo.roleId ?? employeeRole?.id;
+
+      const user = await this.userService.createUser(
+        { ...userInfo, roleId },
+        req,
+        prisma,
+      );
 
       const existingEmployee = await prisma.employee.findFirst({
         where: { userId: user.id },
