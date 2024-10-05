@@ -21,6 +21,7 @@ import { CompanyUserQueueProducer } from '../queue/producer';
 import { MapEmployeesOrderByToValue } from '../interfaces';
 import { UploadUserPhotoDto } from '../user/dto/upload-user-photo.dto';
 import { FileService } from '@@/common/file/file.service';
+import { EmploymentTypesService } from './employment-types/employment-types.service';
 
 @Injectable()
 export class EmployeeService extends CrudService<
@@ -32,6 +33,7 @@ export class EmployeeService extends CrudService<
     private userService: UserService,
     private companyQueueProducer: CompanyUserQueueProducer,
     private fileService: FileService,
+    private employmentTypeService: EmploymentTypesService,
   ) {
     super(prismaClient.employee);
   }
@@ -40,7 +42,13 @@ export class EmployeeService extends CrudService<
     const [roles, departments, employmentTypes] = await Promise.all([
       this.getRoles(),
       this.getDepartments(),
-      this.getEmploymentTypes(),
+      this.employmentTypeService.findMany({
+        where: { status: true },
+        select: {
+          id: true,
+          title: true,
+        },
+      }),
     ]);
 
     return {
@@ -231,6 +239,7 @@ export class EmployeeService extends CrudService<
       jobRoleId,
       employmentType,
       employmentTypeId,
+      departmentCode,
       departmentId,
       ...dto
     }: CreateEmployeeDto,
@@ -238,13 +247,41 @@ export class EmployeeService extends CrudService<
     req?: RequestWithUser,
   ) {
     const client = prisma || this.prismaClient;
-    return client.$transaction(async (prisma: CompanyPrismaClient) => {
+    const executeCreateEmployee = async (prisma: CompanyPrismaClient) => {
       const employeeNo =
         dto.employeeNo ?? (await this.generateEmployeeNo(prisma));
 
-      const user = await this.userService.createUser(userInfo, req, client);
+      const user = await this.userService.createUser(userInfo, req, prisma);
 
-      const newEmployee = await client.employee.create({
+      const existingEmployee = await prisma.employee.findFirst({
+        where: { userId: user.id },
+      });
+
+      if (existingEmployee) {
+        const { employeeNo: _, ...employeeDto } = dto;
+        const obj = {
+          jobRole,
+          jobRoleId,
+          employmentType,
+          employmentTypeId,
+          departmentCode,
+          departmentId,
+          ...employeeDto,
+        };
+        return this.updateEmployee(existingEmployee.id, obj, req, prisma);
+      }
+
+      const department = departmentCode
+        ? await prisma.department.findUnique({
+            where: { code: departmentCode.toLowerCase() },
+          })
+        : departmentId
+          ? await prisma.department.findUnique({
+              where: { id: departmentId },
+            })
+          : null;
+
+      const newEmployee = await prisma.employee.create({
         data: {
           employeeNo,
           ...(employmentTypeId || employmentType
@@ -261,16 +298,24 @@ export class EmployeeService extends CrudService<
                   : { create: jobRole },
               }
             : {}),
-          ...(departmentId && {
-            departments: { connect: { id: departmentId } },
+          ...(department && {
+            departments: {
+              create: {
+                department: { connect: { id: department.id } },
+                status: true,
+                isDefault: true,
+              },
+            },
           }),
           status: EmployeeStatus.INACTIVE,
           user: { connect: { id: user.id } },
-          branch: { connect: { id: dto.branchId ?? req.user.branchId } },
+          ...((dto.branchId || req?.user?.branchId) && {
+            branch: { connect: { id: dto.branchId ?? req.user.branchId } },
+          }),
         },
       });
 
-      if (req && req.user.userId) {
+      if (req && req?.user?.userId) {
         const token = AppUtilities.encode(
           JSON.stringify({ email: userInfo.email }),
         );
@@ -283,7 +328,14 @@ export class EmployeeService extends CrudService<
       }
 
       return newEmployee;
-    });
+    };
+
+    return prisma
+      ? await executeCreateEmployee(prisma)
+      : await client.$transaction(
+          async (cPrisma: CompanyPrismaClient) =>
+            await executeCreateEmployee(cPrisma),
+        );
   }
 
   async updateEmployee(
@@ -291,6 +343,7 @@ export class EmployeeService extends CrudService<
     {
       branchId,
       departmentId,
+      departmentCode,
       employeeNo: _,
       employmentType,
       employmentTypeId,
@@ -299,44 +352,79 @@ export class EmployeeService extends CrudService<
       ...dto
     }: UpdateEmployeeDto,
     req: RequestWithUser,
+    prisma?: CompanyPrismaClient,
   ) {
-    const employee = await this.findFirst({
+    const client = prisma ?? this.prismaClient;
+    const employee = await client.employee.findFirst({
       where: { id },
     });
 
     if (!employee) throw new NotFoundException('Employee not found!');
 
-    return this.prismaClient.$transaction(
-      async (prisma: CompanyPrismaClient) => {
-        await this.userService.updateUser(employee.userId, dto, prisma, req);
+    const executeUpdateEmployee = async (prisma: CompanyPrismaClient) => {
+      await this.userService.updateUser(employee.userId, dto, prisma, req);
 
-        return prisma.employee.update({
-          where: { id },
-          data: {
-            ...(employmentTypeId || employmentType
-              ? {
-                  employmentType: employmentTypeId
-                    ? { connect: { id: employmentTypeId } }
-                    : { create: employmentType },
-                }
-              : {}),
-            ...(jobRoleId || jobRole
-              ? {
-                  jobRole: jobRoleId
-                    ? { connect: { id: jobRoleId } }
-                    : { create: jobRole },
-                }
-              : {}),
-            ...(departmentId && {
-              departments: { connect: { id: departmentId, isDefault: true } },
-            }),
-            ...(branchId && {
-              branch: { connect: { id: branchId || req.branchId } },
-            }),
-          },
-        });
-      },
-    );
+      const department = departmentCode
+        ? await prisma.department.findUnique({
+            where: { code: departmentCode.toLowerCase() },
+          })
+        : departmentId
+          ? await prisma.department.findUnique({
+              where: { id: departmentId },
+            })
+          : null;
+
+      return prisma.employee.update({
+        where: { id },
+        data: {
+          ...(employmentTypeId || employmentType
+            ? {
+                employmentType: employmentTypeId
+                  ? { connect: { id: employmentTypeId } }
+                  : { create: employmentType },
+              }
+            : {}),
+          ...(jobRoleId || jobRole
+            ? {
+                jobRole: jobRoleId
+                  ? { connect: { id: jobRoleId } }
+                  : { create: jobRole },
+              }
+            : {}),
+          ...(department && {
+            departments: {
+              upsert: {
+                where: {
+                  employeeId_departmentId: {
+                    employeeId: id,
+                    departmentId: department.id,
+                  },
+                },
+                create: {
+                  department: { connect: { id: department.id } },
+                  status: true,
+                  isDefault: true,
+                },
+                update: {
+                  status: true,
+                  isDefault: true,
+                },
+              },
+            },
+          }),
+          ...(branchId && {
+            branch: { connect: { id: branchId || req?.user?.branchId } },
+          }),
+        },
+      });
+    };
+
+    return prisma
+      ? await executeUpdateEmployee(prisma)
+      : await client.$transaction(
+          async (cPrisma: CompanyPrismaClient) =>
+            await executeUpdateEmployee(cPrisma),
+        );
   }
 
   async updateEmployeeProfilePicture(
@@ -466,16 +554,6 @@ export class EmployeeService extends CrudService<
       select: {
         id: true,
         name: true,
-      },
-    });
-  }
-
-  private async getEmploymentTypes() {
-    return this.prismaClient.employmentType.findMany({
-      where: { status: true },
-      select: {
-        id: true,
-        title: true,
       },
     });
   }

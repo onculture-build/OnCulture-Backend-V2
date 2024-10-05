@@ -115,6 +115,13 @@ enum IntegrationEnvironment {
     production
 }
 
+enum FileUploadStatus {
+    Pending
+    Processing
+    Completed
+    Failed
+}
+
 model Country {
     id             String          @id @default(uuid()) @db.Uuid
     name           String          @unique() @db.VarChar(50)
@@ -353,7 +360,7 @@ model Role {
     permissions     RolePermission[]
     menuPermissions RoleMenuPermission[]
 
-    @@map("role")
+    @@map("user_role")
 }
 
 model Permission {
@@ -497,7 +504,7 @@ model EmployeeDepartment {
     department   Department @relation(fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     employee     Employee   @relation(fields: [employeeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-    @@index([employeeId, departmentId])
+    @@unique([employeeId, departmentId])
     @@map("employee_department")
 }
 
@@ -565,7 +572,7 @@ model CompanyBranch {
 model Department {
     id          String               @id @default(uuid()) @db.Uuid
     name        String               @unique @db.VarChar
-    code        String?              @unique @db.VarChar(50)
+    code        String               @unique @db.VarChar(50)
     alias       String?              @unique @db.VarChar(100)
     description String?              @db.VarChar(255)
     managerId   String?              @db.Uuid
@@ -577,7 +584,7 @@ model Department {
     employees   EmployeeDepartment[]
     manager     DepartmentManager?   @relation(fields: [managerId], references: [id])
 
-    @@map("deparment")
+    @@map("department")
 }
 
 model DepartmentManager {
@@ -608,8 +615,24 @@ model File {
     updatedBy         String?        @db.Uuid
     employeeDocuments EmployeeFile[]
     user              User?
+    uploads           FileUpload[]
 
     @@map("file")
+}
+
+model FileUpload {
+    id            String           @id @default(uuid()) @db.Uuid
+    fileId        String           @db.Uuid
+    status        FileUploadStatus @default(Pending)
+    uploadResult  Json?            @db.JsonB
+    statusMessage String?          @db.VarChar
+    createdAt     DateTime         @default(now()) @db.Timestamptz(6)
+    createdBy     String?          @db.Uuid
+    updatedAt     DateTime         @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy     String?          @db.Uuid
+    file          File             @relation(fields: [fileId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+    @@map("file_upload")
 }
 
 model EmployeeFile {

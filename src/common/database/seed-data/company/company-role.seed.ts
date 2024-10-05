@@ -20,6 +20,24 @@ const roles = [
     // menuPermissions: [],
     // schemaPermissions: [],
   },
+  {
+    name: 'Team Lead',
+    description:
+      'This is the role assigned to anyone with access to limited administrative privileges on the system.',
+    code: 'team-lead',
+    type: RoleType.System,
+    // menuPermissions: [],
+    // schemaPermissions: [],
+  },
+  {
+    name: 'Employee',
+    description:
+      'This is the role assigned to anyone without access to the Admin module which grants the rights to administer the system.',
+    code: 'employee',
+    type: RoleType.System,
+    // menuPermissions: [],
+    // schemaPermissions: [],
+  },
 ];
 
 faker.seed(11224);
