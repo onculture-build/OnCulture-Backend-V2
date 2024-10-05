@@ -360,7 +360,7 @@ model Role {
     permissions     RolePermission[]
     menuPermissions RoleMenuPermission[]
 
-    @@map("role")
+    @@map("user_role")
 }
 
 model Permission {
