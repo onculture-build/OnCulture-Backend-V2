@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -150,17 +151,22 @@ export class IntegrationsService extends CrudService<
       source,
     });
     const config = config_meta as Prisma.JsonObject
-    console.log(config?.slackAccessToken, "O BOY!!!!")
+    if (!config) {
+      throw new BadRequestException("config not found")
+    }
     return await provider.getMembers(config);
   }
 
   public async getAllGroups(
-    integration_type: IntegrationProviders,
+    source: IntegrationProviders,
   ): Promise<ProviderGroup[]> {
-    const provider = this.getIntegrationProvider(integration_type);
+    const provider = this.getIntegrationProvider(source);
     const { config_meta } = await this.getIntegrationConfig({
-      integration_type,
+      source,
     });
+    if (!config_meta) {
+      throw new BadRequestException("config not found")
+    }
     return await provider.getGroups(config_meta as ProviderConfig);
   }
 
@@ -172,6 +178,9 @@ export class IntegrationsService extends CrudService<
     const { config_meta } = await this.getIntegrationConfig({
       integration_type,
     });
+    if (!config_meta) {
+      throw new BadRequestException("config not found")
+    }
     return await provider.groupMembers(config_meta as ProviderConfig, groupId);
   }
 }

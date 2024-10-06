@@ -61,18 +61,16 @@ export class SlackProvider extends BaseIntegrationProvider<WebClient> {
     const webClientAgent = await this.connect(config);
     try {
       const res = await webClientAgent.users.list({});
-      console.log(res,"THE RES")
       return res.members.map((member) => {
         return {
           email: member?.profile?.email,
           firstName: member?.profile?.real_name,
-          image: member?.profile?.image_original,
+          image: member?.profile?.image_48,
           id: member?.id,
           lastName: member?.profile?.last_name,
         };
-      });
+      }).filter((item)=> item.email);
     } catch (error) {
-      console.log(error)
       throw new UnprocessableEntityException(error);
     }
   }
@@ -109,7 +107,7 @@ export class SlackProvider extends BaseIntegrationProvider<WebClient> {
           id: userInfo.user.id,
           email: userInfo.user.profile.email,
           firstName: userInfo.user.profile.real_name,
-          image: userInfo.user.profile.image_original,
+          image: userInfo.user.profile.image_48,
           lastName: userInfo.user.profile.last_name,
         })),
       );

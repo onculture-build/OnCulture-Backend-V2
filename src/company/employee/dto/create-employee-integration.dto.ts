@@ -36,4 +36,8 @@ export class IntegrationMemberDto {
   @ValidateNested({ each: true })
   @Type(() => CreateEmployeeIntegrationDto)
   data: CreateEmployeeIntegrationDto[];
+
+  @IsString()
+  @IsNotEmpty()
+  code:string
 }

@@ -33,7 +33,6 @@ export class CompanyUserQueueConsumer extends BaseQueueProcessor {
   async createEmployeeFromIntegration({
     data,
   }: Job<CreateEmployeeIntegration>) {
-    const { dto, companyId, code } = data;
-    this.employeeService.createEmployeesFromIntegration(dto, companyId, code);
+    this.employeeService.createEmployeesFromIntegration(data);
   }
 }

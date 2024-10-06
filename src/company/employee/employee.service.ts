@@ -18,7 +18,7 @@ import { RequestWithUser } from '@@/auth/interfaces';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { EmployeeStatus } from '@@/common/enums';
 import { CompanyUserQueueProducer } from '../queue/producer';
-import { MapEmployeesOrderByToValue } from '../interfaces';
+import { CreateEmployeeIntegration, MapEmployeesOrderByToValue } from '../interfaces';
 import { UploadUserPhotoDto } from '../user/dto/upload-user-photo.dto';
 import { FileService } from '@@/common/file/file.service';
 import { IntegrationMemberDto } from './dto/create-employee-integration.dto';
@@ -486,22 +486,23 @@ export class EmployeeService extends CrudService<
   }
 
   async createEmployeesFromIntegration(
-    payload: IntegrationMemberDto,
-    companyId: string,
-    code: string,
+    payload: CreateEmployeeIntegration
   ) {
+    const { dto, branchId, companyId, code } = payload
     const employeeData: CreateEmployeeDto[] = [];
-    for (const member of payload.data) {
+    for (const member of dto.data) {
       employeeData.push({
         userInfo: {
           firstName: member?.firstName,
           email: member?.email,
           lastName: member?.lastName,
         },
+        branchId
       });
     }
     const client = this.prismaClientManager.getCompanyPrismaClient(companyId);
     return client.$transaction(async (prisma: CompanyPrismaClient) => {
+      const results = []
       for (const employee of employeeData) {
         const {
           userInfo,
@@ -520,60 +521,67 @@ export class EmployeeService extends CrudService<
           client,
         );
 
-        const newEmployee = await client.employee.create({
-          data: {
-            employeeNo,
-            ...(employmentTypeId || employmentType
-              ? {
+        if (user) {
+          const newEmployee = await client.employee.create({
+            data: {
+              employeeNo,
+              ...(employmentTypeId || employmentType
+                ? {
                   employmentType: employmentTypeId
                     ? { connect: { id: employmentTypeId } }
                     : { create: employmentType },
                 }
-              : {}),
-            ...(jobRoleId || jobRole
-              ? {
+                : {}),
+              ...(jobRoleId || jobRole
+                ? {
                   jobRole: jobRoleId
                     ? { connect: { id: jobRoleId } }
                     : { create: jobRole },
                 }
-              : {}),
-            ...(departmentId && {
-              departments: { connect: { id: departmentId } },
-            }),
-            status: EmployeeStatus.INACTIVE,
-            user: { connect: { id: user.id } },
-            branch: { connect: { id: employee.branchId } },
-          },
-        });
+                : {}),
+              ...(departmentId && {
+                departments: { connect: { id: departmentId } },
+              }),
+              status: EmployeeStatus.INACTIVE,
+              user: { connect: { id: user.id } },
+              branch: { connect: { id: branchId } },
+            },
+          });
 
-        const token = AppUtilities.encode(
-          JSON.stringify({ email: userInfo.email }),
-        );
+          const token = AppUtilities.encode(
+            JSON.stringify({ email: userInfo.email }),
+          );
 
-        this.companyQueueProducer.sendEmployeeSetupEmail({
-          code,
-          dto: { email: userInfo.email, ...userInfo },
-          token,
-        });
+          this.companyQueueProducer.sendEmployeeSetupEmail({
+            code,
+            dto: { email: userInfo.email, ...userInfo },
+            token,
+          });
 
-        return newEmployee;
+           results.push(newEmployee);
+        }
+        
       }
+
+      return results
     });
   }
 
   async enqueueEmployeeCreation(
     payload: IntegrationMemberDto,
-    req: RequestWithUser,
+    req:RequestWithUser
   ) {
+    const {code}  = payload
     const company = await this.basePrismaCLient.baseCompany.findUnique({
       where: {
-        code: req['company'],
+        code: payload['code'],
       },
     });
     return await this.companyQueueProducer.inviteEmployeeToCompany({
       dto: payload,
       companyId: company?.id,
-      code: req['company'],
+      code,
+      branchId: req?.user?.branchId
     });
   }
 }

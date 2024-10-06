@@ -18,6 +18,7 @@ export interface CreateEmployeeIntegration {
   dto: IntegrationMemberDto;
   companyId: string;
   code: string;
+  branchId: string;
 }
 
 export enum UsersOrderColumns {

@@ -57,7 +57,7 @@ export class EmployeeController {
   @Post('create/integration')
   async createEmloyeesFromIntegrations(
     @Body() dto: IntegrationMemberDto,
-    @Req() req: RequestWithUser,
+    @Req() req:RequestWithUser
   ) {
     return this.employeeService.enqueueEmployeeCreation(dto, req);
   }
