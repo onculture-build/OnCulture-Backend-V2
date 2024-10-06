@@ -1,11 +1,13 @@
 import { UserInfoDto } from '@@/auth/dto/user-info.dto';
 import { IntegrationMemberDto } from '../employee/dto/create-employee-integration.dto';
+import { CreateEmployeeDto } from '../employee/dto/create-employee.dto';
 
 export const QUEUE = 'onculture:company:';
 
 export enum JOBS {
   SEND_EMPLOYEE_SETUP_EMAIL = 'sendEmployeeSetupEmail',
   CREATE_EMPLOYEES_BULK = 'createEmployeeBulk',
+  PROCESS_EMPLOYEE_CSV_UPLOAD = 'processEmployeeCsvUpload',
 }
 
 export interface ISendEmployeeSetupEmail {
@@ -20,6 +22,14 @@ export interface CreateEmployeeIntegration {
   code: string;
   branchId: string;
 }
+
+export interface IProcessEmployeeCsvUpload {
+  uploadId: string;
+  companyId: string;
+  records: any[];
+}
+
+export interface IEmployeeCsvRecord extends CreateEmployeeDto {}
 
 export enum UsersOrderColumns {
   Name = 'name',
@@ -43,6 +53,18 @@ export const MapEmployeesOrderByToValue = {
   status: 'status',
 };
 
+export const MapEmploymentTypesOrderByToValue = {
+  title: 'title',
+  status: 'status',
+};
+
+export const MapRolesOrderByToValue = {
+  name: 'name',
+  code: 'code',
+  type: 'type',
+  status: 'status',
+};
+
 export enum EmployeeOrderColumns {
   Name = 'name',
   EmploymentType = 'employmentType',
@@ -54,4 +76,11 @@ export interface IntegrationQuery {
   version?: string;
   environment?: string;
   source?: string;
+}
+
+export enum FileUploadStatus {
+  Pending = 'Pending',
+  Processing = 'Processing',
+  Completed = 'Completed',
+  Failed = 'Failed',
 }

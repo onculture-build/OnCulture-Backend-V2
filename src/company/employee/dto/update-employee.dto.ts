@@ -1,4 +1,4 @@
-import { PartialType } from '@nestjs/swagger';
+import { ApiHideProperty, PartialType } from '@nestjs/swagger';
 import { UpdateUserDto } from '@@/company/user/dto/update-user.dto';
 import { Type } from 'class-transformer';
 import {
@@ -20,6 +20,11 @@ export class UpdateEmployeeDto extends PartialType(UpdateUserDto) {
   @IsUUID()
   @IsOptional()
   departmentId?: string;
+
+  @ApiHideProperty()
+  @IsString()
+  @IsOptional()
+  departmentCode?: string;
 
   @IsUUID()
   @IsOptional()

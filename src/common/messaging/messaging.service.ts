@@ -170,7 +170,7 @@ export class MessagingService {
     }
     const config = await this.getAppEmailConfig();
     const passwordURL = new URL(
-      `https://${code}.${process.env.APP_CLIENT_URL}/set-password?token=${token}`,
+      `https://${code}.${process.env.APP_CLIENT_URL}/set-password?token=${token}&fn=${firstName}`,
     );
 
     const emailBuilder = new EmailBuilder()

@@ -33,18 +33,29 @@ import {
 import { DocumentUploadInterceptor } from '@@/common/interceptors/document.interceptor';
 import { UploadUserPhotoDto } from '../user/dto/upload-user-photo.dto';
 import { IntegrationMemberDto } from './dto/create-employee-integration.dto';
+import { PaginationSearchOptionsDto } from '@@/common/interfaces/pagination-search-options.dto';
+import { EmploymentTypesService } from './employment-types/employment-types.service';
 
 @ApiTags('Employees')
 @AuthStrategy(AuthStrategyType.JWT)
 @ApiBearerAuth()
 @Controller('employees')
 export class EmployeeController {
-  constructor(private employeeService: EmployeeService) {}
+  constructor(
+    private employeeService: EmployeeService,
+    private employmentTypeService: EmploymentTypesService,
+  ) {}
 
   @ApiOperation({ summary: 'Get filter fields for employees' })
   @Get('filters')
   async getEmployeeFilterFields() {
     return this.employeeService.getEmployeeFilterFields();
+  }
+
+  @ApiOperation({ summary: 'Get employment types' })
+  @Get('employment-types')
+  async getEmploymentTypes(@Query() dto: PaginationSearchOptionsDto) {
+    return this.employmentTypeService.getEmploymentTypes(dto);
   }
 
   @ApiOperation({ summary: 'Get all company employees' })

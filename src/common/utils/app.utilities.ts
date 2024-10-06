@@ -13,6 +13,7 @@ import { GeneratePdfOptions } from '../interfaces';
 import puppeteer from 'puppeteer';
 import { customAlphabet } from 'nanoid';
 import * as _ from 'lodash';
+import 'reflect-metadata';
 
 const CUSTOM_CHARS =
   '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -61,6 +62,40 @@ export class AppUtilities {
     );
 
     return password.join('');
+  }
+
+  public static convertEnumToObject(enumData: any) {
+    return Object.entries(enumData).map(([key, value]) => ({
+      label: value as string,
+      value: key,
+    }));
+  }
+
+  private static removeIdSuffix(key: string, suffix = 'Id'): string {
+    const val = key.endsWith(suffix) ? key.slice(0, -suffix.length) : key;
+
+    return val.trim();
+  }
+
+  public static async streamToBuffer(stream: ReadableStream): Promise<Buffer> {
+    const reader = stream.getReader();
+    const chunks = [];
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+
+    return Buffer.concat(chunks);
+  }
+
+  public static toCamelCase(str: string) {
+    str = str.toLowerCase().trim();
+    str = str.replace(/[\s_]+/g, '-');
+    return str.replace(/(^|-)([a-z])/g, (_, separator, letter, index) =>
+      index === 0 ? letter : letter.toUpperCase(),
+    );
   }
 
   public static unflatten = (flattedObject: any) => {
@@ -168,6 +203,31 @@ export class AppUtilities {
     }
 
     return data;
+  }
+
+  public static transformObject(
+    sourceObject: Record<string, any>,
+    mappings: Record<string, any>,
+  ): Record<string, any> {
+    const transformedObject = {};
+
+    Object.keys(mappings).forEach((key) => {
+      const value = mappings[key];
+
+      if (typeof value === 'object' && !Array.isArray(value)) {
+        const nestedTransformed = AppUtilities.transformObject(
+          sourceObject,
+          value,
+        );
+        if (Object.keys(nestedTransformed).length > 0) {
+          transformedObject[key] = nestedTransformed;
+        }
+      } else if (sourceObject.hasOwnProperty(value)) {
+        transformedObject[key] = sourceObject[value];
+      }
+    });
+
+    return transformedObject;
   }
 
   public static requestErrorHandler = (response: any = {}) => {
