@@ -11,13 +11,13 @@ import { IntegrationQuery } from '../interfaces';
 import { IntegrationProviders } from '../../common/third-party/interfaces';
 
 @ApiTags('Integrations')
-@ApiBearerAuth()
+  @ApiBearerAuth()
+@AuthStrategy(AuthStrategyType.JWT)
 @Controller('integrations')
 export class IntegrationsController {
   constructor(private readonly integrationsService: IntegrationsService) {}
 
   @ApiOperation({ summary: 'Integrate third party service' })
-  @AuthStrategy(AuthStrategyType.JWT)
   @Post('/init')
   async initIntegration(
     @Body() body: InitIntegrationDto,
@@ -41,21 +41,18 @@ export class IntegrationsController {
   }
 
   @ApiOperation({ summary: 'fetch integrations' })
-  @AuthStrategy(AuthStrategyType.JWT)
   @Get('/')
   async getAllIntegrations(@Query() query: IntegrationQuery) {
     return await this.integrationsService.getAllIntegrations(query);
   }
 
   @ApiOperation({ summary: 'fetch memebers from workspace,group,teams' })
-  @AuthStrategy(AuthStrategyType.JWT)
   @Get('/member')
   async getAllMembers(@Query('type') type: IntegrationProviders) {
     return await this.integrationsService.getAllMembers(type);
   }
 
   @ApiOperation({ summary: 'fetch all groups' })
-  @AuthStrategy(AuthStrategyType.JWT)
   @Get('/groups')
   async getAllGroups(@Query('type') type: IntegrationProviders) {
     return await this.integrationsService.getAllGroups(type);
