@@ -109,7 +109,7 @@ export class IntegrationsService extends CrudService<
       );
     } finally {
       const getBaseClient = this.config.get<string>('app.clientUrl');
-      return `https://${payload?.companyCode}.${getBaseClient}/account/integration?type=${integration_type}&success=${result}`;
+      return `https://${payload?.companyCode}.${getBaseClient}/account/integrations?type=${integration_type}&success=${result}`;
     }
   }
 
