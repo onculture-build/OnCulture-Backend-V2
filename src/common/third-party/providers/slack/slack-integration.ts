@@ -56,7 +56,6 @@ export class SlackProvider extends BaseIntegrationProvider<WebClient> {
   }
 
   async getMembers(config: SlackConfig) {
-    console.log(config,config.slackAccessToken,"POLO")
     const webClientAgent = await this.connect(config);
     try {
       const res = await webClientAgent.users.list({});
