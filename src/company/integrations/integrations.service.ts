@@ -81,27 +81,27 @@ export class IntegrationsService extends CrudService<
         result = true;
       }
 
-      const maxAge = 24 * 60 * 60 * 1000;
-      const accessToken = this.jwtService.sign(
-        {
-          userId: payload.userId,
-          branchId: payload.branchId,
-          employeeId: payload?.employeeId,
-          createdAt: moment().format(),
-        },
-        {
-          secret: this.configService.get('jwt.secret'),
-          expiresIn: maxAge,
-        },
-      );
+      // const maxAge = 24 * 60 * 60 * 1000;
+      // const accessToken = this.jwtService.sign(
+      //   {
+      //     userId: payload.userId,
+      //     branchId: payload.branchId,
+      //     employeeId: payload?.employeeId,
+      //     createdAt: moment().format(),
+      //   },
+      //   {
+      //     secret: this.configService.get('jwt.secret'),
+      //     expiresIn: maxAge,
+      //   },
+      // );
 
-      response.cookie('access_token', accessToken, {
-        httpOnly: true,
-        secure: this.configService.get('app.stage') === 'prod',
-        maxAge: maxAge,
-        expires: new Date(new Date().getTime() + maxAge),
-        sameSite: 'none',
-      });
+      // response.cookie('access_token', accessToken, {
+      //   httpOnly: true,
+      //   secure: this.configService.get('app.stage') === 'prod',
+      //   maxAge: maxAge,
+      //   expires: new Date(new Date().getTime() + maxAge),
+      //   sameSite: 'none',
+      // });
     } catch (error) {
       result = false;
       throw new UnprocessableEntityException(
