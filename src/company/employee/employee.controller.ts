@@ -32,6 +32,7 @@ import {
 } from '@@/common/constants';
 import { DocumentUploadInterceptor } from '@@/common/interceptors/document.interceptor';
 import { UploadUserPhotoDto } from '../user/dto/upload-user-photo.dto';
+import { IntegrationMemberDto } from './dto/create-employee-integration.dto';
 import { PaginationSearchOptionsDto } from '@@/common/interfaces/pagination-search-options.dto';
 import { EmploymentTypesService } from './employment-types/employment-types.service';
 
@@ -61,6 +62,15 @@ export class EmployeeController {
   @Get()
   async getAllEmployees(@Query() dto: GetEmployeesDto) {
     return this.employeeService.getAllEmployees(dto);
+  }
+
+  @ApiOperation({ summary: 'Create Employees from integration Provider' })
+  @Post('create/integration')
+  async createEmloyeesFromIntegrations(
+    @Body() dto: IntegrationMemberDto,
+    @Req() req:RequestWithUser
+  ) {
+    return this.employeeService.enqueueEmployeeCreation(dto, req);
   }
 
   @ApiOperation({ summary: 'Get an employee' })

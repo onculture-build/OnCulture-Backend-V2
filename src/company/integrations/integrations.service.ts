@@ -1,11 +1,17 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { SlackProvider } from '../../common/third-party/providers/slack/slack-integration';
 import { BaseIntegrationProvider } from '../../common/third-party/providers/base-integration';
-import { IntegrationProviders } from '../../common/third-party/interfaces';
+import {
+  IntegrationProviders,
+  ProviderConfig,
+  ProviderGroup,
+  ProviderMember,
+} from '../../common/third-party/interfaces';
 import { CrudService } from '../../common/database/crud.service';
 import { IntegrationMapType } from './integrations.maptype';
 import { Prisma, PrismaClient } from '.prisma/company';
@@ -66,7 +72,7 @@ export class IntegrationsService extends CrudService<
       if (config) {
         await this.companyPrismaClient.integrationsConfig.create({
           data: {
-            config_meta: JSON.stringify(config),
+            config_meta: config as Prisma.JsonObject,
             source: integration_type,
             environment: env,
             createdBy: payload?.user?.userId,
@@ -107,6 +113,13 @@ export class IntegrationsService extends CrudService<
     }
   }
 
+  async getIntegrationConfig(queryParam: IntegrationQuery) {
+    const query = buildIntegrationQuery(queryParam);
+    return await this.companyPrismaClient.integrationsConfig.findFirst({
+      where: query,
+    });
+  }
+
   public handleIntegrationRequest(
     integration_type: IntegrationProviders,
     payload: Record<string, any>,
@@ -128,5 +141,46 @@ export class IntegrationsService extends CrudService<
         environment: true,
       },
     });
+  }
+
+  public async getAllMembers(
+    source: IntegrationProviders,
+  ): Promise<ProviderMember[]> {
+    const provider = this.getIntegrationProvider(source);
+    const { config_meta } = await this.getIntegrationConfig({
+      source,
+    });
+    const config = config_meta as Prisma.JsonObject
+    if (!config) {
+      throw new BadRequestException("config not found")
+    }
+    return await provider.getMembers(config);
+  }
+
+  public async getAllGroups(
+    source: IntegrationProviders,
+  ): Promise<ProviderGroup[]> {
+    const provider = this.getIntegrationProvider(source);
+    const { config_meta } = await this.getIntegrationConfig({
+      source,
+    });
+    if (!config_meta) {
+      throw new BadRequestException("config not found")
+    }
+    return await provider.getGroups(config_meta as ProviderConfig);
+  }
+
+  public async getMembersOfGroup(
+    integration_type: IntegrationProviders,
+    groupId: string,
+  ): Promise<ProviderMember[]> {
+    const provider = this.getIntegrationProvider(integration_type);
+    const { config_meta } = await this.getIntegrationConfig({
+      integration_type,
+    });
+    if (!config_meta) {
+      throw new BadRequestException("config not found")
+    }
+    return await provider.groupMembers(config_meta as ProviderConfig, groupId);
   }
 }

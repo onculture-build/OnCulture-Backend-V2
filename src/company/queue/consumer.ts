@@ -2,6 +2,7 @@ import { BaseQueueProcessor } from '@@common/interfaces/base-queue';
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import {
+  CreateEmployeeIntegration,
   FileUploadStatus,
   IProcessEmployeeCsvUpload,
   ISendEmployeeSetupEmail,
@@ -19,10 +20,10 @@ export class CompanyUserQueueConsumer extends BaseQueueProcessor {
   protected logger: Logger;
 
   constructor(
-    private prismaClient: PrismaClient,
-    private prismaClientManager: PrismaClientManager,
-    private employeeService: EmployeeService,
     private messagingService: MessagingService,
+    private employeeService: EmployeeService,
+    private prismaClient: PrismaClient,
+    private prismaClientManager: PrismaClientManager
   ) {
     super();
     this.logger = new Logger('CompanyQueueConsumer');
@@ -82,5 +83,12 @@ export class CompanyUserQueueConsumer extends BaseQueueProcessor {
   async sendEmployeeSetupEmail({ data }: Job<ISendEmployeeSetupEmail>) {
     const { code, dto, token } = data;
     this.messagingService.sendUserSetupEmail(code, dto, token);
+  }
+
+  @Process({ name: JOBS.CREATE_EMPLOYEES_BULK })
+  async createEmployeeFromIntegration({
+    data,
+  }: Job<CreateEmployeeIntegration>) {
+    this.employeeService.createEmployeesFromIntegration(data);
   }
 }

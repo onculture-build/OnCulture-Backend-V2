@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Req, Query, Res } from '@nestjs/common';
+import { Controller, Get, Req, Query, Res, Body, Post } from '@nestjs/common';
 import { IntegrationsService } from './integrations.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthStrategy } from '../../common/decorators/strategy.decorator';
@@ -8,26 +8,23 @@ import { FinishIntegrationDto } from './dto/finish-integration.dto';
 import { AppUtilities } from '../../common/utils/app.utilities';
 import { response, Response } from 'express';
 import { IntegrationQuery } from '../interfaces';
+import { IntegrationProviders } from '../../common/third-party/interfaces';
 
 @ApiTags('Integrations')
-@ApiBearerAuth()
+  @ApiBearerAuth()
+@AuthStrategy(AuthStrategyType.JWT)
 @Controller('integrations')
 export class IntegrationsController {
   constructor(private readonly integrationsService: IntegrationsService) {}
 
   @ApiOperation({ summary: 'Integrate third party service' })
-  @AuthStrategy(AuthStrategyType.JWT)
-  @Get(':type/init')
+  @Post('/init')
   async initIntegration(
-    @Param() params: InitIntegrationDto,
-    @Query() query: { code: string },
+    @Body() body: InitIntegrationDto,
     @Req() req: RequestWithUser,
   ) {
-    const data = { ...req.user, type: params?.type, companyCode: query?.code };
-    return this.integrationsService.handleIntegrationRequest(
-      params?.type,
-      data,
-    );
+    const data = { ...req.user, ...body };
+    return this.integrationsService.handleIntegrationRequest(body?.type, data);
   }
 
   @ApiOperation({ summary: 'Integrate third party service' })
@@ -44,9 +41,20 @@ export class IntegrationsController {
   }
 
   @ApiOperation({ summary: 'fetch integrations' })
-  @AuthStrategy(AuthStrategyType.JWT)
   @Get('/')
   async getAllIntegrations(@Query() query: IntegrationQuery) {
     return await this.integrationsService.getAllIntegrations(query);
+  }
+
+  @ApiOperation({ summary: 'fetch memebers from workspace,group,teams' })
+  @Get('/member')
+  async getAllMembers(@Query('type') type: IntegrationProviders) {
+    return await this.integrationsService.getAllMembers(type);
+  }
+
+  @ApiOperation({ summary: 'fetch all groups' })
+  @Get('/groups')
+  async getAllGroups(@Query('type') type: IntegrationProviders) {
+    return await this.integrationsService.getAllGroups(type);
   }
 }

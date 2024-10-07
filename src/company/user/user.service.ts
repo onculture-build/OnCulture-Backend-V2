@@ -218,6 +218,7 @@ export class UserService extends CrudService<
     if (existingCompanyUser) return existingCompanyUser.user;
 
     const executeSetupUser = async (prisma: CompanyPrismaClient) => {
+      try {
       const user = await prisma.user.create({
         data: {
           ...restUserInfo,
@@ -231,8 +232,12 @@ export class UserService extends CrudService<
           ...(roleId && { role: { connect: { id: roleId } } }),
         },
       });
+        return user;
+      } catch (error) {
+        return 
+      }
 
-      return user;
+     
     };
 
     return prisma

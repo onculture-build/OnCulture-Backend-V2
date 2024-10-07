@@ -24,3 +24,16 @@ export interface ProviderConfig {
   botId?: string;
   name?: string;
 }
+
+export interface ProviderMember {
+  email: string;
+  firstName: string;
+  image: string;
+  id: string;
+  lastName: string;
+}
+
+export interface ProviderGroup {
+  id: string;
+  name: string;
+}

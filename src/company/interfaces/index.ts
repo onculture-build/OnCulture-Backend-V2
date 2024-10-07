@@ -1,10 +1,12 @@
 import { UserInfoDto } from '@@/auth/dto/user-info.dto';
+import { IntegrationMemberDto } from '../employee/dto/create-employee-integration.dto';
 import { CreateEmployeeDto } from '../employee/dto/create-employee.dto';
 
 export const QUEUE = 'onculture:company:';
 
 export enum JOBS {
   SEND_EMPLOYEE_SETUP_EMAIL = 'sendEmployeeSetupEmail',
+  CREATE_EMPLOYEES_BULK = 'createEmployeeBulk',
   PROCESS_EMPLOYEE_CSV_UPLOAD = 'processEmployeeCsvUpload',
 }
 
@@ -12,6 +14,13 @@ export interface ISendEmployeeSetupEmail {
   code: string;
   dto: UserInfoDto;
   token: string;
+}
+
+export interface CreateEmployeeIntegration {
+  dto: IntegrationMemberDto;
+  companyId: string;
+  code: string;
+  branchId: string;
 }
 
 export interface IProcessEmployeeCsvUpload {
