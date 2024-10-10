@@ -1,4 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Prisma as CompanyPrisma,
+  PrismaClient as CompanyPrismaClient,
+} from '@@prisma/company';
+import { CrudService } from '@@/common/database/crud.service';
+import { EmployeeJobTimelineMapType } from './job-timeline.maptype';
+import { CreateJobTimelineDto } from './dto/create-timeline.dto';
+import { UpdateTimelineDto } from './dto/update-timeline.dto';
+import { RequestWithUser } from '@@/auth/interfaces';
 
 @Injectable()
-export class JobTimelineService {}
+export class JobTimelineService extends CrudService<
+  CompanyPrisma.EmployeeJobTimelineDelegate,
+  EmployeeJobTimelineMapType
+> {
+  constructor(private prismaClient: CompanyPrismaClient) {
+    super(prismaClient.employeeJobTimeline);
+  }
+
+  async getAllTimelines() {
+    return this.findMany({});
+  }
+
+  async createTimeline(dto: CreateJobTimelineDto, req: RequestWithUser) {
+    const args: CompanyPrisma.EmployeeJobTimelineCreateArgs = {
+      data: { ...dto, createdBy: req.user.userId },
+    };
+
+    return this.create(args);
+  }
+
+  async updateTimeline(
+    id: string,
+    { employeeId: _, ...dto }: UpdateTimelineDto,
+    req: RequestWithUser,
+  ) {
+    const timeline = await this.findUnique({ where: { id } });
+
+    if (!timeline) throw new NotFoundException('Job timeline not found!');
+
+    return this.update({
+      where: { id },
+      data: { ...dto, updatedBy: req.user.userId },
+    });
+  }
+}
