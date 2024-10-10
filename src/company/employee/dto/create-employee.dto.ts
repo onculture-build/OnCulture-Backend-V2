@@ -1,4 +1,5 @@
 import {
+  IsDateString,
   IsObject,
   IsOptional,
   IsString,
@@ -11,6 +12,7 @@ import { Type } from 'class-transformer';
 import { SetupUserDto } from '@@/company/user/dto/setup-user.dto';
 import { CreateEmploymentTypeDto } from './create-employee-type.dto';
 import { ApiHideProperty } from '@nestjs/swagger';
+import { CreateJobLevelDto } from '../job-level/dto/create-job-level.dto';
 
 export class CreateEmployeeDto extends SetupUserDto {
   @IsString()
@@ -50,4 +52,23 @@ export class CreateEmployeeDto extends SetupUserDto {
   @ValidateNested()
   @Type(() => CreateJobRoleDto)
   jobRole?: CreateJobRoleDto;
+
+  @IsUUID()
+  @IsOptional()
+  @ValidateIf((obj) => !obj.jobLevel)
+  jobLevelId?: string;
+
+  @IsObject()
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateJobLevelDto)
+  jobLevel?: CreateJobLevelDto;
+
+  @IsDateString()
+  @IsOptional()
+  joinDate?: Date;
+
+  @IsDateString()
+  @IsOptional()
+  exitDate?: Date;
 }

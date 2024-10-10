@@ -50,11 +50,8 @@ export class UserService extends CrudService<
       include: {
         employee: {
           include: {
-            jobRole: {
-              include: {
-                level: true,
-              },
-            },
+            jobRole: true,
+            level: true,
             departments: {
               include: {
                 department: true,
@@ -219,25 +216,25 @@ export class UserService extends CrudService<
 
     const executeSetupUser = async (prisma: CompanyPrismaClient) => {
       try {
-      const user = await prisma.user.create({
-        data: {
-          ...restUserInfo,
-          ...(authUser && { createdBy: authUser.user.userId }),
-          ...(email && {
-            emails: { create: { email: email.toLowerCase(), isPrimary: true } },
-          }),
-          ...(phone && { phones: { create: { phone, isPrimary: true } } }),
-          ...(stateId && { state: { connect: { id: stateId } } }),
-          ...(countryId && { country: { connect: { id: countryId } } }),
-          ...(roleId && { role: { connect: { id: roleId } } }),
-        },
-      });
+        const user = await prisma.user.create({
+          data: {
+            ...restUserInfo,
+            ...(authUser && { createdBy: authUser.user.userId }),
+            ...(email && {
+              emails: {
+                create: { email: email.toLowerCase(), isPrimary: true },
+              },
+            }),
+            ...(phone && { phones: { create: { phone, isPrimary: true } } }),
+            ...(stateId && { state: { connect: { id: stateId } } }),
+            ...(countryId && { country: { connect: { id: countryId } } }),
+            ...(roleId && { role: { connect: { id: roleId } } }),
+          },
+        });
         return user;
       } catch (error) {
-        return 
+        return;
       }
-
-     
     };
 
     return prisma

@@ -1,6 +1,15 @@
 import { AuthStrategyType, RequestWithUser } from '@@/auth/interfaces';
 import { AuthStrategy } from '@@/common/decorators/strategy.decorator';
-import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Req,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JobTimelineService } from './job-timeline.service';
 import { CreateJobTimelineDto } from './dto/create-timeline.dto';
@@ -17,6 +26,12 @@ export class JobTimelineController {
   @Get()
   async getAllEmployeesTimeline() {
     return this.timelineService.getAllTimelines;
+  }
+
+  @ApiOperation({ summary: 'Get a timeline' })
+  @Get(':timelineId')
+  async getTimeline(@Param('timelineId', ParseUUIDPipe) timelineId: string) {
+    return this.timelineService.getTimeline(timelineId);
   }
 
   @ApiOperation({ summary: 'Create a timeline record for an employee' })

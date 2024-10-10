@@ -64,11 +64,20 @@ export class EmployeeController {
     return this.employeeService.getAllEmployees(dto);
   }
 
+  @ApiOperation({ summary: 'Get all company employees' })
+  @Get(':id/job-timeline')
+  async getEmployeeTimline(@Param('id') id: string) {
+    const res = this.employeeService.getEmployeeJobTimeline(id);
+    console.log('🚀 ~ EmployeeController ~ getEmployeeTimline ~ res:', res);
+
+    return res;
+  }
+
   @ApiOperation({ summary: 'Create Employees from integration Provider' })
   @Post('create/integration')
   async createEmloyeesFromIntegrations(
     @Body() dto: IntegrationMemberDto,
-    @Req() req:RequestWithUser
+    @Req() req: RequestWithUser,
   ) {
     return this.employeeService.enqueueEmployeeCreation(dto, req);
   }

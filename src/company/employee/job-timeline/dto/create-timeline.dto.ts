@@ -1,4 +1,4 @@
-import { IsOptional, IsUUID } from 'class-validator';
+import { IsDateString, IsOptional, IsUUID } from 'class-validator';
 
 export class CreateJobTimelineDto {
   @IsUUID()
@@ -19,4 +19,7 @@ export class CreateJobTimelineDto {
 
   @IsUUID()
   employmentTypeId: string;
+
+  @IsDateString()
+  promotionDate: Date;
 }

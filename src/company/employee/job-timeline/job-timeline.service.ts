@@ -8,6 +8,7 @@ import { EmployeeJobTimelineMapType } from './job-timeline.maptype';
 import { CreateJobTimelineDto } from './dto/create-timeline.dto';
 import { UpdateTimelineDto } from './dto/update-timeline.dto';
 import { RequestWithUser } from '@@/auth/interfaces';
+import * as moment from 'moment';
 
 @Injectable()
 export class JobTimelineService extends CrudService<
@@ -22,9 +23,32 @@ export class JobTimelineService extends CrudService<
     return this.findMany({});
   }
 
-  async createTimeline(dto: CreateJobTimelineDto, req: RequestWithUser) {
+  async getTimeline(id: string) {
+    const tl = await this.findUnique({
+      where: { id },
+      include: {
+        department: true,
+        employmentType: true,
+        jobRole: true,
+        level: true,
+      },
+    });
+
+    if (!tl) throw new NotFoundException('Job timeline not found!');
+
+    return tl;
+  }
+
+  async createTimeline(
+    { promotionDate, ...dto }: CreateJobTimelineDto,
+    req: RequestWithUser,
+  ) {
     const args: CompanyPrisma.EmployeeJobTimelineCreateArgs = {
-      data: { ...dto, createdBy: req.user.userId },
+      data: {
+        promotionDate: moment(promotionDate).format(),
+        ...dto,
+        createdBy: req.user.userId,
+      },
     };
 
     return this.create(args);
