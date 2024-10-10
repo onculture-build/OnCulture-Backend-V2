@@ -7,9 +7,10 @@ import { JobRoleService } from './job-role/job-role.service';
 import { UserModule } from '../user/user.module';
 import { CsvModule } from './csv/csv.module';
 import { EmploymentTypesService } from './employment-types/employment-types.service';
+import { JobTimelineService } from './job-timeline/job-timeline.service';
 
 @Module({
-  providers: [EmployeeService, JobRoleService, EmploymentTypesService],
+  providers: [EmployeeService, JobRoleService, EmploymentTypesService, JobTimelineService],
   controllers: [EmployeeController],
   imports: [JobRoleModule, JobLevelModule, UserModule, CsvModule],
   exports: [EmployeeService, EmploymentTypesService],
