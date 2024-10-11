@@ -23,10 +23,13 @@ import { PermissionModule } from './company/permission/permission.module';
 import { CompositeGuard } from './auth/guard/composite.guard';
 import { AppAuthGuard } from './auth/guard/app.guard';
 import { SubdomainGuard } from './auth/guard/subdomain.guard';
+import { SentryModule } from '@sentry/nestjs/setup';
+
 
 @Global()
 @Module({
   imports: [
+    SentryModule.forRoot(),
     AuthModule,
     BaseModule,
     BullModule.forRootAsync({

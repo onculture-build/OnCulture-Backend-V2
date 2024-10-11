@@ -132,6 +132,10 @@ const appConfig = {
       },
     },
   },
+  sentry: {
+    dsn: env('SENTRY_DSN'),
+    debug: env('SENTRY_DEBUG', 'true'),
+  },
   swagger: {
     user: {
       [env('SWAGGER_USER_NAME', 'onculture-admin')]: env(

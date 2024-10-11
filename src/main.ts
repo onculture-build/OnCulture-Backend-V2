@@ -1,3 +1,4 @@
+import { initSentry } from './common/sentry/instrument';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {
@@ -28,6 +29,8 @@ async function bootstrap() {
   const appPort = configService.get('app.port');
   const appHost = configService.get('app.host');
   const appVersion = configService.get('app.version');
+
+  initSentry(configService);
 
   if (environment !== 'development') {
     const user = configService.get('swagger.user');
