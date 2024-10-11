@@ -6,7 +6,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && yarn sentry:sourcemaps",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -35,7 +35,8 @@
     "db.migration.create:company": "npx prisma migrate dev --create-only --schema=./src/common/prisma/company/schema.prisma",
     "migration:run": "prisma migrate deploy",
     "migration:run:dev": "prisma migrate dev ",
-    "migration:reset": "prisma migrate reset"
+    "migration:reset": "prisma migrate reset",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org onculture --project onculture-be-v2 ./dist && sentry-cli sourcemaps upload --org onculture --project onculture-be-v2 ./dist"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.658.1",
@@ -56,6 +57,9 @@
     "@nestjs/swagger": "^7.4.0",
     "@prisma/client": "^5.20.0",
     "@sendgrid/mail": "^8.1.3",
+    "@sentry/cli": "^2.37.0",
+    "@sentry/nestjs": "^8.34.0",
+    "@sentry/profiling-node": "^8.34.0",
     "@slack/web-api": "^7.5.0",
     "args-parser": "^1.3.0",
     "bcrypt": "^5.1.1",

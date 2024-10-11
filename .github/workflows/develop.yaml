@@ -24,6 +24,8 @@ jobs:
       - name: Generate Schematics
         run: yarn schema.generate:all
       - name: Build App
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: yarn build
       - name: Create deployment tar file
         run: touch deployment-artifacts1.tar.gz

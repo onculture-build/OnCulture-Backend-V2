@@ -17,6 +17,8 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "inlineSources": true,
+
     "paths": {
       "@@/*": ["src/*"],
       "@@auth/*": ["src/auth/*"],
@@ -24,6 +26,11 @@
       "@@common/*": ["src/common/*"],
       "@@company/*": ["src/core/*"],
       "@@prisma/*": ["node_modules/.prisma/*"]
-    }
+    },
+
+    // Set `sourceRoot` to  "/" to strip the build path prefix
+    // from generated source code references.
+    // This improves issue grouping in Sentry.
+    "sourceRoot": "/"
   }
 }

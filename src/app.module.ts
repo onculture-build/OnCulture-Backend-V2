@@ -21,10 +21,12 @@ import { CompanyMiddleware } from './common/middleware/company.middleware';
 import { PermissionsGuard } from './auth/guard/permission.guard';
 import { CaslAbilityFactory } from './auth/casl/casl-ability.factory/casl-ability.factory';
 import { PermissionModule } from './company/permission/permission.module';
+import { SentryModule } from '@sentry/nestjs/setup';
 
 @Global()
 @Module({
   imports: [
+    SentryModule.forRoot(),
     AuthModule,
     BaseModule,
     BullModule.forRootAsync({
