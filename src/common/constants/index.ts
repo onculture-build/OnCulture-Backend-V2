@@ -73,6 +73,7 @@ export enum CREATE_EMPLOYEE_FIELDS {
   countryCode = 'Country',
   religion = 'Religion',
   preferredLanguage = 'Preferred Language',
+  address = 'Address',
   linkedInURL = 'LinkedIn URL',
   website = 'Website',
   employeeNo = 'Employee Number',
