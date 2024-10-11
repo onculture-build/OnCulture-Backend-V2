@@ -26,7 +26,7 @@ export class PrismaClientManager implements OnModuleDestroy {
     const schema = companyId || defaultSchemaId;
     let client = this.companyPrismaClients[schema];
     if (!client) {
-      const databaseUrl = process.env.DATABASE_URL.replace('public', companyId);
+      const databaseUrl = process.env.DATABASE_URL.replace('public', schema);
       client = new CompanyPrismaClient({
         datasources: {
           db: {
@@ -45,6 +45,10 @@ export class PrismaClientManager implements OnModuleDestroy {
     request: Request,
   ): Promise<CompanyPrismaClient> {
     const companyId = await this.getCompanyIdFromSubdomain(request);
+
+    if (!companyId) {
+      return this.getCompanyPrismaClient();
+    }
 
     return this.getCompanyPrismaClient(companyId);
   }
@@ -68,9 +72,9 @@ export class PrismaClientManager implements OnModuleDestroy {
   }
 
   private async getCompanyIdFromSubdomain(req: Request): Promise<string> {
-    const companyCode = req['company'] as string;
+    const companyCode = (req['company'] as string) || '';
 
-    const company = await this.prismaClient.baseCompany.findFirst({
+    const company = await this.prismaClient.baseCompany.findUnique({
       where: { code: companyCode },
     });
 

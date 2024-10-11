@@ -34,10 +34,12 @@ import {
   allowedImageMimeTypes,
   PROFILE_UPLOAD_MAX_SIZE_BYTES,
 } from '@@/common/constants';
+import { OpenRoute } from '@@/common/decorators/route.decorator';
 
 @ApiTags('Base Company')
 @ApiBearerAuth()
 @AuthStrategy(AuthStrategyType.JWT)
+@OpenRoute()
 @Controller('companies')
 export class BaseCompanyController {
   constructor(
@@ -49,13 +51,6 @@ export class BaseCompanyController {
   @Get()
   async getAllCompanies(@Query() query: GetAllCompaniesDto) {
     return this.companyService.getAllCompanies(query);
-  }
-
-  @ApiOperation({ summary: 'Get a company using subdomain' })
-  @Get(':subdomain')
-  @AuthStrategy(AuthStrategyType.PUBLIC)
-  async getCompany(@Param('subdomain') subdomain: string) {
-    return this.companyService.getCompanyWithSubdomain(subdomain);
   }
 
   @ApiOperation({ summary: "Get a company's URL" })
@@ -75,7 +70,7 @@ export class BaseCompanyController {
 
   @ApiOperation({ summary: 'Get all company requests' })
   @Get('requests')
-  async getCompanyRequests(@Query() query: GetCompanyRequestsDto) {
+  async getAllCompanyRequests(@Query() query: GetCompanyRequestsDto) {
     return this.companyRequestService.getOnboardCompanyRequests(query);
   }
 
@@ -94,6 +89,13 @@ export class BaseCompanyController {
     return this.companyService.activateCompany(id, dto);
   }
 
+  @ApiOperation({ summary: 'Get a company using subdomain' })
+  @Get('/:code')
+  @AuthStrategy(AuthStrategyType.PUBLIC)
+  async getCompany(@Param('code') code: string) {
+    return this.companyService.getCompanyWithSubdomain(code);
+  }
+
   @ApiOperation({
     summary: "Update a company's onboarding request or resend activation email",
   })
@@ -106,7 +108,7 @@ export class BaseCompanyController {
   }
 
   @ApiResponseMeta({ message: 'Logo uploaded successfully' })
-  @ApiOperation({ summary: 'Upload a logo for a tenant request' })
+  @ApiOperation({ summary: 'Upload a logo for a company' })
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
     new DocumentUploadInterceptor().createInterceptor(
