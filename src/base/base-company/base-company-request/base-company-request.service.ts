@@ -9,7 +9,6 @@ import { BaseCompanyRequestMapType } from './base-company-request.maptype';
 import { SignUpDto } from '@@/auth/dto/signup.dto';
 import { OnboardCompanyRequestUpdateDto } from './dto/onboard-company-request-update.dto';
 import { GetCompanyRequestsDto } from './dto/get-company-requests.dto';
-import { CompanyRequestStatus } from '@@/common/enums';
 import { AppUtilities } from '@@/common/utils/app.utilities';
 
 @Injectable()
@@ -17,7 +16,7 @@ export class BaseCompanyRequestService extends CrudService<
   Prisma.BaseCompanyRequestDelegate,
   BaseCompanyRequestMapType
 > {
-  constructor(private readonly prismaClient: PrismaClient) {
+  constructor(private prismaClient: PrismaClient) {
     super(prismaClient.baseCompanyRequest);
   }
 
@@ -48,12 +47,12 @@ export class BaseCompanyRequestService extends CrudService<
           },
         }),
       },
-      // { key: 'status', where: (status) => ({ status: status === 'true' }) },
     ]);
 
     const args: Prisma.BaseCompanyRequestFindManyArgs = {
-      where: { ...parsedQueryFilters, status: CompanyRequestStatus.Pending },
+      where: { ...parsedQueryFilters },
     };
+
     return await this.findManyPaginate(args, {
       page,
       size,

@@ -5,7 +5,7 @@ import { AUTH_STRATEGY_KEY } from '../../common/decorators/strategy.decorator';
 import { AuthStrategyType } from '../interfaces';
 
 @Injectable()
-export class AppGuard extends AuthGuard(['jwt']) {
+export class AppAuthGuard extends AuthGuard(['jwt']) {
   constructor(protected reflector: Reflector) {
     super(reflector);
   }

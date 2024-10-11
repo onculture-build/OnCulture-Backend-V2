@@ -23,6 +23,7 @@ import { ApiResponseMeta } from '@@/common/decorators/response.decorator';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { FindAllowedUserDto } from './dto/find-allowed-user.dto';
 import { SetPasswordDto } from './dto/set-password.dto';
+import { OpenRoute } from '@@/common/decorators/route.decorator';
 
 @ApiTags('Authentication')
 @AuthStrategy(AuthStrategyType.PUBLIC)
@@ -34,6 +35,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Add emails to list of allowed users' })
   @ApiBearerAuth()
   @AuthStrategy(AuthStrategyType.JWT)
+  @OpenRoute()
   @Post('allowed-users')
   async addAllowedUser(
     @Body() dto: CreateAllowedUserDto,
@@ -45,6 +47,7 @@ export class AuthController {
   @ApiResponseMeta({ message: 'User is allowed' })
   @ApiOperation({ summary: 'Verify if email is allowed' })
   @Post('check-allowed-user')
+  @OpenRoute()
   async checkAllowedUser(@Body() dto: FindAllowedUserDto) {
     return this.authService.checkAllowedUser(dto);
   }
@@ -53,6 +56,7 @@ export class AuthController {
   @ApiBearerAuth()
   @AuthStrategy(AuthStrategyType.JWT)
   @Get('allowed-users')
+  @OpenRoute()
   async getAllowedUsers() {
     return this.authService.getAllowedUsers();
   }
@@ -75,6 +79,7 @@ export class AuthController {
       'Registration successful. An email would be sent to complete sign up',
   })
   @Post('signup')
+  @OpenRoute()
   async signup(@Body() dto: SignUpDto, @RealIP() parseIp: string) {
     return this.authService.onboardCompany(dto, parseIp.toString());
   }

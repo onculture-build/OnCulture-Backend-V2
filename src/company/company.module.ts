@@ -23,5 +23,6 @@ import { IntegrationsModule } from './integrations/integrations.module';
   ],
   providers: [BranchService, CompanyService, EmployeeService, JobRoleService],
   exports: [BranchModule, CompanyService, EmployeeModule, UserModule],
+  controllers: [],
 })
 export class CompanyModule {}

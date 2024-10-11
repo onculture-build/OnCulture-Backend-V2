@@ -14,13 +14,15 @@ import { AuthModule } from './auth/auth.module';
 import { BaseModule } from './base/base.module';
 import { CompanyModule } from './company/company.module';
 import { FileModule } from './common/file/file.module';
-import { AppGuard } from './auth/guard/app.guard';
 import { MessagingModule } from './common/messaging/messaging.module';
 import { JwtStrategy } from './auth/strategies/jwt.strategy';
 import { CompanyMiddleware } from './common/middleware/company.middleware';
 import { PermissionsGuard } from './auth/guard/permission.guard';
 import { CaslAbilityFactory } from './auth/casl/casl-ability.factory/casl-ability.factory';
 import { PermissionModule } from './company/permission/permission.module';
+import { CompositeGuard } from './auth/guard/composite.guard';
+import { AppAuthGuard } from './auth/guard/app.guard';
+import { SubdomainGuard } from './auth/guard/subdomain.guard';
 
 @Global()
 @Module({
@@ -57,11 +59,13 @@ import { PermissionModule } from './company/permission/permission.module';
   controllers: [AppController],
   providers: [
     AppService,
+    AppAuthGuard,
+    SubdomainGuard,
     CacheService,
     CaslAbilityFactory,
     JwtService,
     JwtStrategy,
-    { provide: APP_GUARD, useClass: AppGuard },
+    { provide: APP_GUARD, useClass: CompositeGuard },
     PermissionsGuard,
   ],
   exports: [CacheModule, DatabaseModule],
