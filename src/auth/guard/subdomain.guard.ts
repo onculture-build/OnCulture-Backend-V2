@@ -35,10 +35,9 @@ export class SubdomainGuard implements CanActivate {
   }
 
   private getSubdomainFromRequest(request: Request): string | null {
-    const host = request.hostname;
-    const parts = host.split('.');
-    if (parts.length > 2) {
-      return parts[0];
+    const host = request['company'];
+    if (host) {
+      return host;
     }
     return null;
   }
