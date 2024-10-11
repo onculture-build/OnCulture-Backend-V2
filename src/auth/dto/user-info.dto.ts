@@ -81,6 +81,11 @@ export class UserInfoDto {
   @IsOptional()
   countryId?: string;
 
+  @ApiHideProperty()
+  @IsString()
+  @IsOptional()
+  countryCode?: string;
+
   @IsUUID()
   @IsOptional()
   stateId?: string;

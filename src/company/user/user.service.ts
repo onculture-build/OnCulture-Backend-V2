@@ -22,6 +22,7 @@ import { UploadUserPhotoDto } from './dto/upload-user-photo.dto';
 import { FileService } from '@@/common/file/file.service';
 import { AppUtilities } from '@@/common/utils/app.utilities';
 import { ConfigService } from '@nestjs/config';
+import { Gender } from '@@/common/interfaces';
 @Injectable()
 export class UserService extends CrudService<
   CompanyPrisma.UserDelegate,
@@ -103,7 +104,6 @@ export class UserService extends CrudService<
     return this.setupCompanyUser(userInfo, req, companyPrisma);
   }
 
-  // New method to handle user creation with company
   private async createUserWithCompany(
     userInfo: UserInfoDto,
     companyCode: string,
@@ -142,7 +142,6 @@ export class UserService extends CrudService<
     );
   }
 
-  // Helper methods for createUserWithCompany
   private async findExistingBaseUser(
     transaction: PrismaClient,
     email: string,
@@ -181,21 +180,37 @@ export class UserService extends CrudService<
   }
 
   async setupCompanyUser(
-    userInfo: UserInfoDto,
+    {
+      roleId,
+      email,
+      phone,
+      gender,
+      phoneCountry,
+      stateId,
+      countryId,
+      countryCode,
+      ...dto
+    }: UserInfoDto,
     authUser?: RequestWithUser,
     prisma?: CompanyPrismaClient,
   ): Promise<User | undefined> {
     const client = prisma || this.companyPrismaClient;
 
-    const {
-      roleId,
-      email,
-      phone,
-      phoneCountry,
-      stateId,
-      countryId,
-      ...restUserInfo
-    } = userInfo;
+    let country;
+
+    if (countryCode) {
+      country = await client.country.findFirst({
+        where: {
+          OR: [
+            { iso2: { contains: countryCode, mode: 'insensitive' } },
+            { name: { contains: countryCode, mode: 'insensitive' } },
+          ],
+        },
+      });
+    }
+    gender = [Gender.MALE, Gender.FEMALE].includes(gender)
+      ? gender
+      : Gender.UNKNOWN;
 
     const role = await client.role.findFirst({
       where: { id: roleId },
@@ -218,7 +233,8 @@ export class UserService extends CrudService<
       try {
         const user = await prisma.user.create({
           data: {
-            ...restUserInfo,
+            gender,
+            ...dto,
             ...(authUser && { createdBy: authUser.user.userId }),
             ...(email && {
               emails: {
@@ -227,7 +243,9 @@ export class UserService extends CrudService<
             }),
             ...(phone && { phones: { create: { phone, isPrimary: true } } }),
             ...(stateId && { state: { connect: { id: stateId } } }),
-            ...(countryId && { country: { connect: { id: countryId } } }),
+            ...((country || countryId) && {
+              country: { connect: { id: country.id || countryId } },
+            }),
             ...(roleId && { role: { connect: { id: roleId } } }),
           },
         });
@@ -256,6 +274,7 @@ export class UserService extends CrudService<
       roleId,
       stateId,
       countryId,
+      gender,
       alternateEmail,
       ...dto
     }: UpdateUserDto,
@@ -269,7 +288,12 @@ export class UserService extends CrudService<
 
     if (!user) throw new NotFoundException('User not found');
 
+    gender = [Gender.MALE, Gender.FEMALE].includes(gender)
+      ? gender
+      : Gender.UNKNOWN;
+
     const updateData: any = {
+      gender,
       ...dto,
       updatedBy: req?.user?.userId,
     };
