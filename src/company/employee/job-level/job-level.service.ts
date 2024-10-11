@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   Prisma as CompanyPrisma,
   PrismaClient as CompanyPrismaClient,
@@ -60,6 +64,14 @@ export class JobLevelService extends CrudService<
   }
 
   async createJobLevel(dto: CreateJobLevelDto, req?: RequestWithUser) {
+    const existingRank = await this.findFirst({
+      where: { rank: dto.rank },
+    });
+
+    if (existingRank) {
+      throw new ConflictException('Job level with rank already exists');
+    }
+
     return this.create({
       data: {
         ...dto,
