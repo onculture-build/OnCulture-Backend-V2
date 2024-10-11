@@ -18,7 +18,6 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "inlineSources": true,
-
     "paths": {
       "@@/*": ["src/*"],
       "@@auth/*": ["src/auth/*"],
@@ -26,7 +25,6 @@
       "@@common/*": ["src/common/*"],
       "@@company/*": ["src/core/*"],
       "@@prisma/*": ["node_modules/.prisma/*"]
-    },
-    "sourceRoot": "/"
+    }
   }
 }
