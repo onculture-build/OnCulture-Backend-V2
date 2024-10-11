@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class CreateJobRoleDto {
   @IsString()
@@ -7,8 +7,4 @@ export class CreateJobRoleDto {
   @IsOptional()
   @IsString()
   description?: string;
-
-  @IsUUID()
-  @IsOptional()
-  jobLevelId?: string;
 }

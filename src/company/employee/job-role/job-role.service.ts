@@ -35,9 +35,6 @@ export class JobRoleService extends CrudService<
 
     const args: CompanyPrisma.JobRoleFindManyArgs = {
       where: { ...parsedQueryFilters },
-      include: {
-        level: true,
-      },
     };
 
     return this.findManyPaginate(args, {
@@ -50,10 +47,7 @@ export class JobRoleService extends CrudService<
     });
   }
 
-  async createJobRole(
-    { jobLevelId, ...dto }: CreateJobRoleDto,
-    req?: RequestWithUser,
-  ) {
+  async createJobRole(dto: CreateJobRoleDto, req?: RequestWithUser) {
     const exisitingJobRole = await this.findFirst({
       where: { title: { in: [dto.title], mode: 'insensitive' } },
     });
@@ -63,7 +57,6 @@ export class JobRoleService extends CrudService<
     const args: CompanyPrisma.JobRoleCreateArgs = {
       data: {
         ...dto,
-        ...(jobLevelId && { level: { connect: { id: jobLevelId } } }),
         ...(req?.user && { createdBy: req.user.userId }),
       },
     };
@@ -76,7 +69,6 @@ export class JobRoleService extends CrudService<
       where: { id },
       data: {
         ...dto,
-        ...(dto.jobLevelId && { level: { connect: { id: dto.jobLevelId } } }),
         ...(req?.user && { updatedBy: req.user.userId }),
       },
     });

@@ -452,44 +452,88 @@ model RoleMenuPermission {
 }
 
 model Employee {
-    id                 String               @id @default(uuid()) @db.Uuid
-    employeeNo         String               @unique @db.VarChar(20)
-    userId             String               @unique @db.Uuid
-    branchId           String?              @db.Uuid
-    jobRoleId          String?              @db.Uuid
-    employmentTypeId   String?              @db.Uuid
-    status             EmployeeStatus       @default(Active)
-    createdAt          DateTime             @default(now()) @db.Timestamptz(6)
-    createdBy          String?              @db.Uuid
-    updatedAt          DateTime             @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy          String?              @db.Uuid
-    jobRole            JobRole?             @relation(fields: [jobRoleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    id                 String                @id @default(uuid()) @db.Uuid
+    employeeNo         String                @unique @db.VarChar(20)
+    userId             String                @unique @db.Uuid
+    branchId           String?               @db.Uuid
+    jobRoleId          String?               @db.Uuid
+    levelId            String?               @db.Uuid
+    employmentTypeId   String?               @db.Uuid
+    status             EmployeeStatus        @default(Active)
+    createdAt          DateTime              @default(now()) @db.Timestamptz(6)
+    createdBy          String?               @db.Uuid
+    updatedAt          DateTime              @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy          String?               @db.Uuid
+    jobRole            JobRole?              @relation(fields: [jobRoleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    level              JobLevel?             @relation(fields: [levelId], references: [id], onDelete: NoAction)
+    joinDate           DateTime?             @db.Timestamptz(6)
+    exitDate           DateTime?             @db.Timestamptz(6)
     departments        EmployeeDepartment[]
     files              EmployeeFile[]
-    employmentType     EmploymentType?      @relation(fields: [employmentTypeId], references: [id])
-    user               User                 @relation(fields: [userId], references: [id])
+    employmentType     EmploymentType?       @relation(fields: [employmentTypeId], references: [id])
+    user               User                  @relation(fields: [userId], references: [id])
     sumups             EmployeeSumUp[]
     feedbacks          EmployeeFeedback[]
     shoutouts          EmployeeShoutout[]
-    branch             CompanyBranch?       @relation(fields: [branchId], references: [id])
+    branch             CompanyBranch?        @relation(fields: [branchId], references: [id])
     managedDepartments DepartmentManager[]
+    jobTimeline        EmployeeJobTimeline[]
 
     @@map("employee")
 }
 
 model EmploymentType {
-    id          String     @id @default(uuid()) @db.Uuid
-    title       String     @unique @db.VarChar(50)
-    description String?    @db.VarChar(255)
-    status      Boolean    @default(true) @db.Boolean
-    createdAt   DateTime   @default(now()) @db.Timestamptz(6)
-    createdBy   String?    @db.Uuid
-    updatedAt   DateTime   @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy   String?    @db.Uuid
-    employees   Employee[]
+    id                   String                @id @default(uuid()) @db.Uuid
+    title                String                @unique @db.VarChar(50)
+    description          String?               @db.VarChar(255)
+    status               Boolean               @default(true) @db.Boolean
+    createdAt            DateTime              @default(now()) @db.Timestamptz(6)
+    createdBy            String?               @db.Uuid
+    updatedAt            DateTime              @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy            String?               @db.Uuid
+    employees            Employee[]
+    employeeJobTimelines EmployeeJobTimeline[]
 
     @@map("employment_type")
 }
+
+model EmployeeJobTimeline {
+    id               String         @id @default(uuid()) @db.Uuid
+    employeeId       String         @db.Uuid
+    jobRoleId        String         @db.Uuid
+    departmentId     String         @db.Uuid
+    levelId          String         @db.Uuid
+    employmentTypeId String         @db.Uuid
+    managerId        String?        @db.Uuid
+    promotionDate    DateTime       @db.Timestamptz(6)
+    status           Boolean        @default(true) @db.Boolean
+    createdAt        DateTime       @default(now()) @db.Timestamptz(6)
+    createdBy        String?        @db.Uuid
+    updatedAt        DateTime       @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy        String?        @db.Uuid
+    employee         Employee       @relation(fields: [employeeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    jobRole          JobRole        @relation(fields: [jobRoleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    department       Department     @relation(fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    level            JobLevel       @relation(fields: [levelId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    employmentType   EmploymentType @relation(fields: [employmentTypeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+    @@map("employee_job_timeline")
+}
+
+// model EmployeeCompensation {
+//     id        String   @id @default(uuid()) @db.Uuid
+//     amount    Float    @db.DoublePrecision
+//     type    CompensationType
+//     reason    String?  @db.VarChar
+//     employeeId String @db.Uuid
+//     status    Boolean  @default(true) @db.Boolean
+//     createdAt DateTime @default(now()) @db.Timestamptz(6)
+//     createdBy String?  @db.Uuid
+//     updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+//     updatedBy String?  @db.Uuid
+
+//     @@map("employee_compensation")
+// }
 
 model EmployeeDepartment {
     id           String     @id @default(uuid()) @db.Uuid
@@ -570,19 +614,20 @@ model CompanyBranch {
 }
 
 model Department {
-    id          String               @id @default(uuid()) @db.Uuid
-    name        String               @unique @db.VarChar
-    code        String               @unique @db.VarChar(50)
-    alias       String?              @unique @db.VarChar(100)
-    description String?              @db.VarChar(255)
-    managerId   String?              @db.Uuid
-    status      Boolean              @default(true) @db.Boolean
-    createdAt   DateTime             @default(now()) @db.Timestamptz(6)
-    createdBy   String?              @db.Uuid
-    updatedAt   DateTime             @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy   String?              @db.Uuid
-    employees   EmployeeDepartment[]
-    manager     DepartmentManager?   @relation(fields: [managerId], references: [id])
+    id                   String                @id @default(uuid()) @db.Uuid
+    name                 String                @unique @db.VarChar
+    code                 String                @unique @db.VarChar(50)
+    alias                String?               @unique @db.VarChar(100)
+    description          String?               @db.VarChar(255)
+    managerId            String?               @db.Uuid
+    status               Boolean               @default(true) @db.Boolean
+    createdAt            DateTime              @default(now()) @db.Timestamptz(6)
+    createdBy            String?               @db.Uuid
+    updatedAt            DateTime              @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy            String?               @db.Uuid
+    employees            EmployeeDepartment[]
+    manager              DepartmentManager?    @relation(fields: [managerId], references: [id])
+    employeeJobTimelines EmployeeJobTimeline[]
 
     @@map("department")
 }
@@ -651,32 +696,32 @@ model EmployeeFile {
 }
 
 model JobRole {
-    id          String     @id @default(uuid()) @db.Uuid
-    levelId     String?    @unique @db.Uuid
-    title       String     @unique() @db.VarChar(100)
-    description String?    @db.VarChar(255)
-    status      Boolean    @default(true)
-    createdAt   DateTime   @default(now()) @db.Timestamptz(6)
-    createdBy   String?    @db.Uuid
-    updatedAt   DateTime   @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy   String?    @db.Uuid
-    employees   Employee[]
-    level       JobLevel?  @relation(fields: [levelId], references: [id])
+    id                   String                @id @default(uuid()) @db.Uuid
+    title                String                @unique() @db.VarChar(100)
+    description          String?               @db.VarChar(255)
+    status               Boolean               @default(true)
+    createdAt            DateTime              @default(now()) @db.Timestamptz(6)
+    createdBy            String?               @db.Uuid
+    updatedAt            DateTime              @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy            String?               @db.Uuid
+    employees            Employee[]
+    employeeJobTimelines EmployeeJobTimeline[]
 
     @@map("job_role")
 }
 
 model JobLevel {
-    id          String    @id @default(uuid()) @db.Uuid
-    title       String    @unique() @db.VarChar(100)
-    description String?   @db.VarChar(255)
-    rank        Int       @db.Integer
-    status      Boolean   @default(true)
-    createdAt   DateTime  @default(now()) @db.Timestamptz(6)
-    createdBy   String?   @db.Uuid
-    updatedAt   DateTime  @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy   String?   @db.Uuid
-    jobRoles    JobRole[]
+    id                   String                @id @default(uuid()) @db.Uuid
+    title                String                @unique() @db.VarChar(100)
+    description          String?               @db.VarChar(255)
+    rank                 Int                   @db.Integer
+    status               Boolean               @default(true)
+    createdAt            DateTime              @default(now()) @db.Timestamptz(6)
+    createdBy            String?               @db.Uuid
+    updatedAt            DateTime              @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy            String?               @db.Uuid
+    employeeJobTimelines EmployeeJobTimeline[]
+    employees            Employee[]
 
     @@map("job_level")
 }
