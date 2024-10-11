@@ -313,7 +313,7 @@ export class EmployeeService extends CrudService<
         prisma,
       );
 
-      const existingEmployee = await prisma.employee.findFirst({
+      const existingEmployee = await prisma.employee.findUnique({
         where: { userId: user.id },
       });
 
@@ -343,6 +343,14 @@ export class EmployeeService extends CrudService<
             })
           : null;
 
+      const jRole = jobRole
+        ? await prisma.jobRole.findFirst({
+            where: {
+              title: { contains: jobRole.title, mode: 'insensitive' },
+            },
+          })
+        : undefined;
+
       const newEmployee = await prisma.employee.create({
         data: {
           employeeNo,
@@ -357,7 +365,7 @@ export class EmployeeService extends CrudService<
             ? {
                 jobRole: jobRoleId
                   ? { connect: { id: jobRoleId } }
-                  : { create: jobRole },
+                  : { create: jRole ? jobRole : undefined },
               }
             : {}),
           ...(jobLevelId || jobLevel
@@ -437,6 +445,14 @@ export class EmployeeService extends CrudService<
     const executeUpdateEmployee = async (prisma: CompanyPrismaClient) => {
       await this.userService.updateUser(employee.userId, dto, prisma, req);
 
+      const jRole = jobRole
+        ? await prisma.jobRole.findFirst({
+            where: {
+              title: { contains: jobRole.title, mode: 'insensitive' },
+            },
+          })
+        : undefined;
+
       const department = departmentCode
         ? await prisma.department.findUnique({
             where: { code: departmentCode.toLowerCase() },
@@ -463,7 +479,7 @@ export class EmployeeService extends CrudService<
             ? {
                 jobRole: jobRoleId
                   ? { connect: { id: jobRoleId } }
-                  : { create: jobRole },
+                  : { create: jRole ? jobRole : undefined },
               }
             : {}),
           ...(jobLevelId || jobLevel
@@ -497,7 +513,7 @@ export class EmployeeService extends CrudService<
           ...(branchId && {
             branch: { connect: { id: branchId || req?.user?.branchId } },
           }),
-          updatedBy: req.user.userId,
+          updatedBy: req?.user?.userId,
         },
       });
     };

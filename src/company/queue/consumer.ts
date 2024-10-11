@@ -23,7 +23,7 @@ export class CompanyUserQueueConsumer extends BaseQueueProcessor {
     private messagingService: MessagingService,
     private employeeService: EmployeeService,
     private prismaClient: PrismaClient,
-    private prismaClientManager: PrismaClientManager
+    private prismaClientManager: PrismaClientManager,
   ) {
     super();
     this.logger = new Logger('CompanyQueueConsumer');
