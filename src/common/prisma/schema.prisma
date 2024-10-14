@@ -28,6 +28,12 @@ enum CompanyRequestStatus {
   Rejected
 }
 
+enum QuizType {
+  MultipleChoice
+  TrueFalse
+  FillInTheBlank
+}
+
 model BaseCountry {
   id            String        @id @default(uuid()) @db.Uuid
   name          String        @unique() @db.VarChar(50)
@@ -218,19 +224,89 @@ model BasePackage {
 }
 
 model BaseCourse {
-  id        String              @id @default(uuid()) @db.Uuid
-  name      String              @unique() @db.VarChar(255)
-  url       String?
-  quiz      String? // come back to this
-  lesson    String? // come back to this
-  status    Boolean             @default(true) @db.Boolean
-  createdAt DateTime            @default(now()) @db.Timestamptz(6)
-  createdBy String?             @db.Uuid
-  updatedAt DateTime            @default(now()) @updatedAt() @db.Timestamptz(6)
-  updatedBy String?             @db.Uuid
-  packages  BasePackageCourse[]
+  id          String              @id @default(uuid()) @db.Uuid
+  title       String              @unique() @db.VarChar(255)
+  description String?             @db.VarChar
+  sanityId    String?             @db.VarChar
+  status      Boolean             @default(true) @db.Boolean
+  createdAt   DateTime            @default(now()) @db.Timestamptz(6)
+  createdBy   String?             @db.Uuid
+  updatedAt   DateTime            @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy   String?             @db.Uuid
+  packages    BasePackageCourse[]
+  modules     BaseCourseModule[]
 
   @@map("base_course")
+}
+
+model BaseCourseModule {
+  id          String         @id @default(uuid()) @db.Uuid
+  courseId    String         @db.Uuid
+  sanityId    String?        @db.VarChar()
+  title       String         @db.VarChar(255)
+  description String?        @db.VarChar
+  sequence    Int            @default(0) @db.Integer
+  status      Boolean        @default(true) @db.Boolean
+  createdAt   DateTime       @default(now()) @db.Timestamptz(6)
+  createdBy   String?        @db.Uuid
+  updatedAt   DateTime       @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy   String?        @db.Uuid
+  course      BaseCourse     @relation(fields: [courseId], references: [id])
+  lessons     ModuleLesson[]
+
+  @@map("base_course_module")
+}
+
+model ModuleLesson {
+  id        String           @id @default(uuid()) @db.Uuid
+  moduleId  String           @db.Uuid
+  sanityId  String?          @db.VarChar()
+  sequence  Int              @db.Integer
+  title     String           @db.VarChar(255)
+  content   Json             @db.JsonB
+  mediaUrl  String?          @db.VarChar
+  status    Boolean          @default(true) @db.Boolean
+  createdAt DateTime         @default(now()) @db.Timestamptz(6)
+  createdBy String?          @db.Uuid
+  updatedAt DateTime         @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?          @db.Uuid
+  module    BaseCourseModule @relation(fields: [moduleId], references: [id])
+
+  @@map("module_lesson")
+}
+
+model ModuleQuiz {
+  id        String        @id @default(uuid()) @db.Uuid
+  lessonId  String?       @db.Uuid
+  moduleId  String?       @db.Uuid
+  sanityId  String?       @db.VarChar
+  sequence  Int           @db.Integer
+  question  String        @db.VarChar()
+  mediaUrl  String?       @db.VarChar
+  type      QuizType      @default(MultipleChoice)
+  status    Boolean       @default(true) @db.Boolean
+  createdAt DateTime      @default(now()) @db.Timestamptz(6)
+  createdBy String?       @db.Uuid
+  updatedAt DateTime      @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?       @db.Uuid
+  options   QuizOptions[]
+
+  @@map("module_quiz")
+}
+
+model QuizOptions {
+  id        String      @id @default(uuid()) @db.Uuid
+  quizId    String      @db.Uuid
+  option    String      @db.VarChar
+  isCorrect Boolean     @default(false) @db.Boolean
+  status    Boolean     @default(true) @db.Boolean
+  createdAt DateTime    @default(now()) @db.Timestamptz(6)
+  createdBy String?     @db.Uuid
+  updatedAt DateTime    @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?     @db.Uuid
+  quiz      ModuleQuiz? @relation(fields: [quizId], references: [id])
+
+  @@map("quiz_options")
 }
 
 model BasePackageCourse {
