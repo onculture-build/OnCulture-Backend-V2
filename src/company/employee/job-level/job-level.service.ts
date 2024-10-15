@@ -75,7 +75,7 @@ export class JobLevelService extends CrudService<
     return this.create({
       data: {
         ...dto,
-        createdBy: req.user.userId,
+        createdBy: req?.user?.userId,
       },
     });
   }
