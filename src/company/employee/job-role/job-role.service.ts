@@ -48,6 +48,7 @@ export class JobRoleService extends CrudService<
   }
 
   async createJobRole(dto: CreateJobRoleDto, req?: RequestWithUser) {
+   
     const exisitingJobRole = await this.findFirst({
       where: { title: { in: [dto.title], mode: 'insensitive' } },
     });
@@ -72,5 +73,47 @@ export class JobRoleService extends CrudService<
         ...(req?.user && { updatedBy: req.user.userId }),
       },
     });
+  }
+
+  async getJobRoleWithCounts(dto: GetAllJobRolesDto) {
+    const {page,size} = dto
+    const result= await this.prismaClient.$transaction(
+      async (prisma) => {
+        const totalJobRoles = await prisma.jobRole.count();
+        const jobRolesWithCounts = await prisma.jobRole.findMany({
+          select: {
+            id: true,
+            title: true,
+            _count: {
+              select: {
+                employees: true, 
+              },
+            },
+          },
+        });
+        const aggregateResults = jobRolesWithCounts.map(jobRole => ({
+          jobRoleId: jobRole.id,
+          jobRoleTitle: jobRole.title,
+          employeeCount: jobRole._count.employees, 
+        }));
+
+        return {
+          total: totalJobRoles,
+          jobRoles: aggregateResults,
+        };
+    }
+    );
+
+    const totalPages = Math.ceil(result.total / size);
+    return {
+      pagination: {
+        total: result.total,
+        currentPage: page,
+        totalPages: totalPages
+      },
+      data: result.jobRoles,
+    };
+
+
   }
 }
