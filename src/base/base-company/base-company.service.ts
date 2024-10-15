@@ -87,13 +87,19 @@ export class BaseCompanyService extends CrudService<
       where: { code },
       include: {
         logo: true,
+        values: {
+          select: {
+            value: true,
+            id:true
+          }
+        }
       },
     });
 
     if (!company) {
       throw new NotFoundException('Company not found');
     }
-
+    console.log(company.logo, "THE LOGO JEEBS")
     if (company.logo) {
       company.logo = await this.fileService.getFile(company.logo.key);
     }
@@ -357,6 +363,7 @@ export class BaseCompanyService extends CrudService<
   }
 
   async uploadCompanyLogo({ logo }: UploadLogoDto, req: RequestWithUser) {
+    console.log(req.user,"REQUEST")
     const { key, eTag } = await this.fileService.uploadFile(
       {
         imageBuffer: logo.buffer,
@@ -371,13 +378,13 @@ export class BaseCompanyService extends CrudService<
       update: {
         key,
         eTag,
-        updatedBy: req.user.userId,
+        updatedBy: req?.user?.userId,
       },
       create: {
         key,
         eTag,
         companyCode: req['company'],
-        createdBy: req.user.userId,
+        createdBy: req?.user?.userId,
       },
     });
   }

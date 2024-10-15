@@ -121,6 +121,7 @@ model BaseCompany {
   postCode             String?                         @db.VarChar
   mission              String?                         @db.VarChar
   vision               String?                         @db.VarChar
+  website              String?                         @db.VarChar
   status               Boolean                         @default(true) @db.Boolean
   createdAt            DateTime                        @default(now()) @db.Timestamptz(6)
   createdBy            String?                         @db.Uuid

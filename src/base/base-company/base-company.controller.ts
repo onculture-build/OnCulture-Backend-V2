@@ -35,6 +35,7 @@ import {
   PROFILE_UPLOAD_MAX_SIZE_BYTES,
 } from '@@/common/constants';
 import { OpenRoute } from '@@/common/decorators/route.decorator';
+import { CompanyDetailsUpdateDto } from './base-company-request/dto/company-details-update.dto';
 
 @ApiTags('Base Company')
 @ApiBearerAuth()
@@ -105,6 +106,18 @@ export class BaseCompanyController {
     dto: OnboardCompanyRequestUpdateDto,
   ) {
     return this.companyRequestService.updateCompanyRequest(id, dto);
+  }
+
+  @ApiOperation({
+    summary: "Update a company's details",
+  })
+  @Patch('details/:id')
+  async updateCompanyDetails(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CompanyDetailsUpdateDto,
+  ) {
+    console.log(dto)
+    return this.companyRequestService.updateCompanyDetails(id, dto);
   }
 
   @ApiResponseMeta({ message: 'Logo uploaded successfully' })

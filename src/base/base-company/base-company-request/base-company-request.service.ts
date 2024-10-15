@@ -10,6 +10,7 @@ import { SignUpDto } from '@@/auth/dto/signup.dto';
 import { OnboardCompanyRequestUpdateDto } from './dto/onboard-company-request-update.dto';
 import { GetCompanyRequestsDto } from './dto/get-company-requests.dto';
 import { AppUtilities } from '@@/common/utils/app.utilities';
+import { CompanyDetailsUpdateDto } from './dto/company-details-update.dto';
 
 @Injectable()
 export class BaseCompanyRequestService extends CrudService<
@@ -102,6 +103,33 @@ export class BaseCompanyRequestService extends CrudService<
     return await prisma.baseCompanyRequest.update(dto);
   }
 
+  async updateCompanyDetails(
+    id: string,
+    updateDto: CompanyDetailsUpdateDto,
+    prisma: PrismaClient = this.prismaClient,
+  ) {
+    const { values, ...others } = updateDto
+    const updateValues = values.filter(value => value.id); 
+    const createValues = values.filter(value => !value.id)
+    const dto: Prisma.BaseCompanyUpdateArgs = {
+      where: { id },
+      data: {
+        ...others,
+        values: {
+          update: updateValues.map(value => ({
+            where: { id: value.id },
+            data: {
+              value:value.value
+            }
+          })),
+          create: createValues.map(value => ({
+            value: value.value 
+          })),
+        }
+      }
+    };
+    return await prisma.baseCompany.update(dto);
+  }
   async validateCompanyRequestData({ userInfo, companyInfo }: SignUpDto) {
     const existingCompanyRequest = await this.findUnique({
       where: {
