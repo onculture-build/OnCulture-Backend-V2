@@ -48,6 +48,10 @@ export class JobRoleService extends CrudService<
   }
 
   async createJobRole(dto: CreateJobRoleDto, req?: RequestWithUser) {
+    console.log(dto)
+    if (dto.id) {
+      return this.updateJobRole(dto?.id,dto,req)
+    }
    
     const exisitingJobRole = await this.findFirst({
       where: { title: { in: [dto.title], mode: 'insensitive' } },
@@ -72,6 +76,12 @@ export class JobRoleService extends CrudService<
         ...dto,
         ...(req?.user && { updatedBy: req.user.userId }),
       },
+    });
+  }
+  
+  deleJobRole(id: string) {
+    return this.delete({
+      where: { id }
     });
   }
 
