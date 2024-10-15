@@ -106,31 +106,34 @@ model AllowedUser {
 }
 
 model BaseCompany {
-  id        String             @id @default(uuid()) @db.Uuid
-  name      String             @unique() @db.VarChar(255)
-  email     String             @unique() @db.VarChar(255)
-  code      String             @unique() @db.VarChar(20)
-  logoId    String?            @db.VarChar
-  phone     String?            @db.VarChar(50)
-  countryId String?            @db.Uuid
-  stateId   String?            @db.Uuid
-  address1  String?            @db.VarChar(150)
-  address2  String?            @db.VarChar(150)
-  townCity  String?            @db.VarChar(50)
-  postCode  String?            @db.VarChar
-  mission   String?            @db.VarChar
-  vision    String?            @db.VarChar
-  status    Boolean            @default(true) @db.Boolean
-  createdAt DateTime           @default(now()) @db.Timestamptz(6)
-  createdBy String?            @db.Uuid
-  updatedAt DateTime           @default(now()) @updatedAt() @db.Timestamptz(6)
-  updatedBy String?            @db.Uuid
-  users     BaseUserCompany[]
-  values    BaseCompanyValue[]
-  messages  BaseMessage[]
-  country   BaseCountry?       @relation(fields: [countryId], references: [id])
-  state     BaseState?         @relation(fields: [stateId], references: [id])
-  logo      BaseCompanyLogo?
+  id                   String                          @id @default(uuid()) @db.Uuid
+  name                 String                          @unique() @db.VarChar(255)
+  email                String                          @unique() @db.VarChar(255)
+  code                 String                          @unique() @db.VarChar(20)
+  overview             String?                         @db.VarChar
+  logoId               String?                         @db.VarChar
+  phone                String?                         @db.VarChar(50)
+  countryId            String?                         @db.Uuid
+  stateId              String?                         @db.Uuid
+  address1             String?                         @db.VarChar(150)
+  address2             String?                         @db.VarChar(150)
+  townCity             String?                         @db.VarChar(50)
+  postCode             String?                         @db.VarChar
+  mission              String?                         @db.VarChar
+  vision               String?                         @db.VarChar
+  status               Boolean                         @default(true) @db.Boolean
+  createdAt            DateTime                        @default(now()) @db.Timestamptz(6)
+  createdBy            String?                         @db.Uuid
+  updatedAt            DateTime                        @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy            String?                         @db.Uuid
+  users                BaseUserCompany[]
+  values               BaseCompanyValue[]
+  messages             BaseMessage[]
+  country              BaseCountry?                    @relation(fields: [countryId], references: [id])
+  state                BaseState?                      @relation(fields: [stateId], references: [id])
+  logo                 BaseCompanyLogo?
+  packageSubscriptions BasePackageSubscription[]
+  courseSubscription   BaseCompanyCourseSubscription[]
 
   @@map("base_company")
 }
@@ -216,25 +219,26 @@ model BasePackage {
   createdBy     String?                   @db.Uuid
   updatedAt     DateTime                  @default(now()) @updatedAt() @db.Timestamptz(6)
   updatedBy     String?                   @db.Uuid
-  subscriptions BasePackageSubscription[]
   courses       BasePackageCourse[]
   templates     BasePackageTemplates[]
+  subscriptions BasePackageSubscription[]
 
   @@map("base_package")
 }
 
 model BaseCourse {
-  id          String              @id @default(uuid()) @db.Uuid
-  title       String              @unique() @db.VarChar(255)
-  description String?             @db.VarChar
-  sanityId    String?             @db.VarChar
-  status      Boolean             @default(true) @db.Boolean
-  createdAt   DateTime            @default(now()) @db.Timestamptz(6)
-  createdBy   String?             @db.Uuid
-  updatedAt   DateTime            @default(now()) @updatedAt() @db.Timestamptz(6)
-  updatedBy   String?             @db.Uuid
-  packages    BasePackageCourse[]
-  modules     BaseCourseModule[]
+  id            String                          @id @default(uuid()) @db.Uuid
+  title         String                          @unique() @db.VarChar(255)
+  description   String?                         @db.VarChar
+  sanityId      String?                         @db.VarChar
+  status        Boolean                         @default(true) @db.Boolean
+  createdAt     DateTime                        @default(now()) @db.Timestamptz(6)
+  createdBy     String?                         @db.Uuid
+  updatedAt     DateTime                        @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy     String?                         @db.Uuid
+  packages      BasePackageCourse[]
+  modules       BaseCourseModule[]
+  companiesSubs BaseCompanyCourseSubscription[] // to be removed later
 
   @@map("base_course")
 }
@@ -253,6 +257,7 @@ model BaseCourseModule {
   updatedBy   String?        @db.Uuid
   course      BaseCourse     @relation(fields: [courseId], references: [id])
   lessons     ModuleLesson[]
+  quizzes     ModuleQuiz[]
 
   @@map("base_course_module")
 }
@@ -271,24 +276,27 @@ model ModuleLesson {
   updatedAt DateTime         @default(now()) @updatedAt() @db.Timestamptz(6)
   updatedBy String?          @db.Uuid
   module    BaseCourseModule @relation(fields: [moduleId], references: [id])
+  quizzes   ModuleQuiz[]
 
   @@map("module_lesson")
 }
 
 model ModuleQuiz {
-  id        String        @id @default(uuid()) @db.Uuid
-  lessonId  String?       @db.Uuid
-  moduleId  String?       @db.Uuid
-  sanityId  String?       @db.VarChar
-  sequence  Int           @db.Integer
-  question  String        @db.VarChar()
-  mediaUrl  String?       @db.VarChar
-  type      QuizType      @default(MultipleChoice)
-  status    Boolean       @default(true) @db.Boolean
-  createdAt DateTime      @default(now()) @db.Timestamptz(6)
-  createdBy String?       @db.Uuid
-  updatedAt DateTime      @default(now()) @updatedAt() @db.Timestamptz(6)
-  updatedBy String?       @db.Uuid
+  id        String            @id @default(uuid()) @db.Uuid
+  lessonId  String?           @db.Uuid
+  moduleId  String?           @db.Uuid
+  sanityId  String?           @db.VarChar
+  sequence  Int               @db.Integer
+  question  String            @db.VarChar()
+  mediaUrl  String?           @db.VarChar
+  type      QuizType          @default(MultipleChoice)
+  status    Boolean           @default(true) @db.Boolean
+  createdAt DateTime          @default(now()) @db.Timestamptz(6)
+  createdBy String?           @db.Uuid
+  updatedAt DateTime          @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?           @db.Uuid
+  module    BaseCourseModule? @relation(fields: [moduleId], references: [id])
+  lesson    ModuleLesson?     @relation(fields: [lessonId], references: [id])
   options   QuizOptions[]
 
   @@map("module_quiz")
@@ -298,6 +306,7 @@ model QuizOptions {
   id        String      @id @default(uuid()) @db.Uuid
   quizId    String      @db.Uuid
   option    String      @db.VarChar
+  mediaUrl  String?     @db.VarChar
   isCorrect Boolean     @default(false) @db.Boolean
   status    Boolean     @default(true) @db.Boolean
   createdAt DateTime    @default(now()) @db.Timestamptz(6)
@@ -354,6 +363,7 @@ model BasePackageTemplates {
 
 model BasePackageSubscription {
   id        String      @id @default(uuid()) @db.Uuid
+  companyId String      @db.Uuid
   packageId String      @db.Uuid
   startDate DateTime    @db.Timestamptz(6)
   endDate   DateTime    @db.Timestamptz(6)
@@ -363,8 +373,38 @@ model BasePackageSubscription {
   updatedAt DateTime    @default(now()) @updatedAt() @db.Timestamptz(6)
   updatedBy String?     @db.Uuid
   package   BasePackage @relation(fields: [packageId], references: [id])
+  company   BaseCompany @relation(fields: [companyId], references: [id])
 
   @@map("base_package_subscription")
+}
+
+// model that holds company subscriptions to courses
+model BaseCompanyCourseSubscription {
+  id        String      @id @default(uuid()) @db.Uuid
+  companyId String      @db.Uuid
+  courseId  String      @db.Uuid
+  status    Boolean     @default(true) @db.Boolean
+  createdAt DateTime    @default(now()) @db.Timestamptz(6)
+  createdBy String?     @db.Uuid
+  updatedAt DateTime    @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?     @db.Uuid
+  course    BaseCourse  @relation(fields: [courseId], references: [id])
+  company   BaseCompany @relation(fields: [companyId], references: [id])
+
+  @@map("base_company_course_subscription")
+}
+
+// model to temporarily hold sanity courses
+model SanityCourses {
+  id        String   @id @default(uuid()) @db.Uuid
+  santityId String   @unique()
+  status    Boolean  @default(true) @db.Boolean
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  createdBy String?  @db.Uuid
+  updatedAt DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+  updatedBy String?  @db.Uuid
+
+  @@map("sanity_courses")
 }
 
 model Waitlist {
