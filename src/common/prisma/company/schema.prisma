@@ -122,6 +122,12 @@ enum FileUploadStatus {
     Failed
 }
 
+enum CourseSubscriptionStatus {
+    Pending
+    InProgress
+    Completed
+}
+
 model Country {
     id             String          @id @default(uuid()) @db.Uuid
     name           String          @unique() @db.VarChar(50)
@@ -452,32 +458,33 @@ model RoleMenuPermission {
 }
 
 model Employee {
-    id                 String                @id @default(uuid()) @db.Uuid
-    employeeNo         String                @unique @db.VarChar(20)
-    userId             String                @unique @db.Uuid
-    branchId           String?               @db.Uuid
-    jobRoleId          String?               @db.Uuid
-    levelId            String?               @db.Uuid
-    employmentTypeId   String?               @db.Uuid
-    status             EmployeeStatus        @default(Active)
-    createdAt          DateTime              @default(now()) @db.Timestamptz(6)
-    createdBy          String?               @db.Uuid
-    updatedAt          DateTime              @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy          String?               @db.Uuid
-    jobRole            JobRole?              @relation(fields: [jobRoleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-    level              JobLevel?             @relation(fields: [levelId], references: [id], onDelete: NoAction)
-    joinDate           DateTime?             @db.Timestamptz(6)
-    exitDate           DateTime?             @db.Timestamptz(6)
+    id                 String                       @id @default(uuid()) @db.Uuid
+    employeeNo         String                       @unique @db.VarChar(20)
+    userId             String                       @unique @db.Uuid
+    branchId           String?                      @db.Uuid
+    jobRoleId          String?                      @db.Uuid
+    levelId            String?                      @db.Uuid
+    employmentTypeId   String?                      @db.Uuid
+    status             EmployeeStatus               @default(Active)
+    createdAt          DateTime                     @default(now()) @db.Timestamptz(6)
+    createdBy          String?                      @db.Uuid
+    updatedAt          DateTime                     @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy          String?                      @db.Uuid
+    jobRole            JobRole?                     @relation(fields: [jobRoleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    level              JobLevel?                    @relation(fields: [levelId], references: [id], onDelete: NoAction)
+    joinDate           DateTime?                    @db.Timestamptz(6)
+    exitDate           DateTime?                    @db.Timestamptz(6)
     departments        EmployeeDepartment[]
     files              EmployeeFile[]
-    employmentType     EmploymentType?       @relation(fields: [employmentTypeId], references: [id])
-    user               User                  @relation(fields: [userId], references: [id])
+    employmentType     EmploymentType?              @relation(fields: [employmentTypeId], references: [id])
+    user               User                         @relation(fields: [userId], references: [id])
     sumups             EmployeeSumUp[]
     feedbacks          EmployeeFeedback[]
     shoutouts          EmployeeShoutout[]
-    branch             CompanyBranch?        @relation(fields: [branchId], references: [id])
+    branch             CompanyBranch?               @relation(fields: [branchId], references: [id])
     managedDepartments DepartmentManager[]
     jobTimeline        EmployeeJobTimeline[]
+    subscribedCourses  EmployeeCourseSubscription[]
 
     @@map("employee")
 }
@@ -929,4 +936,47 @@ model IntegrationsConfig {
 
     @@unique([integration_type, version, environment, source])
     @@map("integrations_config")
+}
+
+model CourseSubscription {
+    id                  String                       @id @default(uuid()) @db.Uuid
+    courseId            String                       @db.Uuid
+    subscriptionId      String                       @db.Uuid
+    status              Boolean                      @default(true) @db.Boolean
+    createdAt           DateTime                     @default(now()) @db.Timestamptz(6)
+    createdBy           String?                      @db.Uuid
+    updatedAt           DateTime                     @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy           String?                      @db.Uuid
+    subscribedEmployees EmployeeCourseSubscription[]
+
+    @@map("course_subscription")
+}
+
+model EmployeeCourseSubscription {
+    id                   String                   @id @default(uuid()) @db.Uuid
+    employeeId           String                   @db.Uuid
+    courseSubscriptionId String                   @db.Uuid
+    status               CourseSubscriptionStatus @default(Pending)
+    createdAt            DateTime                 @default(now()) @db.Timestamptz(6)
+    createdBy            String?                  @db.Uuid
+    updatedAt            DateTime                 @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy            String?                  @db.Uuid
+    subscription         CourseSubscription       @relation(fields: [courseSubscriptionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    employee             Employee                 @relation(fields: [employeeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+    @@map("employee_course_subscription")
+}
+
+// still to be reviewed
+model EmployeeCourseProgress {
+    id                     String                   @id @default(uuid()) @db.Uuid
+    employeeSubscriptionId String                   @db.Uuid
+    progress               Int                      @default(0)
+    status                 CourseSubscriptionStatus @default(Pending)
+    createdAt              DateTime                 @default(now()) @db.Timestamptz(6)
+    createdBy              String?                  @db.Uuid
+    updatedAt              DateTime                 @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy              String?                  @db.Uuid
+
+    @@map("employee_course_progress")
 }
