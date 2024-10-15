@@ -30,6 +30,13 @@ export class JobRoleController {
     return this.jobRoleService.getAllJobRoles(dto);
   }
 
+  @ApiOperation({ summary: 'Get  job roles with employee count' })
+  @Get('/count')
+  async getJobRolesWithCount(@Query() dto: GetAllJobRolesDto) {
+    return this.jobRoleService.getJobRoleWithCounts(dto);
+  }
+
+
   @ApiOperation({ summary: 'Create a job role' })
   @Post()
   async createJobRole(
