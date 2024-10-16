@@ -10,6 +10,7 @@ import { BranchService } from './branch/branch.service';
 import { PermissionModule } from './permission/permission.module';
 import { DepartmentModule } from './department/department.module';
 import { IntegrationsModule } from './integrations/integrations.module';
+import { CourseModule } from './course/course.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { IntegrationsModule } from './integrations/integrations.module';
     PermissionModule,
     DepartmentModule,
     IntegrationsModule,
+    CourseModule,
   ],
   providers: [BranchService, CompanyService, EmployeeService, JobRoleService],
   exports: [BranchModule, CompanyService, EmployeeModule, UserModule],
