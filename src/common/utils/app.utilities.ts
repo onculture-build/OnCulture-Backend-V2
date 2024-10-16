@@ -86,9 +86,11 @@ export class AppUtilities {
           title: cur.title,
           author: cur.author?.name,
           modules: cur.module.map((mod) => ({
+            id: mod._id,
             moduleName: mod.moduleName,
             moduleTitle: mod.moduleTitle,
             lessons: mod.lesson.map((lesson) => ({
+              id: lesson._id,
               lessonName: lesson.lessonName,
               lessonTitle: lesson.lessonTitle,
             })),

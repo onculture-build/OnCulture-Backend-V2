@@ -68,7 +68,6 @@ export class EmployeeController {
   @Get(':id/job-timeline')
   async getEmployeeTimline(@Param('id') id: string) {
     const res = this.employeeService.getEmployeeJobTimeline(id);
-   
 
     return res;
   }

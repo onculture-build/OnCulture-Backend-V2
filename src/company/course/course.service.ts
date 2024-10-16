@@ -109,7 +109,7 @@ export class CourseService extends CrudService<
     );
   }
 
-  private async getCourseDetails(
+  async getCourseDetails(
     data: CourseSubscription,
   ): Promise<CourseSubscription & { course: any }> {
     let subscription;
