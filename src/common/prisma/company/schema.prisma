@@ -940,7 +940,6 @@ model IntegrationsConfig {
 
 model CourseSubscription {
     id                  String                       @id @default(uuid()) @db.Uuid
-    courseId            String                       @db.Uuid
     subscriptionId      String                       @db.Uuid
     isSanityCourse      Boolean                      @default(false) @db.Boolean
     status              Boolean                      @default(true) @db.Boolean
@@ -965,6 +964,7 @@ model EmployeeCourseSubscription {
     subscription         CourseSubscription       @relation(fields: [courseSubscriptionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     employee             Employee                 @relation(fields: [employeeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
+    @@unique([employeeId, courseSubscriptionId])
     @@map("employee_course_subscription")
 }
 
