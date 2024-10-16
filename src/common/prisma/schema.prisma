@@ -396,7 +396,10 @@ model BaseCompanyCourseSubscription {
 
 model SanityCourse {
   id            String                     @id @default(uuid()) @db.Uuid
-  santityId     String                     @unique()
+  sanityId      String                     @unique()
+  title         String                     @db.VarChar
+  author        String?                    @db.VarChar
+  modules       Json?                      @db.JsonB
   status        Boolean                    @default(true) @db.Boolean
   createdAt     DateTime                   @default(now()) @db.Timestamptz(6)
   createdBy     String?                    @db.Uuid
