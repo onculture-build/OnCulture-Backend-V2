@@ -71,10 +71,34 @@ export class AppUtilities {
     }));
   }
 
-  private static removeIdSuffix(key: string, suffix = 'Id'): string {
+  private removeIdSuffix(key: string, suffix = 'Id'): string {
     const val = key.endsWith(suffix) ? key.slice(0, -suffix.length) : key;
 
     return val.trim();
+  }
+
+  public static cleanCourses(courses: any[]): any[] {
+    return courses.reduce((arr, cur) => {
+      if (cur.module.length) {
+        const course = {
+          id: cur._id,
+          createdAt: cur._createdAt,
+          title: cur.title,
+          author: cur.author?.name,
+          modules: cur.module.map((mod) => ({
+            moduleName: mod.moduleName,
+            moduleTitle: mod.moduleTitle,
+            lessons: mod.lesson.map((lesson) => ({
+              lessonName: lesson.lessonName,
+              lessonTitle: lesson.lessonTitle,
+            })),
+          })),
+        };
+
+        arr.push(course);
+      }
+      return arr;
+    }, []);
   }
 
   public static async streamToBuffer(stream: ReadableStream): Promise<Buffer> {

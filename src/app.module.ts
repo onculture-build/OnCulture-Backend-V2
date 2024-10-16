@@ -24,7 +24,7 @@ import { CompositeGuard } from './auth/guard/composite.guard';
 import { AppAuthGuard } from './auth/guard/app.guard';
 import { SubdomainGuard } from './auth/guard/subdomain.guard';
 import { SentryModule } from '@sentry/nestjs/setup';
-
+import { SanityProviderService } from './common/third-party/providers/sanity/sanity.service';
 
 @Global()
 @Module({
@@ -70,6 +70,7 @@ import { SentryModule } from '@sentry/nestjs/setup';
     JwtStrategy,
     { provide: APP_GUARD, useClass: CompositeGuard },
     PermissionsGuard,
+    SanityProviderService,
   ],
   exports: [CacheModule, DatabaseModule],
 })
