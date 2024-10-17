@@ -17,4 +17,8 @@ export class SanityProviderService {
   getContent<T>(query: string): Promise<T> {
     return this.client.fetch<T>(query);
   }
+
+  getDocument<T>(id: string): Promise<T> {
+    return this.client.getDocument<T>(id);
+  }
 }
