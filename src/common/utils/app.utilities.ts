@@ -91,6 +91,7 @@ export class AppUtilities {
             moduleTitle: mod.moduleTitle,
             lessons: mod.lesson.map((lesson) => ({
               id: lesson._id,
+              type: lesson._type,
               lessonName: lesson.lessonName,
               lessonTitle: lesson.lessonTitle,
             })),

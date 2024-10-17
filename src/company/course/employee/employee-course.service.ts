@@ -45,7 +45,6 @@ export class EmployeeCourseService extends CrudService<
     };
 
     const dataMapperFn = async (data) => {
-      console.log('🚀 ~ dataMapperFn ~ data:', data);
       const result = await this.courseService.getCourseDetails(
         data.subscription,
       );
@@ -57,7 +56,6 @@ export class EmployeeCourseService extends CrudService<
           },
         },
       );
-      console.log('🚀 ~ dataMapperFn ~ progress:', progress);
 
       const completionData = this.calculateCompletionPercentage(
         progress.progress,
@@ -90,26 +88,41 @@ export class EmployeeCourseService extends CrudService<
       throw new NotFoundException('Course subscription not found');
     }
 
+    const courseDetail = await this.courseService.getCourseDetails(
+      subscription.subscription,
+    );
+
     const { progress } =
       await this.prismaClient.employeeCourseProgress.findFirst({
         where: { employeeSubscriptionId: courseSubscriptionId },
       });
 
+    const completionData = this.calculateCompletionPercentage(progress);
+
     const initialLessonId = progress?.[0]?.lessons[0]?.id;
 
-    const query = `*[_type == "lesson" && _id == "${initialLessonId}"]`;
-
-    const initialContent = await this.sanityProvider.getContent(query);
-
-    return { outline: progress, content: initialContent };
+    return {
+      courseTitle: courseDetail.course.title,
+      author: courseDetail.course.author,
+      progress,
+      completionData,
+      initialLessonId,
+    };
   }
 
-  async getLesson(lessonId: string) {
-    const query = `*[_type == "lesson" || _type == "quiz" && _id == "${lessonId}"]`;
+  async getLesson(courseSubscriptionId: string, lessonId: string) {
+    const progress = await this.prismaClient.employeeCourseProgress.findFirst({
+      where: { employeeSubscriptionId: courseSubscriptionId },
+    });
 
-    const content = await this.sanityProvider.getContent(query);
+    const lessonProgress = this.getLessonProgress(
+      lessonId,
+      progress.progress as any,
+    );
 
-    return content;
+    const content = await this.sanityProvider.getDocument(lessonId);
+
+    return { content, progress: lessonProgress[0] };
   }
 
   async completeLesson(courseSubscriptionId: string, lessonId: string) {
@@ -145,6 +158,17 @@ export class EmployeeCourseService extends CrudService<
         progress: updatedProgress,
       },
     });
+  }
+
+  private getLessonProgress(lessonId: string, progress: any[]) {
+    return progress.reduce((acc, item) => {
+      const found = item.lessons.find((lesson) => lesson.id === lessonId);
+
+      if (found) {
+        acc.push(found);
+      }
+      return acc;
+    }, []);
   }
 
   private calculateCompletionPercentage(data: any): any {

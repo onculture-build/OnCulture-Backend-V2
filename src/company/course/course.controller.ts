@@ -13,12 +13,14 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CourseService } from './course.service';
 import { PaginationSearchOptionsDto } from '@@/common/interfaces/pagination-search-options.dto';
 import { AssignEmployeeToCourseDto } from './dto/assign-employee.dto';
-import { RequestWithUser } from '@@/auth/interfaces';
+import { AuthStrategyType, RequestWithUser } from '@@/auth/interfaces';
 import { ApiResponseMeta } from '@@/common/decorators/response.decorator';
 import { EmployeeCourseService } from './employee/employee-course.service';
+import { AuthStrategy } from '@@/common/decorators/strategy.decorator';
 
 @ApiTags('Company Courses')
 @ApiBearerAuth()
+@AuthStrategy(AuthStrategyType.JWT)
 @Controller('company/courses')
 export class CourseController {
   constructor(
@@ -72,8 +74,11 @@ export class CourseController {
   }
 
   @ApiOperation({ summary: 'Get a lesson' })
-  @Get(':lessonId/get-lesson')
-  async getLesson(@Param('lessonId', ParseUUIDPipe) lessonId: string) {
-    return this.employeeCourseService.getLesson(lessonId);
+  @Get(':courseSubId/:lessonId/get-lesson')
+  async getLesson(
+    @Param('courseSubId', ParseUUIDPipe) courseSubId: string,
+    @Param('lessonId', ParseUUIDPipe) lessonId: string,
+  ) {
+    return this.employeeCourseService.getLesson(courseSubId, lessonId);
   }
 }
