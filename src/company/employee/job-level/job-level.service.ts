@@ -97,7 +97,7 @@ export class JobLevelService extends CrudService<
     req: RequestWithUser,
   ) {
     if (dto.id) {
-      console.log("na me")
+      
       return await this.updateJobLevel(dto.id,dto,req)
     }
     return await this.createJobLevel(dto as CreateJobLevelDto, req)

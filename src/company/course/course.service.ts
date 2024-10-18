@@ -72,7 +72,7 @@ export class CourseService extends CrudService<
     client = this.prismaClient,
     req?: RequestWithUser
   ) {
-    const subscription = await this.findFirst({
+    const subscription = await client.courseSubscription.findFirst({
       where: { id: subscriptionId },
     });
 
@@ -178,14 +178,13 @@ export class CourseService extends CrudService<
   async assignCourseToEmployees(data: AssignCourseToEmployeesDto & { companyId: string }) {
     const { companyId, subscriptionId, employeeIds } = data
     const client = this.prismaClientManager.getCompanyPrismaClient(companyId)
-    const subscription = await this.findFirst({
-      where: { id: subscriptionId },
-    });
-
-    if (!subscription)
-      throw new NotAcceptableException('Unable to get subscription');
     for (const employeeId of employeeIds) {
-      await this.assignEmployeeToCourse({ employeeId, subscriptionId }, client)
+      try {
+        await this.assignEmployeeToCourse({ employeeId, subscriptionId }, client)
+      } catch (error) {
+        continue;
+      }
+
     }
 
     return;

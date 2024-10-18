@@ -116,7 +116,6 @@ export class BaseCompanyController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: CompanyDetailsUpdateDto,
   ) {
-    console.log(dto)
     return this.companyRequestService.updateCompanyDetails(id, dto);
   }
 

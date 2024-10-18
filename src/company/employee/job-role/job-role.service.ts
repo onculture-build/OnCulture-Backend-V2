@@ -48,7 +48,7 @@ export class JobRoleService extends CrudService<
   }
 
   async createJobRole(dto: CreateJobRoleDto, req?: RequestWithUser) {
-    console.log(dto)
+    
     if (dto.id) {
       return this.updateJobRole(dto?.id,dto,req)
     }
