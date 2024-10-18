@@ -8,7 +8,7 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthStrategy } from '@@/common/decorators/strategy.decorator';
@@ -67,7 +67,7 @@ export class AuthController {
   async signin(
     @Body() dto: LoginDto,
     @RealIP() parseIp: string,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
     @Res({ passthrough: true }) response: Response,
   ) {
     return this.authService.loginUser(dto, parseIp.toString(), req, response);
@@ -101,7 +101,7 @@ export class AuthController {
   @Post('request-password-reset')
   async requestPasswordReset(
     @Body() dto: RequestPasswordResetDto,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ) {
     return this.authService.requestPasswordReset(dto, req);
   }
@@ -109,7 +109,10 @@ export class AuthController {
   @ApiResponseMeta({ message: 'Password reset successfully' })
   @ApiOperation({ summary: 'Reset user password' })
   @Patch('password-reset')
-  async passwordReset(@Body() dto: ResetPasswordDto, @Req() req: Request) {
+  async passwordReset(
+    @Body() dto: ResetPasswordDto,
+    @Req() req: RequestWithUser,
+  ) {
     return this.authService.resetPassword(dto, req);
   }
 
@@ -119,7 +122,7 @@ export class AuthController {
   async setPassword(
     @Param('token') token: string,
     @Body() dto: SetPasswordDto,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ) {
     return this.authService.setPassword(token, dto, req);
   }

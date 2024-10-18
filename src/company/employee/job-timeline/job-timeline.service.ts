@@ -47,7 +47,7 @@ export class JobTimelineService extends CrudService<
       data: {
         promotionDate: moment(promotionDate).format(),
         ...dto,
-        createdBy: req.user.userId,
+        createdBy: req.user?.userId,
       },
     };
 
@@ -65,7 +65,7 @@ export class JobTimelineService extends CrudService<
 
     return this.update({
       where: { id },
-      data: { ...dto, updatedBy: req.user.userId },
+      data: { ...dto, updatedBy: req.user?.userId },
     });
   }
 }
