@@ -14,7 +14,6 @@ export class SubdomainGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<RequestWithUser>();
-    console.log('🚀 ~ SubdomainGuard ~ canActivate ~ request:', request.user);
 
     const isOpenRoute = this.reflector.getAllAndOverride<boolean>(
       OPEN_ROUTE_KEY,
