@@ -92,20 +92,16 @@ export class JobLevelService extends CrudService<
     });
   }
 
-  async upsertJobLevel(
-    dto: UpsertJobLevelDto,
-    req: RequestWithUser,
-  ) {
+  async upsertJobLevel(dto: UpsertJobLevelDto, req: RequestWithUser) {
     if (dto.id) {
-      
-      return await this.updateJobLevel(dto.id,dto,req)
+      return await this.updateJobLevel(dto.id, dto, req);
     }
-    return await this.createJobLevel(dto as CreateJobLevelDto, req)
+    return await this.createJobLevel(dto as CreateJobLevelDto, req);
   }
 
   async deleJobLevel(id: string) {
     return await this.delete({
-      where: { id }
+      where: { id },
     });
   }
 }

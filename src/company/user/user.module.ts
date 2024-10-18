@@ -21,7 +21,7 @@ import { CourseService } from '../course/course.service';
     CompanyUserQueueProducer,
     CompanyUserQueueConsumer,
     UserRolesService,
-    CourseService
+    CourseService,
   ],
   exports: [UserService, CompanyUserQueueProducer, CompanyUserQueueConsumer],
   controllers: [UserController],

@@ -37,7 +37,6 @@ export class JobRoleController {
     return this.jobRoleService.getJobRoleWithCounts(dto);
   }
 
-
   @ApiOperation({ summary: 'Create a job role' })
   @Post()
   async createJobRole(
@@ -59,9 +58,7 @@ export class JobRoleController {
 
   @ApiOperation({ summary: 'Delete a job role' })
   @Delete(':id')
-  async deleteJobRole(
-    @Param('id', ParseUUIDPipe) id: string
-  ) {
+  async deleteJobRole(@Param('id', ParseUUIDPipe) id: string) {
     return this.jobRoleService.deleJobRole(id);
   }
 }

@@ -39,5 +39,5 @@ export class IntegrationMemberDto {
 
   @IsString()
   @IsNotEmpty()
-  code:string
+  code: string;
 }

@@ -8,7 +8,7 @@ export enum JOBS {
   SEND_EMPLOYEE_SETUP_EMAIL = 'sendEmployeeSetupEmail',
   CREATE_EMPLOYEES_BULK = 'createEmployeeBulk',
   PROCESS_EMPLOYEE_CSV_UPLOAD = 'processEmployeeCsvUpload',
-  ASSIGN_COURSE_TO_EMPLOYEES = 'assignCourseToEmployees'
+  ASSIGN_COURSE_TO_EMPLOYEES = 'assignCourseToEmployees',
 }
 
 export interface ISendEmployeeSetupEmail {

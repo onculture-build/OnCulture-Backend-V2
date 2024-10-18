@@ -12,7 +12,10 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CourseService } from './course.service';
 import { PaginationSearchOptionsDto } from '@@/common/interfaces/pagination-search-options.dto';
-import { AssignCourseToEmployeesDto, AssignEmployeeToCourseDto } from './dto/assign-employee.dto';
+import {
+  AssignCourseToEmployeesDto,
+  AssignEmployeeToCourseDto,
+} from './dto/assign-employee.dto';
 import { AuthStrategyType, RequestWithUser } from '@@/auth/interfaces';
 import { ApiResponseMeta } from '@@/common/decorators/response.decorator';
 import { EmployeeCourseService } from './employee/employee-course.service';
@@ -44,15 +47,14 @@ export class CourseController {
     @Body() dto: AssignEmployeeToCourseDto,
     @Req() req: RequestWithUser,
   ) {
-    return this.courseService.assignEmployeeToCourse(dto,undefined,req);
+    return this.courseService.assignEmployeeToCourse(dto, undefined, req);
   }
 
   @ApiResponseMeta({ message: 'Employees enrolled successfully' })
   @ApiOperation({ summary: 'Assign employees to a course' })
   @Post('assign-bulk')
   async bulkAssignEmployeeToCourse(
-    @Body() dto: AssignCourseToEmployeesDto,
-    @Req() req: RequestWithUser,
+    @Body() dto: AssignCourseToEmployeesDto
   ) {
     return this.courseService.initAssignCourseToEmployees(dto);
   }

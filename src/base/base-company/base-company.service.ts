@@ -90,9 +90,9 @@ export class BaseCompanyService extends CrudService<
         values: {
           select: {
             value: true,
-            id:true
-          }
-        }
+            id: true,
+          },
+        },
       },
     });
 

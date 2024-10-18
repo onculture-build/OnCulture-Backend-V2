@@ -1,4 +1,10 @@
-import { ArrayNotEmpty, IsArray, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsNotEmpty,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class AssignEmployeeToCourseDto {
   @IsUUID()
@@ -8,17 +14,16 @@ export class AssignEmployeeToCourseDto {
   subscriptionId: string;
 }
 
-
 export class AssignCourseToEmployeesDto {
   @IsArray()
   @ArrayNotEmpty()
   @IsUUID('all', { each: true })
-  employeeIds: string[]
+  employeeIds: string[];
 
   @IsUUID()
   subscriptionId: string;
 
   @IsNotEmpty()
   @IsString()
-  code: string
+  code: string;
 }

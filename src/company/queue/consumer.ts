@@ -24,7 +24,7 @@ export class CompanyUserQueueConsumer extends BaseQueueProcessor {
   constructor(
     private messagingService: MessagingService,
     private employeeService: EmployeeService,
-    private courseService:  CourseService,
+    private courseService: CourseService,
     private prismaClient: PrismaClient,
     private prismaClientManager: PrismaClientManager,
   ) {
