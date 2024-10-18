@@ -11,7 +11,12 @@ import { JobTimelineService } from './job-timeline/job-timeline.service';
 import { JobTimelineController } from './job-timeline/job-timeline.controller';
 
 @Module({
-  providers: [EmployeeService, JobRoleService, EmploymentTypesService, JobTimelineService],
+  providers: [
+    EmployeeService,
+    JobRoleService,
+    EmploymentTypesService,
+    JobTimelineService,
+  ],
   controllers: [EmployeeController, JobTimelineController],
   imports: [JobRoleModule, JobLevelModule, UserModule, CsvModule],
   exports: [EmployeeService, EmploymentTypesService],

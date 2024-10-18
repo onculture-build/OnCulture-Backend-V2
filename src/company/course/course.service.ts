@@ -1,5 +1,4 @@
 import { CrudService } from '@@/common/database/crud.service';
-import { PaginationSearchOptionsDto } from '@@/common/interfaces/pagination-search-options.dto';
 import { Injectable, NotAcceptableException } from '@nestjs/common';
 import {
   PrismaClient as CompanyPrismaClient,
@@ -9,7 +8,10 @@ import {
 import { CourseSubscriptionMapType } from './course.maptype';
 import { PrismaClient } from '@prisma/client';
 import { AppUtilities } from '@@/common/utils/app.utilities';
-import { AssignCourseToEmployeesDto, AssignEmployeeToCourseDto } from './dto/assign-employee.dto';
+import {
+  AssignCourseToEmployeesDto,
+  AssignEmployeeToCourseDto,
+} from './dto/assign-employee.dto';
 import { RequestWithUser } from '@@/auth/interfaces';
 import { GetCourseDto } from './dto/get-course .dto';
 import { CompanyUserQueueProducer } from '../queue/producer';
@@ -42,7 +44,7 @@ export class CourseService extends CrudService<
 
     const parsedQueryFilters = this.parseQueryFilter(filters, [
       'title',
-      'author'
+      'author',
     ]);
 
     const args: CompanyPrisma.CourseSubscriptionFindManyArgs = {
@@ -70,7 +72,7 @@ export class CourseService extends CrudService<
   async assignEmployeeToCourse(
     { employeeId, subscriptionId }: AssignEmployeeToCourseDto,
     client = this.prismaClient,
-    req?: RequestWithUser
+    req?: RequestWithUser,
   ) {
     const subscription = await client.courseSubscription.findFirst({
       where: { id: subscriptionId },
@@ -92,32 +94,32 @@ export class CourseService extends CrudService<
     if (existingSubscription)
       throw new NotAcceptableException('Employee already subscribed to course');
 
-    return client.$transaction(
-      async (prisma: CompanyPrismaClient) => {
-        const employeeSub = await prisma.employeeCourseSubscription.create({
-          data: {
-            employee: { connect: { id: employeeId } },
-            subscription: { connect: { id: subscriptionId } },
-            createdBy: req.user?.userId,
-          },
-        });
+    return client.$transaction(async (prisma: CompanyPrismaClient) => {
+      const employeeSub = await prisma.employeeCourseSubscription.create({
+        data: {
+          employee: { connect: { id: employeeId } },
+          subscription: { connect: { id: subscriptionId } },
+          createdBy: req.user?.userId,
+        },
+      });
 
-        const { course } = await this.getCourseDetails(subscription);
+      const { course } = await this.getCourseDetails(subscription);
 
-        await prisma.employeeCourseProgress.create({
-          data: {
-            employeeSubscriptionId: employeeSub.id,
-            progress: course.modules,
-            createdBy: req.user?.userId,
-          },
-        });
-      },
-    );
+      await prisma.employeeCourseProgress.create({
+        data: {
+          employeeSubscriptionId: employeeSub.id,
+          progress: course.modules,
+          createdBy: req.user?.userId,
+        },
+      });
+    });
   }
 
   async getCourseDetails(
     data: CourseSubscription,
-  ): Promise<CourseSubscription & { course: any, count: number, employees: any }> {
+  ): Promise<
+    CourseSubscription & { course: any; count: number; employees: any }
+  > {
     let subscription;
 
     if (data.isSanityCourse) {
@@ -138,32 +140,39 @@ export class CourseService extends CrudService<
         });
     }
 
-    const employees = await this.prismaClient.employeeCourseSubscription.findMany({
-      where: {
-        courseSubscriptionId: data.id
-      },
-      include: {
-        employee: true,
-      }
-    })
-
-
-    const mapEmployees = await Promise.all(employees.map(async (employee) => {
-      const { employee: assignedEmployees, ...others } = employee
-      const findResult = await this.prismaClient.user.findUnique({
+    const employees =
+      await this.prismaClient.employeeCourseSubscription.findMany({
         where: {
-          id: assignedEmployees?.userId
+          courseSubscriptionId: data.id,
         },
         include: {
-          emails: true,
-          role: true,
-        }
-      })
+          employee: true,
+        },
+      });
 
-      return { ...findResult, ...others }
-    }))
+    const mapEmployees = await Promise.all(
+      employees.map(async (employee) => {
+        const { employee: assignedEmployees, ...others } = employee;
+        const findResult = await this.prismaClient.user.findUnique({
+          where: {
+            id: assignedEmployees?.userId,
+          },
+          include: {
+            emails: true,
+            role: true,
+          },
+        });
 
-    return { ...data, course: subscription?.course, count: employees.length, employees: mapEmployees };
+        return { ...findResult, ...others };
+      }),
+    );
+
+    return {
+      ...data,
+      course: subscription?.course,
+      count: employees.length,
+      employees: mapEmployees,
+    };
   }
 
   async initAssignCourseToEmployees(data: AssignCourseToEmployeesDto) {
@@ -172,24 +181,28 @@ export class CourseService extends CrudService<
         code: data.code,
       },
     });
-    return await this.companyQueueProducer.addEmployeesToCourseSubscription({ ...data, companyId: company?.id });
+    return await this.companyQueueProducer.addEmployeesToCourseSubscription({
+      ...data,
+      companyId: company?.id,
+    });
   }
 
-  async assignCourseToEmployees(data: AssignCourseToEmployeesDto & { companyId: string }) {
-    const { companyId, subscriptionId, employeeIds } = data
-    const client = this.prismaClientManager.getCompanyPrismaClient(companyId)
+  async assignCourseToEmployees(
+    data: AssignCourseToEmployeesDto & { companyId: string },
+  ) {
+    const { companyId, subscriptionId, employeeIds } = data;
+    const client = this.prismaClientManager.getCompanyPrismaClient(companyId);
     for (const employeeId of employeeIds) {
       try {
-        await this.assignEmployeeToCourse({ employeeId, subscriptionId }, client)
+        await this.assignEmployeeToCourse(
+          { employeeId, subscriptionId },
+          client,
+        );
       } catch (error) {
         continue;
       }
-
     }
 
     return;
-
   }
-
-
 }

@@ -108,25 +108,25 @@ export class BaseCompanyRequestService extends CrudService<
     updateDto: CompanyDetailsUpdateDto,
     prisma: PrismaClient = this.prismaClient,
   ) {
-    const { values, ...others } = updateDto
-    const updateValues = values.filter(value => value.id); 
-    const createValues = values.filter(value => !value.id)
+    const { values, ...others } = updateDto;
+    const updateValues = values.filter((value) => value.id);
+    const createValues = values.filter((value) => !value.id);
     const dto: Prisma.BaseCompanyUpdateArgs = {
       where: { id },
       data: {
         ...others,
         values: {
-          update: updateValues.map(value => ({
+          update: updateValues.map((value) => ({
             where: { id: value.id },
             data: {
-              value:value.value
-            }
+              value: value.value,
+            },
           })),
-          create: createValues.map(value => ({
-            value: value.value 
+          create: createValues.map((value) => ({
+            value: value.value,
           })),
-        }
-      }
+        },
+      },
     };
     return await prisma.baseCompany.update(dto);
   }

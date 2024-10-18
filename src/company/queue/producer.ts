@@ -35,11 +35,12 @@ export class CompanyUserQueueProducer {
     });
   }
 
-  async addEmployeesToCourseSubscription(data: AssignCourseToEmployeesDto & {companyId:string}) {
+  async addEmployeesToCourseSubscription(
+    data: AssignCourseToEmployeesDto & { companyId: string },
+  ) {
     await this.addToQueue(JOBS.ASSIGN_COURSE_TO_EMPLOYEES, data, {
-      removeOnComplete:true
-    })
-    
+      removeOnComplete: true,
+    });
   }
 
   private async addToQueue(jobName: JOBS, data: any, opts?: JobOptions) {

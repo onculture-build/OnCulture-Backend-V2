@@ -9,7 +9,12 @@ import { CompanyUserQueueProducer } from '../queue/producer';
 
 @Module({
   imports: [BullModule.registerQueue({ name: QUEUE })],
-  providers: [CourseService, EmployeeCourseService, SanityProviderService, CompanyUserQueueProducer],
+  providers: [
+    CourseService,
+    EmployeeCourseService,
+    SanityProviderService,
+    CompanyUserQueueProducer,
+  ],
   controllers: [CourseController],
 })
 export class CourseModule {}
