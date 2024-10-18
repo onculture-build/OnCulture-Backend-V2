@@ -17,9 +17,6 @@ CREATE TYPE "QuizType" AS ENUM ('MultipleChoice', 'TrueFalse', 'FillInTheBlank')
 DROP INDEX "base_course_name_key";
 
 -- AlterTable
-ALTER TABLE "base_company" ADD COLUMN     "overview" VARCHAR;
-
--- AlterTable
 ALTER TABLE "base_course" DROP COLUMN "lesson",
 DROP COLUMN "name",
 DROP COLUMN "quiz",
@@ -116,20 +113,40 @@ CREATE TABLE "base_company_course_subscription" (
 );
 
 -- CreateTable
-CREATE TABLE "sanity_courses" (
+CREATE TABLE "sanity_course" (
     "id" UUID NOT NULL,
-    "santityId" TEXT NOT NULL,
+    "sanityId" TEXT NOT NULL,
+    "title" VARCHAR NOT NULL,
+    "author" VARCHAR,
+    "modules" JSONB,
     "status" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdBy" UUID,
     "updatedAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedBy" UUID,
 
-    CONSTRAINT "sanity_courses_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "sanity_course_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "sanity_course_subscription" (
+    "id" UUID NOT NULL,
+    "courseId" UUID NOT NULL,
+    "companyId" UUID NOT NULL,
+    "status" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdBy" UUID,
+    "updatedAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedBy" UUID,
+
+    CONSTRAINT "sanity_course_subscription_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "sanity_courses_santityId_key" ON "sanity_courses"("santityId");
+CREATE UNIQUE INDEX "sanity_course_sanityId_key" ON "sanity_course"("sanityId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "sanity_course_subscription_courseId_companyId_key" ON "sanity_course_subscription"("courseId", "companyId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "base_course_title_key" ON "base_course"("title");
@@ -157,3 +174,6 @@ ALTER TABLE "base_company_course_subscription" ADD CONSTRAINT "base_company_cour
 
 -- AddForeignKey
 ALTER TABLE "base_company_course_subscription" ADD CONSTRAINT "base_company_course_subscription_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "base_company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "sanity_course_subscription" ADD CONSTRAINT "sanity_course_subscription_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "sanity_course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
