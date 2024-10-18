@@ -940,8 +940,8 @@ model IntegrationsConfig {
 
 model CourseSubscription {
     id                  String                       @id @default(uuid()) @db.Uuid
-    courseId            String                       @db.Uuid
     subscriptionId      String                       @db.Uuid
+    isSanityCourse      Boolean                      @default(false) @db.Boolean
     status              Boolean                      @default(true) @db.Boolean
     createdAt           DateTime                     @default(now()) @db.Timestamptz(6)
     createdBy           String?                      @db.Uuid
@@ -964,19 +964,19 @@ model EmployeeCourseSubscription {
     subscription         CourseSubscription       @relation(fields: [courseSubscriptionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     employee             Employee                 @relation(fields: [employeeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
+    @@unique([employeeId, courseSubscriptionId])
     @@map("employee_course_subscription")
 }
 
-// still to be reviewed
 model EmployeeCourseProgress {
-    id                     String                   @id @default(uuid()) @db.Uuid
-    employeeSubscriptionId String                   @db.Uuid
-    progress               Int                      @default(0)
-    status                 CourseSubscriptionStatus @default(Pending)
-    createdAt              DateTime                 @default(now()) @db.Timestamptz(6)
-    createdBy              String?                  @db.Uuid
-    updatedAt              DateTime                 @default(now()) @updatedAt() @db.Timestamptz(6)
-    updatedBy              String?                  @db.Uuid
+    id                     String   @id @default(uuid()) @db.Uuid
+    employeeSubscriptionId String   @db.Uuid
+    progress               Json     @db.JsonB
+    status                 Boolean  @default(true) @db.Boolean
+    createdAt              DateTime @default(now()) @db.Timestamptz(6)
+    createdBy              String?  @db.Uuid
+    updatedAt              DateTime @default(now()) @updatedAt() @db.Timestamptz(6)
+    updatedBy              String?  @db.Uuid
 
     @@map("employee_course_progress")
 }
