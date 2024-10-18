@@ -17,7 +17,7 @@ import { AppUtilities } from '@@/common/utils/app.utilities';
 import * as moment from 'moment';
 import { JwtPayload, RequestWithUser } from './interfaces';
 import { CacheKeysEnums } from '@@/common/cache/cache.enum';
-import { CookieOptions, Request, Response } from 'express';
+import { CookieOptions, Response } from 'express';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { v4 } from 'uuid';
@@ -125,7 +125,7 @@ export class AuthService {
   async loginUser(
     dto: LoginDto,
     lastLoginIp: string,
-    req: Request,
+    req: RequestWithUser,
     response: Response,
   ) {
     const { email, employeeNo, password } = dto;
@@ -281,7 +281,7 @@ export class AuthService {
     };
   }
 
-  async setPassword(token: string, dto: SetPasswordDto, req: Request) {
+  async setPassword(token: string, dto: SetPasswordDto, req: RequestWithUser) {
     const cPrisma =
       await this.prismaClientManager.getCompanyPrismaClientFromRequest(req);
 
@@ -366,7 +366,10 @@ export class AuthService {
     });
   }
 
-  async requestPasswordReset({ email }: RequestPasswordResetDto, req: Request) {
+  async requestPasswordReset(
+    { email }: RequestPasswordResetDto,
+    req: RequestWithUser,
+  ) {
     const companyCode = req['company'] as string;
 
     const baseUser = await this.prismaClient.baseUserCompany.findFirst({
@@ -418,7 +421,10 @@ export class AuthService {
     this.messagingService.sendPasswordRequestEmail(emailBuilder);
   }
 
-  async resetPassword({ password, token }: ResetPasswordDto, req: Request) {
+  async resetPassword(
+    { password, token }: ResetPasswordDto,
+    req: RequestWithUser,
+  ) {
     const storedEmail = await this.cacheService.get(
       CacheKeysEnums.REQUESTS + token,
     );

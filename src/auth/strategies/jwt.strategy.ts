@@ -11,6 +11,7 @@ import { CacheKeysEnums } from 'src/common/cache/cache.enum';
 import { CacheService } from 'src/common/cache/cache.service';
 import { JwtPayload } from '../interfaces';
 import { PrismaClient } from '@prisma/client';
+import { AppUtilities } from '@@/common/utils/app.utilities';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -26,7 +27,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         ExtractJwt.fromUrlQueryParameter('token'),
       ]),
       passReqToCallback: true,
-      ignoreExpiration: true,
+      ignoreExpiration: false,
       secretOrKey: configService.get('jwt.secret'),
     });
   }
@@ -45,6 +46,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!sessionKey) {
       return undefined;
     }
+    const ttl = AppUtilities.secondsToMilliseconds(
+      this.configService.get('jwt.expiry'),
+    );
     const sessionPayload = await this.coreCacheService.wrap(
       `${CacheKeysEnums.TOKENS}:${jwt.userId}:${sessionKey}`,
       async () => {
@@ -56,7 +60,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
         return jwt;
       },
-      { ttl: this.configService.get('jwt.expiry') },
+      { ttl },
     );
 
     return sessionPayload;

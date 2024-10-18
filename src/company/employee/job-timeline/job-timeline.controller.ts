@@ -16,8 +16,8 @@ import { CreateJobTimelineDto } from './dto/create-timeline.dto';
 import { UpdateTimelineDto } from './dto/update-timeline.dto';
 
 @ApiTags('Job Timelines')
-@ApiBearerAuth()
 @AuthStrategy(AuthStrategyType.JWT)
+@ApiBearerAuth()
 @Controller('job-timeline')
 export class JobTimelineController {
   constructor(private timelineService: JobTimelineService) {}
