@@ -11,6 +11,7 @@ import { PrismaClient } from '@prisma/client';
 import { AppUtilities } from '@@/common/utils/app.utilities';
 import { AssignEmployeeToCourseDto } from './dto/assign-employee.dto';
 import { RequestWithUser } from '@@/auth/interfaces';
+import { GetCourseDto } from './dto/get-course .dto';
 
 @Injectable()
 export class CourseService extends CrudService<
@@ -24,7 +25,7 @@ export class CourseService extends CrudService<
     super(prismaClient.courseSubscription);
   }
 
-  async getAllCompanyCourses(query: PaginationSearchOptionsDto) {
+  async getAllCompanyCourses(query: GetCourseDto) {
     const {
       cursor,
       size,
@@ -37,7 +38,7 @@ export class CourseService extends CrudService<
 
     const parsedQueryFilters = this.parseQueryFilter(filters, [
       'title',
-      'author',
+      'author'
     ]);
 
     const args: CompanyPrisma.CourseSubscriptionFindManyArgs = {
@@ -111,7 +112,7 @@ export class CourseService extends CrudService<
 
   async getCourseDetails(
     data: CourseSubscription,
-  ): Promise<CourseSubscription & { course: any }> {
+  ): Promise<CourseSubscription & { course: any, count:number }> {
     let subscription;
 
     if (data.isSanityCourse) {
@@ -132,6 +133,12 @@ export class CourseService extends CrudService<
         });
     }
 
-    return { ...data, course: subscription?.course };
+    const employees = await this.prismaClient.employeeCourseSubscription.findMany({
+      where: {
+        courseSubscriptionId:data.id
+      }
+    })
+
+    return { ...data, course: subscription?.course, count:employees.length };
   }
 }
