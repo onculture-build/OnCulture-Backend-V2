@@ -9,9 +9,11 @@ import {
 import { CourseSubscriptionMapType } from './course.maptype';
 import { PrismaClient } from '@prisma/client';
 import { AppUtilities } from '@@/common/utils/app.utilities';
-import { AssignEmployeeToCourseDto } from './dto/assign-employee.dto';
+import { AssignCourseToEmployeesDto, AssignEmployeeToCourseDto } from './dto/assign-employee.dto';
 import { RequestWithUser } from '@@/auth/interfaces';
 import { GetCourseDto } from './dto/get-course .dto';
+import { CompanyUserQueueProducer } from '../queue/producer';
+import { PrismaClientManager } from '../../common/database/prisma-client-manager';
 
 @Injectable()
 export class CourseService extends CrudService<
@@ -21,6 +23,8 @@ export class CourseService extends CrudService<
   constructor(
     private prismaClient: CompanyPrismaClient,
     private basePrismaClient: PrismaClient,
+    private companyQueueProducer: CompanyUserQueueProducer,
+    private prismaClientManager: PrismaClientManager,
   ) {
     super(prismaClient.courseSubscription);
   }
@@ -65,7 +69,8 @@ export class CourseService extends CrudService<
 
   async assignEmployeeToCourse(
     { employeeId, subscriptionId }: AssignEmployeeToCourseDto,
-    req: RequestWithUser,
+    client = this.prismaClient,
+    req?: RequestWithUser
   ) {
     const subscription = await this.findFirst({
       where: { id: subscriptionId },
@@ -75,7 +80,7 @@ export class CourseService extends CrudService<
       throw new NotAcceptableException('Unable to get subscription');
 
     const existingSubscription =
-      await this.prismaClient.employeeCourseSubscription.findUnique({
+      await client.employeeCourseSubscription.findUnique({
         where: {
           employeeId_courseSubscriptionId: {
             employeeId,
@@ -87,7 +92,7 @@ export class CourseService extends CrudService<
     if (existingSubscription)
       throw new NotAcceptableException('Employee already subscribed to course');
 
-    return this.prismaClient.$transaction(
+    return client.$transaction(
       async (prisma: CompanyPrismaClient) => {
         const employeeSub = await prisma.employeeCourseSubscription.create({
           data: {
@@ -112,7 +117,7 @@ export class CourseService extends CrudService<
 
   async getCourseDetails(
     data: CourseSubscription,
-  ): Promise<CourseSubscription & { course: any, count:number }> {
+  ): Promise<CourseSubscription & { course: any, count: number, employees: any }> {
     let subscription;
 
     if (data.isSanityCourse) {
@@ -135,10 +140,57 @@ export class CourseService extends CrudService<
 
     const employees = await this.prismaClient.employeeCourseSubscription.findMany({
       where: {
-        courseSubscriptionId:data.id
+        courseSubscriptionId: data.id
+      },
+      include: {
+        employee: true,
       }
     })
 
-    return { ...data, course: subscription?.course, count:employees.length };
+
+    const mapEmployees = await Promise.all(employees.map(async (employee) => {
+      const { employee: assignedEmployees, ...others } = employee
+      const findResult = await this.prismaClient.user.findUnique({
+        where: {
+          id: assignedEmployees?.userId
+        },
+        include: {
+          emails: true,
+          role: true,
+        }
+      })
+
+      return { ...findResult, ...others }
+    }))
+
+    return { ...data, course: subscription?.course, count: employees.length, employees: mapEmployees };
   }
+
+  async initAssignCourseToEmployees(data: AssignCourseToEmployeesDto) {
+    const company = await this.basePrismaClient.baseCompany.findUnique({
+      where: {
+        code: data.code,
+      },
+    });
+    return await this.companyQueueProducer.addEmployeesToCourseSubscription({ ...data, companyId: company?.id });
+  }
+
+  async assignCourseToEmployees(data: AssignCourseToEmployeesDto & { companyId: string }) {
+    const { companyId, subscriptionId, employeeIds } = data
+    const client = this.prismaClientManager.getCompanyPrismaClient(companyId)
+    const subscription = await this.findFirst({
+      where: { id: subscriptionId },
+    });
+
+    if (!subscription)
+      throw new NotAcceptableException('Unable to get subscription');
+    for (const employeeId of employeeIds) {
+      await this.assignEmployeeToCourse({ employeeId, subscriptionId }, client)
+    }
+
+    return;
+
+  }
+
+
 }
