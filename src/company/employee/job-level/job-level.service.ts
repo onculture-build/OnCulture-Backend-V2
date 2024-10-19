@@ -99,7 +99,7 @@ export class JobLevelService extends CrudService<
     return await this.createJobLevel(dto as CreateJobLevelDto, req);
   }
 
-  async deleJobLevel(id: string) {
+  async deleteJobLevel(id: string) {
     return await this.delete({
       where: { id },
     });

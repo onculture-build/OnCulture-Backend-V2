@@ -11,12 +11,11 @@ import {
 export class CreateCompanyValues {
   @IsOptional()
   @IsString()
-  value: string;
+  value?: string;
 
   @IsOptional()
   @IsUUID()
-  @IsString()
-  id: string;
+  id?: string;
 }
 export class CompanyDetailsUpdateDto {
   @IsOptional()
@@ -30,27 +29,27 @@ export class CompanyDetailsUpdateDto {
 
   @IsOptional()
   @IsString()
-  phone: string;
+  phone?: string;
 
   @IsOptional()
   @IsString()
-  website: string;
+  website?: string;
 
   @IsOptional()
   @IsString()
-  townCity: string;
+  townCity?: string;
 
   @IsOptional()
   @IsString()
-  overview: string;
+  overview?: string;
 
   @IsOptional()
   @IsString()
-  mission: string;
+  mission?: string;
 
   @IsOptional()
   @IsString()
-  vision: string;
+  vision?: string;
 
   @IsOptional()
   @IsArray()
