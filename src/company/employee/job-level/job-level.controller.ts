@@ -73,6 +73,6 @@ export class JobLevelController {
   @ApiOperation({ summary: 'Delete a job level' })
   @Delete(':id')
   async deleteLevel(@Param('id', ParseUUIDPipe) id: string) {
-    return this.jobLevelService.deleJobLevel(id);
+    return this.jobLevelService.deleteJobLevel(id);
   }
 }
