@@ -111,7 +111,7 @@ export class JobRoleService extends CrudService<
       };
     });
 
-    const totalPages = Math.ceil(result.total / size);
+    const totalPages = Math.ceil(result.total / size); 
     return {
       pagination: {
         total: result.total,
