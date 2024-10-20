@@ -3,6 +3,7 @@ import { AuthStrategy } from '@@/common/decorators/strategy.decorator';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -30,6 +31,12 @@ export class JobRoleController {
     return this.jobRoleService.getAllJobRoles(dto);
   }
 
+  @ApiOperation({ summary: 'Get  job roles with employee count' })
+  @Get('/count')
+  async getJobRolesWithCount(@Query() dto: GetAllJobRolesDto) {
+    return this.jobRoleService.getJobRoleWithCounts(dto);
+  }
+
   @ApiOperation({ summary: 'Create a job role' })
   @Post()
   async createJobRole(
@@ -47,5 +54,11 @@ export class JobRoleController {
     @Req() req: RequestWithUser,
   ) {
     return this.jobRoleService.updateJobRole(id, dto, req);
+  }
+
+  @ApiOperation({ summary: 'Delete a job role' })
+  @Delete(':id')
+  async deleteJobRole(@Param('id', ParseUUIDPipe) id: string) {
+    return this.jobRoleService.deleJobRole(id);
   }
 }

@@ -1,5 +1,4 @@
 import { CrudService } from '@@/common/database/crud.service';
-import { PaginationSearchOptionsDto } from '@@/common/interfaces/pagination-search-options.dto';
 import { Injectable, NotAcceptableException } from '@nestjs/common';
 import {
   PrismaClient as CompanyPrismaClient,
@@ -9,8 +8,14 @@ import {
 import { CourseSubscriptionMapType } from './course.maptype';
 import { PrismaClient } from '@prisma/client';
 import { AppUtilities } from '@@/common/utils/app.utilities';
-import { AssignEmployeeToCourseDto } from './dto/assign-employee.dto';
+import {
+  AssignCourseToEmployeesDto,
+  AssignEmployeeToCourseDto,
+} from './dto/assign-employee.dto';
 import { RequestWithUser } from '@@/auth/interfaces';
+import { GetCourseDto } from './dto/get-course .dto';
+import { CompanyUserQueueProducer } from '../queue/producer';
+import { PrismaClientManager } from '../../common/database/prisma-client-manager';
 
 @Injectable()
 export class CourseService extends CrudService<
@@ -20,11 +25,13 @@ export class CourseService extends CrudService<
   constructor(
     private prismaClient: CompanyPrismaClient,
     private basePrismaClient: PrismaClient,
+    private companyQueueProducer: CompanyUserQueueProducer,
+    private prismaClientManager: PrismaClientManager,
   ) {
     super(prismaClient.courseSubscription);
   }
 
-  async getAllCompanyCourses(query: PaginationSearchOptionsDto) {
+  async getAllCompanyCourses(query: GetCourseDto) {
     const {
       cursor,
       size,
@@ -64,9 +71,10 @@ export class CourseService extends CrudService<
 
   async assignEmployeeToCourse(
     { employeeId, subscriptionId }: AssignEmployeeToCourseDto,
-    req: RequestWithUser,
+    client = this.prismaClient,
+    req?: RequestWithUser,
   ) {
-    const subscription = await this.findFirst({
+    const subscription = await client.courseSubscription.findFirst({
       where: { id: subscriptionId },
     });
 
@@ -74,7 +82,7 @@ export class CourseService extends CrudService<
       throw new NotAcceptableException('Unable to get subscription');
 
     const existingSubscription =
-      await this.prismaClient.employeeCourseSubscription.findUnique({
+      await client.employeeCourseSubscription.findUnique({
         where: {
           employeeId_courseSubscriptionId: {
             employeeId,
@@ -86,32 +94,32 @@ export class CourseService extends CrudService<
     if (existingSubscription)
       throw new NotAcceptableException('Employee already subscribed to course');
 
-    return this.prismaClient.$transaction(
-      async (prisma: CompanyPrismaClient) => {
-        const employeeSub = await prisma.employeeCourseSubscription.create({
-          data: {
-            employee: { connect: { id: employeeId } },
-            subscription: { connect: { id: subscriptionId } },
-            createdBy: req.user?.userId,
-          },
-        });
+    return client.$transaction(async (prisma: CompanyPrismaClient) => {
+      const employeeSub = await prisma.employeeCourseSubscription.create({
+        data: {
+          employee: { connect: { id: employeeId } },
+          subscription: { connect: { id: subscriptionId } },
+          createdBy: req.user?.userId,
+        },
+      });
 
-        const { course } = await this.getCourseDetails(subscription);
+      const { course } = await this.getCourseDetails(subscription);
 
-        await prisma.employeeCourseProgress.create({
-          data: {
-            employeeSubscriptionId: employeeSub.id,
-            progress: course.modules,
-            createdBy: req.user?.userId,
-          },
-        });
-      },
-    );
+      await prisma.employeeCourseProgress.create({
+        data: {
+          employeeSubscriptionId: employeeSub.id,
+          progress: course.modules,
+          createdBy: req.user?.userId,
+        },
+      });
+    });
   }
 
   async getCourseDetails(
     data: CourseSubscription,
-  ): Promise<CourseSubscription & { course: any }> {
+  ): Promise<
+    CourseSubscription & { course: any; count: number; employees: any }
+  > {
     let subscription;
 
     if (data.isSanityCourse) {
@@ -132,6 +140,69 @@ export class CourseService extends CrudService<
         });
     }
 
-    return { ...data, course: subscription?.course };
+    const employees =
+      await this.prismaClient.employeeCourseSubscription.findMany({
+        where: {
+          courseSubscriptionId: data.id,
+        },
+        include: {
+          employee: true,
+        },
+      });
+
+    const mapEmployees = await Promise.all(
+      employees.map(async (employee) => {
+        const { employee: assignedEmployees, ...others } = employee;
+        const findResult = await this.prismaClient.user.findUnique({
+          where: {
+            id: assignedEmployees?.userId,
+          },
+          include: {
+            emails: true,
+            role: true,
+          },
+        });
+
+        return { ...findResult, ...others };
+      }),
+    );
+
+    return {
+      ...data,
+      course: subscription?.course,
+      count: employees.length,
+      employees: mapEmployees,
+    };
+  }
+
+  async initAssignCourseToEmployees(data: AssignCourseToEmployeesDto) {
+    const company = await this.basePrismaClient.baseCompany.findUnique({
+      where: {
+        code: data.code,
+      },
+    });
+    return await this.companyQueueProducer.addEmployeesToCourseSubscription({
+      ...data,
+      companyId: company?.id,
+    });
+  }
+
+  async assignCourseToEmployees(
+    data: AssignCourseToEmployeesDto & { companyId: string },
+  ) {
+    const { companyId, subscriptionId, employeeIds } = data;
+    const client = this.prismaClientManager.getCompanyPrismaClient(companyId);
+    for (const employeeId of employeeIds) {
+      try {
+        await this.assignEmployeeToCourse(
+          { employeeId, subscriptionId },
+          client,
+        );
+      } catch (error) {
+        continue;
+      }
+    }
+
+    return;
   }
 }

@@ -9,6 +9,7 @@ import { JobRoleService } from '../employee/job-role/job-role.service';
 import { UserController } from './user.controller';
 import { EmploymentTypesService } from '../employee/employment-types/employment-types.service';
 import { UserRolesService } from './user-roles/user-roles.service';
+import { CourseService } from '../course/course.service';
 
 @Module({
   imports: [BullModule.registerQueue({ name: QUEUE })],
@@ -20,6 +21,7 @@ import { UserRolesService } from './user-roles/user-roles.service';
     CompanyUserQueueProducer,
     CompanyUserQueueConsumer,
     UserRolesService,
+    CourseService,
   ],
   exports: [UserService, CompanyUserQueueProducer, CompanyUserQueueConsumer],
   controllers: [UserController],

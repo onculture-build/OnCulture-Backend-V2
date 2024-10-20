@@ -11,7 +11,7 @@ import { IntegrationQuery } from '../interfaces';
 import { IntegrationProviders } from '../../common/third-party/interfaces';
 
 @ApiTags('Integrations')
-  @ApiBearerAuth()
+@ApiBearerAuth()
 @AuthStrategy(AuthStrategyType.JWT)
 @Controller('integrations')
 export class IntegrationsController {
@@ -36,7 +36,7 @@ export class IntegrationsController {
   ) {
     const { type, ...data } = JSON.parse(AppUtilities.decode(query?.state));
     data.code = query.code;
-    const link = await this.integrationsService.configure(type, data, response);
+    const link = await this.integrationsService.configure(type, data);
     return res.redirect(link);
   }
 

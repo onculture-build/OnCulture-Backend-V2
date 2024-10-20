@@ -14,6 +14,7 @@ import { GetJobLevelsDto } from './dto/get-job-levels.dto';
 import { AppUtilities } from '@@/common/utils/app.utilities';
 import { RequestWithUser } from '@@/auth/interfaces';
 import { UpdateJobLevelDto } from './dto/update-job-level.dto';
+import { UpsertJobLevelDto } from './dto/upsert-job-level.dto';
 
 @Injectable()
 export class JobLevelService extends CrudService<
@@ -75,7 +76,7 @@ export class JobLevelService extends CrudService<
     return this.create({
       data: {
         ...dto,
-        createdBy: req.user.userId,
+        createdBy: req?.user?.userId,
       },
     });
   }
@@ -87,7 +88,20 @@ export class JobLevelService extends CrudService<
   ) {
     return this.update({
       where: { id },
-      data: { ...dto, updatedBy: req.user.userId },
+      data: { ...dto, updatedBy: req?.user?.userId },
+    });
+  }
+
+  async upsertJobLevel(dto: UpsertJobLevelDto, req: RequestWithUser) {
+    if (dto.id) {
+      return await this.updateJobLevel(dto.id, dto, req);
+    }
+    return await this.createJobLevel(dto as CreateJobLevelDto, req);
+  }
+
+  async deleteJobLevel(id: string) {
+    return await this.delete({
+      where: { id },
     });
   }
 }

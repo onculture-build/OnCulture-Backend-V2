@@ -8,6 +8,7 @@ import {
   JOBS,
   QUEUE,
 } from '../interfaces';
+import { AssignCourseToEmployeesDto } from '../course/dto/assign-employee.dto';
 
 @Injectable()
 export class CompanyUserQueueProducer {
@@ -30,6 +31,14 @@ export class CompanyUserQueueProducer {
 
   async inviteEmployeeToCompany(data: CreateEmployeeIntegration) {
     await this.addToQueue(JOBS.CREATE_EMPLOYEES_BULK, data, {
+      removeOnComplete: true,
+    });
+  }
+
+  async addEmployeesToCourseSubscription(
+    data: AssignCourseToEmployeesDto & { companyId: string },
+  ) {
+    await this.addToQueue(JOBS.ASSIGN_COURSE_TO_EMPLOYEES, data, {
       removeOnComplete: true,
     });
   }

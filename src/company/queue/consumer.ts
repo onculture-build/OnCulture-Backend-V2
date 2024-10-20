@@ -14,6 +14,8 @@ import { MessagingService } from '@@/common/messaging/messaging.service';
 import { EmployeeService } from '../employee/employee.service';
 import { PrismaClient } from '@@prisma/company';
 import { PrismaClientManager } from '@@/common/database/prisma-client-manager';
+import { AssignCourseToEmployeesDto } from '../course/dto/assign-employee.dto';
+import { CourseService } from '../course/course.service';
 
 @Processor(QUEUE)
 export class CompanyUserQueueConsumer extends BaseQueueProcessor {
@@ -22,6 +24,7 @@ export class CompanyUserQueueConsumer extends BaseQueueProcessor {
   constructor(
     private messagingService: MessagingService,
     private employeeService: EmployeeService,
+    private courseService: CourseService,
     private prismaClient: PrismaClient,
     private prismaClientManager: PrismaClientManager,
   ) {
@@ -90,5 +93,12 @@ export class CompanyUserQueueConsumer extends BaseQueueProcessor {
     data,
   }: Job<CreateEmployeeIntegration>) {
     this.employeeService.createEmployeesFromIntegration(data);
+  }
+
+  @Process({ name: JOBS.ASSIGN_COURSE_TO_EMPLOYEES })
+  async addEmployeesToCourse({
+    data,
+  }: Job<AssignCourseToEmployeesDto & { companyId: string }>) {
+    this.courseService.assignCourseToEmployees(data);
   }
 }

@@ -85,7 +85,7 @@ export class AuthService {
     return this.prismaClient.allowedUser.createMany({
       data: emails.map((email) => ({
         email: email.toLowerCase(),
-        createdBy: req.user.userId,
+        createdBy: req?.user?.userId,
       })),
       skipDuplicates: true,
     });

@@ -19,7 +19,6 @@ import { ConfigService } from '@nestjs/config';
 import { IntegrationQuery } from '../interfaces';
 import { buildIntegrationQuery } from '../../common/utils/query';
 import { JwtService } from '@nestjs/jwt';
-import moment from 'moment';
 import { Response } from 'express';
 
 @Injectable()
@@ -59,7 +58,6 @@ export class IntegrationsService extends CrudService<
   public async configure(
     integration_type: IntegrationProviders,
     payload: any,
-    response: Response,
   ): Promise<string> {
     const provider = this.getIntegrationProvider(integration_type);
     let result = false;
@@ -150,9 +148,9 @@ export class IntegrationsService extends CrudService<
     const { config_meta } = await this.getIntegrationConfig({
       source,
     });
-    const config = config_meta as Prisma.JsonObject
+    const config = config_meta as Prisma.JsonObject;
     if (!config) {
-      throw new BadRequestException("config not found")
+      throw new BadRequestException('config not found');
     }
     return await provider.getMembers(config);
   }
@@ -165,7 +163,7 @@ export class IntegrationsService extends CrudService<
       source,
     });
     if (!config_meta) {
-      throw new BadRequestException("config not found")
+      throw new BadRequestException('config not found');
     }
     return await provider.getGroups(config_meta as ProviderConfig);
   }
@@ -179,7 +177,7 @@ export class IntegrationsService extends CrudService<
       integration_type,
     });
     if (!config_meta) {
-      throw new BadRequestException("config not found")
+      throw new BadRequestException('config not found');
     }
     return await provider.groupMembers(config_meta as ProviderConfig, groupId);
   }

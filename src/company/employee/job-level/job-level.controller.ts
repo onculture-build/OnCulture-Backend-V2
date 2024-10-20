@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -17,6 +18,7 @@ import { AuthStrategy } from '@@/common/decorators/strategy.decorator';
 import { AuthStrategyType, RequestWithUser } from '@@/auth/interfaces';
 import { GetJobLevelsDto } from './dto/get-job-levels.dto';
 import { UpdateJobLevelDto } from './dto/update-job-level.dto';
+import { UpsertJobLevelDto } from './dto/upsert-job-level.dto';
 
 @ApiTags('Job Level')
 @ApiBearerAuth()
@@ -47,6 +49,16 @@ export class JobLevelController {
     return this.jobLevelService.createJobLevel(dto, req);
   }
 
+  @ApiOperation({ summary: 'Upsert job level' })
+  @ApiResponseMeta({ message: 'Job level created successfully!' })
+  @Post('/upsert')
+  async upsertJobLevel(
+    @Body() dto: UpsertJobLevelDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.jobLevelService.upsertJobLevel(dto, req);
+  }
+
   @ApiOperation({ summary: 'Update job level' })
   @ApiResponseMeta({ message: 'Job level updated successfully!' })
   @Patch(':id')
@@ -56,5 +68,11 @@ export class JobLevelController {
     @Req() req: RequestWithUser,
   ) {
     return this.jobLevelService.updateJobLevel(id, dto, req);
+  }
+
+  @ApiOperation({ summary: 'Delete a job level' })
+  @Delete(':id')
+  async deleteLevel(@Param('id', ParseUUIDPipe) id: string) {
+    return this.jobLevelService.deleteJobLevel(id);
   }
 }

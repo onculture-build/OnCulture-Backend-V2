@@ -87,13 +87,18 @@ export class BaseCompanyService extends CrudService<
       where: { code },
       include: {
         logo: true,
+        values: {
+          select: {
+            value: true,
+            id: true,
+          },
+        },
       },
     });
 
     if (!company) {
       throw new NotFoundException('Company not found');
     }
-
     if (company.logo) {
       company.logo = await this.fileService.getFile(company.logo.key);
     }
@@ -371,13 +376,13 @@ export class BaseCompanyService extends CrudService<
       update: {
         key,
         eTag,
-        updatedBy: req.user.userId,
+        updatedBy: req?.user?.userId,
       },
       create: {
         key,
         eTag,
         companyCode: req['company'],
-        createdBy: req.user.userId,
+        createdBy: req?.user?.userId,
       },
     });
   }
