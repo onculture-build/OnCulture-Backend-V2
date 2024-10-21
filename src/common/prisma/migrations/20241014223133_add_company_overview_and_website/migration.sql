@@ -1,3 +1,3 @@
 -- AlterTable
-ALTER TABLE "base_company" ADD COLUMN     "overview" VARCHAR,
+ALTER TABLE "base_company"
 ADD COLUMN     "website" VARCHAR;
