@@ -8,14 +8,16 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BaseCourseService } from './base-course.service';
 import { PaginationSearchOptionsDto } from '@@/common/interfaces/pagination-search-options.dto';
 import { SanityService } from './sanity/sanity.service';
-import { RequestWithUser } from '@@/auth/interfaces';
+import { AuthStrategyType, RequestWithUser } from '@@/auth/interfaces';
 import { ApiResponseMeta } from '@@/common/decorators/response.decorator';
+import { AuthStrategy } from '@@/common/decorators/strategy.decorator';
 
 @ApiTags('Base Courses')
+@AuthStrategy(AuthStrategyType.PUBLIC)
 @Controller('courses')
 export class BaseCourseController {
   constructor(
@@ -53,6 +55,8 @@ export class BaseCourseController {
 
   @ApiOperation({ summary: 'Subscribe to a sanity course' })
   @ApiResponseMeta({ message: 'Successfully subscribed to course' })
+  @AuthStrategy(AuthStrategyType.JWT)
+  @ApiBearerAuth()
   @Post('sanity/:id/subscribe')
   async subscribeToSanityCourse(
     @Param('id', ParseUUIDPipe) id: string,
