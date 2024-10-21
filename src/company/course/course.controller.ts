@@ -53,9 +53,7 @@ export class CourseController {
   @ApiResponseMeta({ message: 'Employees enrolled successfully' })
   @ApiOperation({ summary: 'Assign employees to a course' })
   @Post('assign-bulk')
-  async bulkAssignEmployeeToCourse(
-    @Body() dto: AssignCourseToEmployeesDto
-  ) {
+  async bulkAssignEmployeeToCourse(@Body() dto: AssignCourseToEmployeesDto) {
     return this.courseService.initAssignCourseToEmployees(dto);
   }
 
