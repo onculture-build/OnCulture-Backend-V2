@@ -20,7 +20,6 @@ import { CompanyMiddleware } from './common/middleware/company.middleware';
 import { PermissionsGuard } from './auth/guard/permission.guard';
 import { CaslAbilityFactory } from './auth/casl/casl-ability.factory/casl-ability.factory';
 import { PermissionModule } from './company/permission/permission.module';
-import { CompositeGuard } from './auth/guard/composite.guard';
 import { AppAuthGuard } from './auth/guard/app.guard';
 import { SubdomainGuard } from './auth/guard/subdomain.guard';
 import { SentryModule } from '@sentry/nestjs/setup';
@@ -68,7 +67,8 @@ import { SanityProviderService } from './common/third-party/providers/sanity/san
     CaslAbilityFactory,
     JwtService,
     JwtStrategy,
-    { provide: APP_GUARD, useClass: CompositeGuard },
+    { provide: APP_GUARD, useClass: SubdomainGuard },
+    { provide: APP_GUARD, useClass: AppAuthGuard },
     PermissionsGuard,
     SanityProviderService,
   ],

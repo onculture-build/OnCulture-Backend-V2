@@ -6,14 +6,14 @@ import {
   NotAcceptableException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request } from 'express';
+import { RequestWithUser } from '../interfaces';
 
 @Injectable()
 export class SubdomainGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
 
     const isOpenRoute = this.reflector.getAllAndOverride<boolean>(
       OPEN_ROUTE_KEY,
@@ -31,10 +31,10 @@ export class SubdomainGuard implements CanActivate {
       );
     }
 
-    return true;
+    return !!subdomain;
   }
 
-  private getSubdomainFromRequest(request: Request): string | null {
+  private getSubdomainFromRequest(request: RequestWithUser): string | null {
     const host = request['company'];
     if (host) {
       return host;

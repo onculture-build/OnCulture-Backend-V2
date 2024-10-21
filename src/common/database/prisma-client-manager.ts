@@ -2,7 +2,7 @@ import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient as CompanyPrismaClient } from '.prisma/company';
 import { PrismaClient } from '@prisma/client';
 import { execSync } from 'child_process';
-import { Request } from 'express';
+import { RequestWithUser } from '@@/auth/interfaces';
 
 const defaultSchemaId = '___';
 
@@ -42,7 +42,7 @@ export class PrismaClientManager implements OnModuleDestroy {
   }
 
   async getCompanyPrismaClientFromRequest(
-    request: Request,
+    request: RequestWithUser,
   ): Promise<CompanyPrismaClient> {
     const companyId = await this.getCompanyIdFromSubdomain(request);
 
@@ -71,7 +71,9 @@ export class PrismaClientManager implements OnModuleDestroy {
     return `${switchedUrl[0]}?schema=${schema}`;
   }
 
-  private async getCompanyIdFromSubdomain(req: Request): Promise<string> {
+  private async getCompanyIdFromSubdomain(
+    req: RequestWithUser,
+  ): Promise<string> {
     const companyCode = (req['company'] as string) || '';
 
     const company = await this.prismaClient.baseCompany.findUnique({

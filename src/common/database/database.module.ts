@@ -5,7 +5,7 @@ import { REQUEST } from '@nestjs/core';
 import { PrismaClient } from '@prisma/client';
 import { PrismaClientManager } from './prisma-client-manager';
 import { PrismaService } from './prisma/prisma.service';
-import { Request } from 'express';
+import { RequestWithUser } from '@@/auth/interfaces';
 
 const companyPrismaClientProvider: FactoryProvider<
   Promise<CompanyPrismaClient>
@@ -13,7 +13,10 @@ const companyPrismaClientProvider: FactoryProvider<
   provide: CompanyPrismaClient,
   scope: Scope.REQUEST,
   inject: [REQUEST, PrismaClientManager],
-  useFactory: async (request: Request, manager: PrismaClientManager) => {
+  useFactory: async (
+    request: RequestWithUser,
+    manager: PrismaClientManager,
+  ) => {
     return manager.getCompanyPrismaClientFromRequest(request);
   },
 };
