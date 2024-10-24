@@ -16,6 +16,7 @@ import { RequestWithUser } from '@@/auth/interfaces';
 import { GetCourseDto } from './dto/get-course .dto';
 import { CompanyUserQueueProducer } from '../queue/producer';
 import { PrismaClientManager } from '../../common/database/prisma-client-manager';
+import * as Sentry from '@sentry/node';
 
 @Injectable()
 export class CourseService extends CrudService<
@@ -190,20 +191,24 @@ export class CourseService extends CrudService<
   async assignCourseToEmployees(
     data: AssignCourseToEmployeesDto & { companyId: string },
   ) {
-    const { companyId, subscriptionId, employeeIds } = data;
-    console.log('data for queue', data)
-    const client = this.prismaClientManager.getCompanyPrismaClient(companyId);
-    for (const employeeId of employeeIds) {
-      try {
-        await this.assignEmployeeToCourse(
-          { employeeId, subscriptionId },
-          client,
-        );
-      } catch (error) {
-        continue;
-      }
-    }
+   try {
+     const { companyId, subscriptionId, employeeIds } = data;
+     Sentry.captureMessage(JSON.stringify(data), 'info')
+     const client = this.prismaClientManager.getCompanyPrismaClient(companyId);
+     for (const employeeId of employeeIds) {
+       try {
+         await this.assignEmployeeToCourse(
+           { employeeId, subscriptionId },
+           client,
+         );
+       } catch (error) {
+         continue;
+       }
+     }
 
-    return;
+     return;
+   } catch (error) {
+    Sentry.captureMessage(error.message , 'info')
+   }
   }
 }

@@ -9,7 +9,7 @@ import {
   QUEUE,
 } from '../interfaces';
 import { AssignCourseToEmployeesDto } from '../course/dto/assign-employee.dto';
-
+import * as Sentry from '@sentry/node';
 @Injectable()
 export class CompanyUserQueueProducer {
   constructor(
@@ -38,7 +38,7 @@ export class CompanyUserQueueProducer {
   async addEmployeesToCourseSubscription(
     data: AssignCourseToEmployeesDto & { companyId: string },
   ) {
-    console.log("****QUEUEUE STARTED****")
+    Sentry.captureMessage("****QUEUEUE STARTED****",'info')
     await this.addToQueue(JOBS.ASSIGN_COURSE_TO_EMPLOYEES, data, {
       removeOnComplete: true,
     });
