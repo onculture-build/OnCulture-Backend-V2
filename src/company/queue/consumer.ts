@@ -99,6 +99,6 @@ export class CompanyUserQueueConsumer extends BaseQueueProcessor {
   async addEmployeesToCourse({
     data,
   }: Job<AssignCourseToEmployeesDto & { companyId: string }>) {
-    this.courseService.assignCourseToEmployees(data);
+    await this.courseService.assignCourseToEmployees(data);
   }
 }

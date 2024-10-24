@@ -191,6 +191,7 @@ export class CourseService extends CrudService<
     data: AssignCourseToEmployeesDto & { companyId: string },
   ) {
     const { companyId, subscriptionId, employeeIds } = data;
+    console.log('data for queue', data)
     const client = this.prismaClientManager.getCompanyPrismaClient(companyId);
     for (const employeeId of employeeIds) {
       try {

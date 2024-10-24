@@ -38,6 +38,7 @@ export class CompanyUserQueueProducer {
   async addEmployeesToCourseSubscription(
     data: AssignCourseToEmployeesDto & { companyId: string },
   ) {
+    console.log("****QUEUEUE STARTED****")
     await this.addToQueue(JOBS.ASSIGN_COURSE_TO_EMPLOYEES, data, {
       removeOnComplete: true,
     });
